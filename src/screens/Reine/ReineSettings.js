@@ -17,24 +17,23 @@ import {
   HelpCircle,
   ChevronRight,
   LogOut,
-  Calendar,
+  CalendarDays,
   Users,
   Wallet,
   Settings,
-  Check
+  CheckCircle2
 } from 'lucide-react-native';
 
-// Deep Navy Blue Theme (Ryu's Transient House)
+// Reine's Beach House Theme (Vibrant Pink & Clean White)
 const COLORS = {
-  background: '#FAFAFA',
-  primary: '#23324B',       // Deep Navy Blue (Header & Buttons)
-  primaryLight: '#3A4D6B',
-  accent: '#3B82F6',
-  textMain: '#0F172A',
-  textMuted: '#94A3B8',
-  border: '#F1F5F9',
+  background: '#FFFFFF',
+  primary: '#E64E76',       // Vibrant Pink
+  primaryLight: '#FDF0F4',  // Very soft pink for backgrounds
+  primaryMuted: '#F9A8BB',  // Muted pink
+  textMain: '#1E293B',      // Dark Slate
+  textMuted: '#94A3B8',     // Slate Gray
+  border: '#F8FAFC',
   cardBg: '#FFFFFF',
-  badgeBg: '#FFFFFF',
 };
 
 const SETTINGS_MENU = [
@@ -64,15 +63,17 @@ const SETTINGS_MENU = [
   },
 ];
 
-export default function RyuSettings({ navigation }) {
-  const activeNav = 'Setting';
+export default function ReineSettings({ navigation }) {
+  const activeNav = 'Admin';
 
   const handleLogout = () => {
     // Reset navigation to Login screen
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+    if (navigation && navigation.reset) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
   };
 
   return (
@@ -85,7 +86,7 @@ export default function RyuSettings({ navigation }) {
         bounces={false}
       >
 
-        {/* --- DARK NAVY HEADER --- */}
+        {/* --- VIBRANT PINK HEADER --- */}
         <SafeAreaView edges={['top']} style={styles.headerBackground}>
           <View style={styles.headerContent}>
 
@@ -96,13 +97,13 @@ export default function RyuSettings({ navigation }) {
                 style={styles.avatarImage}
               />
               <View style={styles.verifiedBadge}>
-                <Check size={10} color={COLORS.primary} strokeWidth={3} />
+                <CheckCircle2 size={24} color={COLORS.primary} fill="#FFFFFF" strokeWidth={2} />
               </View>
             </View>
 
             {/* Profile Info */}
-            <Text style={[styles.headerTitle, { fontFamily: 'Manrope-ExtraBold' }]}>Ryu's Transient House Admin</Text>
-            <Text style={[styles.headerSubtitle, { fontFamily: 'Manrope-Medium' }]}>Resort Admin</Text>
+            <Text style={styles.headerTitle}>Reine's House Admin</Text>
+            <Text style={styles.headerSubtitle}>Resort Manager</Text>
 
           </View>
         </SafeAreaView>
@@ -121,15 +122,15 @@ export default function RyuSettings({ navigation }) {
                 style={[styles.menuItem, isLast && styles.menuItemLast]}
               >
                 <View style={styles.iconBox}>
-                  <Icon size={22} color={COLORS.primary} strokeWidth={2} />
+                  <Icon size={22} color={COLORS.primary} strokeWidth={2.5} />
                 </View>
 
                 <View style={styles.menuTextContainer}>
-                  <Text style={[styles.menuTitle, { fontFamily: 'Manrope-Bold' }]}>{item.title}</Text>
-                  <Text style={[styles.menuSubtitle, { fontFamily: 'Manrope-Medium' }]}>{item.subtitle}</Text>
+                  <Text style={styles.menuTitle}>{item.title}</Text>
+                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
                 </View>
 
-                <ChevronRight size={20} color={COLORS.border} strokeWidth={2.5} />
+                <ChevronRight size={20} color="#CBD5E1" strokeWidth={2.5} />
               </TouchableOpacity>
             )
           })}
@@ -139,11 +140,11 @@ export default function RyuSettings({ navigation }) {
         {/* --- LOGOUT BUTTON --- */}
         <View style={styles.footerContainer}>
           <TouchableOpacity activeOpacity={0.85} style={styles.logoutButton} onPress={handleLogout}>
-            <LogOut size={20} color="#FFFFFF" strokeWidth={2.5} style={styles.logoutIcon} />
-            <Text style={[styles.logoutButtonText, { fontFamily: 'Manrope-ExtraBold' }]}>Logout</Text>
+            <LogOut size={20} color={COLORS.primary} strokeWidth={2.5} style={styles.logoutIcon} />
+            <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
 
-          <Text style={[styles.versionText, { fontFamily: 'Manrope-ExtraBold' }]}>RYU'S TRANSIENT HOUSE V2.4.0</Text>
+          <Text style={styles.versionText}>REINE'S BEACH HOUSE RESORT V2.4.0</Text>
         </View>
 
         <View style={{ height: 120 }} />
@@ -152,29 +153,29 @@ export default function RyuSettings({ navigation }) {
       {/* --- BOTTOM NAVIGATION --- */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem}>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem}>
             <Home size={24} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Home' && styles.navTextActive]}>HOME</Text>
+            <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={styles.navItem}>
-            <Calendar size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Bookings' && styles.navTextActive]}>BOOKINGS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineBookings')} style={styles.navItem}>
+            <CalendarDays size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={styles.navItem}>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineGuestMgmt')} style={styles.navItem}>
             <Users size={24} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Guest' && styles.navTextActive]}>GUEST</Text>
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={styles.navItem}>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineFinance')} style={styles.navItem}>
             <Wallet size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Finance' && styles.navTextActive]}>FINANCE</Text>
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('RyuSettings')} style={styles.navItem}>
-            <Settings size={24} color={activeNav === 'Setting' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Setting' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Setting' && styles.navTextActive]}>SETTING</Text>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')}>
+            <Settings size={24} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -192,11 +193,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  /* --- DARK NAVY HEADER --- */
+  /* --- VIBRANT PINK HEADER --- */
   headerBackground: {
     backgroundColor: COLORS.primary,
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
     paddingBottom: 80, // Extra padding to allow card to overlap
   },
   headerContent: {
@@ -213,17 +214,17 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     borderWidth: 4,
-    borderColor: '#FFD1C1', // Matches the peach outline in mockup
+    borderColor: '#FFD1C1', // Light peach outline matching mockup
     backgroundColor: '#FDECE6',
   },
   verifiedBadge: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.badgeBg,
+    bottom: -2,
+    right: -2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -233,14 +234,16 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -0.5,
     marginBottom: 6,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#94A3B8', // Muted slate color for subtitle
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.8)', // Muted white
   },
 
   /* --- OVERLAPPING CARD --- */
@@ -248,7 +251,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cardBg,
     borderRadius: 32,
     marginHorizontal: 24,
-    marginTop: -40, // Pulls the card up into the dark header
+    marginTop: -45, // Pulls the card up into the pink header
     padding: 24,
     paddingVertical: 32,
     shadowColor: '#000',
@@ -269,12 +272,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   menuTextContainer: {
     flex: 1,
@@ -282,12 +283,14 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     fontSize: 16,
+    fontWeight: '800',
     color: COLORS.textMain,
     marginBottom: 4,
     letterSpacing: -0.2,
   },
   menuSubtitle: {
     fontSize: 13,
+    fontWeight: '500',
     color: COLORS.textMuted,
   },
 
@@ -298,29 +301,26 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     flexDirection: 'row',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.primaryLight, // Soft pink background
     borderRadius: 16,
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 6,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   logoutIcon: {
     marginRight: 10,
   },
   logoutButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.primary, // Vibrant pink text
     fontSize: 16,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   versionText: {
     textAlign: 'center',
     fontSize: 10,
+    fontWeight: '700',
     color: COLORS.textMuted,
     letterSpacing: 1.5,
   },
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: '#F1F5F9',
     paddingBottom: Platform.OS === 'ios' ? 20 : 0,
   },
   bottomNav: {
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     height: 70,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
   },
   navItem: {
     alignItems: 'center',
@@ -349,10 +349,10 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   navText: {
-    fontSize: 8,
+    fontSize: 10,
+    fontWeight: '700',
     color: COLORS.textMuted,
     marginTop: 6,
-    letterSpacing: 0.5,
   },
   navTextActive: {
     color: COLORS.primary,

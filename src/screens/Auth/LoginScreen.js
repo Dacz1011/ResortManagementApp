@@ -43,21 +43,21 @@ const ROLES = [
     name: "Reine's",
     color1: '#FF7B9C',
     color2: '#FF4D79',
-    icon: Palmtree, // Updated to relate to Beach House
+    icon: Palmtree,
   },
   {
     id: 'casa',
     name: 'Casa M.O.',
     color1: '#335C3B',
     color2: '#1E3823',
-    icon: Umbrella, // Updated to relate to Mini Resort
+    icon: Umbrella,
   },
   {
     id: 'ryu',
     name: "Ryu's",
-    color1: '#23324B', // Ryu's specific shade
+    color1: '#23324B',
     color2: '#162336',
-    icon: MountainSnow, // Updated to relate to Baguio Highlands
+    icon: MountainSnow,
   },
 ];
 
@@ -110,40 +110,17 @@ export default function LoginScreen() {
   };
 
   const handleLogin = () => {
-    if (activeRole.id === 'owner') {
-      if (username === 'Admin123' && password === '123456') {
-        navigation.navigate('OwnerDashboard');
-      } else {
-        Alert.alert('Invalid Credentials', 'Please check your username and password.');
-      }
-      return;
-    }
-
-    if (activeRole.id === 'ryu') {
-      if (username === 'Ryu_Admin' && password === '123456') {
-        navigation.navigate('RyuHome');
-      } else {
-        Alert.alert('Invalid Credentials', 'Please check your username and password.');
-      }
-      return;
-    }
-
-    if (activeRole.id === 'reine') {
-      if (username === 'Reine_Admin' && password === '123456') {
-        navigation.navigate('ReineHome');
-      } else {
-        Alert.alert('Invalid Credentials', 'Please check your username and password.');
-      }
-      return;
-    }
-
-    if (activeRole.id === 'casa') {
-      if (username === 'Casa_Admin' && password === '123456') {
-        navigation.navigate('CasaHome');
-      } else {
-        Alert.alert('Invalid Credentials', 'Please check your username and password.');
-      }
-      return;
+    // Role based navigation based on credentials
+    if (username === 'Admin123' && password === '123456') {
+      navigation.navigate('OwnerDashboard');
+    } else if (username === 'Ryu_Admin' && password === '123456') {
+      navigation.navigate('RyuHome');
+    } else if (username === 'Reine_Admin' && password === '123456') {
+      navigation.navigate('ReineHome');
+    } else if (username === 'Casa_Admin' && password === '123456') {
+      navigation.navigate('CasaHome');
+    } else {
+      Alert.alert('Invalid Credentials', 'Please check your username and password.');
     }
   };
 

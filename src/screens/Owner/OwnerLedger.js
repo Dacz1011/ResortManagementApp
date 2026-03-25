@@ -35,20 +35,23 @@ import {
 
 const { width } = Dimensions.get('window');
 
-// Exact Colors matching the premium mockup design
+// Premium Color Palette (Modernized)
 const COLORS = {
-  background: '#FFFFFF',
+  background: '#F8FAFC',    // Cool off-white for depth
   primary: '#1A3626',       // Deep luxury forest green
   primaryLight: '#E8F0EA',  // Soft muted green
+  primaryDark: '#0D1E14',
   primaryText: '#245236',   // Slightly lighter green
   accent: '#A3E635',
   cardBg: '#FFFFFF',
+  inputBg: '#F8FAFC',
   textMain: '#0F172A',
-  textMuted: '#94A3B8',
-  borderLight: '#F1F5F9',
-  borderCard: '#E2E8F0',
-  successText: '#15803D',   // Dark green for income
+  textMuted: '#64748B',
+  border: '#E2E8F0',
+  successText: '#16A34A',   // Dark green for income
+  successBg: '#DCFCE7',
   expenseText: '#EF4444',   // Red for expenses
+  expenseBg: '#FEE2E2',
 };
 
 // Filter Options
@@ -133,22 +136,22 @@ export default function OwnerLedger({ navigation }) {
     <>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconBtnBack} activeOpacity={0.7} onPress={() => navigation.goBack()}>
-          <ChevronLeft size={28} color={COLORS.primary} strokeWidth={2.5} />
+          <ChevronLeft size={28} color={COLORS.textMain} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { fontFamily: 'Manrope-ExtraBold' }]}>Transaction Ledger</Text>
-          <Text style={[styles.headerSubtitle, { fontFamily: 'Manrope-Bold' }]}>HISTORY & RECORDS</Text>
+          <Text style={styles.headerSubtitle}>HISTORY & RECORDS</Text>
+          <Text style={styles.headerTitle}>Transaction Ledger</Text>
         </View>
         <TouchableOpacity style={styles.exportButton} activeOpacity={0.7}>
-          <Download size={20} color={COLORS.primary} strokeWidth={2} />
+          <Download size={20} color={COLORS.textMain} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={true}>
         <View style={styles.searchContainer}>
-          <Search size={20} color={COLORS.primaryText} strokeWidth={2.5} style={styles.searchIcon} />
+          <Search size={20} color={COLORS.textMuted} strokeWidth={2.5} style={styles.searchIcon} />
           <TextInput
-            style={[styles.searchInput, { fontFamily: 'Manrope-Medium' }]}
+            style={styles.searchInput}
             placeholder="Search transactions..."
             placeholderTextColor={COLORS.textMuted}
             value={searchQuery}
@@ -165,7 +168,7 @@ export default function OwnerLedger({ navigation }) {
                 onPress={() => setActiveFilter(filter)}
                 style={[styles.filterChip, activeFilter === filter && styles.filterChipActive]}
               >
-                <Text style={[styles.filterText, { fontFamily: 'Manrope-Bold' }, activeFilter === filter && styles.filterTextActive]}>
+                <Text style={[styles.filterText, activeFilter === filter && styles.filterTextActive]}>
                   {filter}
                 </Text>
               </TouchableOpacity>
@@ -177,7 +180,7 @@ export default function OwnerLedger({ navigation }) {
           {ALL_LEDGER_DATA.map((section, sectionIndex) => (
             <View key={sectionIndex} style={styles.sectionContainer}>
               <View style={styles.sectionHeaderRow}>
-                <Text style={[styles.sectionTitle, { fontFamily: 'Manrope-ExtraBold' }]}>{section.title}</Text>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
                 <View style={styles.sectionLine} />
               </View>
 
@@ -186,18 +189,18 @@ export default function OwnerLedger({ navigation }) {
                 const isIncome = item.type === 'income';
                 return (
                   <TouchableOpacity key={item.id} activeOpacity={0.7} style={styles.transactionCard}>
-                    <View style={styles.txIconWrapper}>
-                      <Icon size={22} color={COLORS.primary} strokeWidth={2} />
+                    <View style={[styles.txIconWrapper, isIncome ? { backgroundColor: COLORS.successBg } : { backgroundColor: COLORS.expenseBg }]}>
+                      <Icon size={20} color={isIncome ? COLORS.successText : COLORS.expenseText} strokeWidth={2.5} />
                     </View>
                     <View style={styles.txDetails}>
-                      <Text style={[styles.txTitle, { fontFamily: 'Manrope-Bold' }]}>{item.title}</Text>
-                      <Text style={[styles.txSubtitle, { fontFamily: 'Manrope-ExtraBold' }]}>{item.subtitle}</Text>
+                      <Text style={styles.txTitle}>{item.title}</Text>
+                      <Text style={styles.txSubtitle}>{item.subtitle}</Text>
                     </View>
                     <View style={styles.txFinancials}>
-                      <Text style={[styles.txAmount, { fontFamily: 'Manrope-Bold' }, { color: isIncome ? COLORS.successText : COLORS.expenseText }]}>
+                      <Text style={[styles.txAmount, { color: isIncome ? COLORS.successText : COLORS.textMain }]}>
                         {item.amount}
                       </Text>
-                      <Text style={[styles.txMethod, { fontFamily: 'Manrope-Bold' }]}>{item.method}</Text>
+                      <Text style={styles.txMethod}>{item.method}</Text>
                     </View>
                   </TouchableOpacity>
                 )
@@ -205,7 +208,7 @@ export default function OwnerLedger({ navigation }) {
             </View>
           ))}
         </View>
-        <View style={{ height: 130 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </>
   );
@@ -215,22 +218,22 @@ export default function OwnerLedger({ navigation }) {
     <>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconBtnBack} onPress={() => setActiveFilter('All')} activeOpacity={0.7}>
-          <ChevronLeft size={28} color={COLORS.primary} strokeWidth={2.5} />
+          <ChevronLeft size={28} color={COLORS.textMain} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { fontFamily: 'Manrope-ExtraBold' }]}>Income Ledger</Text>
-          <Text style={[styles.headerSubtitle, { fontFamily: 'Manrope-Bold' }]}>REVENUE ONLY</Text>
+          <Text style={styles.headerSubtitle}>REVENUE ONLY</Text>
+          <Text style={styles.headerTitle}>Income Ledger</Text>
         </View>
         <TouchableOpacity style={styles.exportButton} activeOpacity={0.7}>
-          <ListFilter size={20} color={COLORS.primary} strokeWidth={2} />
+          <ListFilter size={20} color={COLORS.textMain} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={true}>
         <View style={styles.searchContainer}>
-          <Search size={20} color={COLORS.primaryLight} strokeWidth={2.5} style={styles.searchIcon} />
+          <Search size={20} color={COLORS.textMuted} strokeWidth={2.5} style={styles.searchIcon} />
           <TextInput
-            style={[styles.searchInput, { fontFamily: 'Manrope-Medium' }]}
+            style={styles.searchInput}
             placeholder="Search income entries..."
             placeholderTextColor={COLORS.textMuted}
             value={searchQuery}
@@ -239,21 +242,21 @@ export default function OwnerLedger({ navigation }) {
         </View>
 
         <View style={styles.summaryCard}>
-          <Text style={[styles.summaryCardLabel, { fontFamily: 'Manrope-ExtraBold' }]}>TOTAL INCOME (OCT 2023)</Text>
+          <Text style={styles.summaryCardLabel}>TOTAL INCOME (OCT 2023)</Text>
           <View style={styles.summaryCardValueRow}>
-            <Text style={[styles.summaryCardCurrency, { fontFamily: 'Manrope-Bold' }]}>₱</Text>
-            <Text style={[styles.summaryCardValue, { fontFamily: 'Manrope-Bold' }]}>30,350.00</Text>
-            <Text style={[styles.summaryCardGrowth, { fontFamily: 'Manrope-Bold' }]}>+12% vs last month</Text>
+            <Text style={styles.summaryCardCurrency}>₱</Text>
+            <Text style={styles.summaryCardValue}>30,350.00</Text>
+            <Text style={styles.summaryCardGrowth}>+12% vs last month</Text>
           </View>
 
           <View style={styles.summaryCardSubRow}>
             <View style={styles.summaryCardSubBox}>
-              <Text style={[styles.summaryCardSubLabel, { fontFamily: 'Manrope-ExtraBold' }]}>BOOKINGS</Text>
-              <Text style={[styles.summaryCardSubValue, { fontFamily: 'Manrope-Bold' }]}>₱4,500.00</Text>
+              <Text style={styles.summaryCardSubLabel}>BOOKINGS</Text>
+              <Text style={styles.summaryCardSubValue}>₱4,500.00</Text>
             </View>
             <View style={styles.summaryCardSubBox}>
-              <Text style={[styles.summaryCardSubLabel, { fontFamily: 'Manrope-ExtraBold' }]}>RENTALS</Text>
-              <Text style={[styles.summaryCardSubValue, { fontFamily: 'Manrope-Bold' }]}>₱25,000.00</Text>
+              <Text style={styles.summaryCardSubLabel}>RENTALS</Text>
+              <Text style={styles.summaryCardSubValue}>₱25,000.00</Text>
             </View>
           </View>
         </View>
@@ -262,29 +265,29 @@ export default function OwnerLedger({ navigation }) {
           {INCOME_DATA.map((section, sectionIndex) => (
             <View key={sectionIndex} style={styles.sectionContainer}>
               <View style={styles.sectionHeaderRow}>
-                <Text style={[styles.sectionTitle, { fontFamily: 'Manrope-ExtraBold' }]}>{section.title}</Text>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
                 <View style={styles.sectionLine} />
               </View>
 
               {section.data.map((item) => (
                 <TouchableOpacity key={item.id} activeOpacity={0.7} style={styles.transactionCard}>
-                  <View style={[styles.txIconWrapper, { backgroundColor: '#F0FDF4' }]}>
+                  <View style={[styles.txIconWrapper, { backgroundColor: COLORS.successBg }]}>
                     <Plus size={22} color={COLORS.successText} strokeWidth={2.5} />
                   </View>
                   <View style={styles.txDetails}>
-                    <Text style={[styles.txTitle, { fontFamily: 'Manrope-Bold' }]}>{item.title}</Text>
-                    <Text style={[styles.txSubtitle, { fontFamily: 'Manrope-ExtraBold' }]}>{item.subtitle}</Text>
+                    <Text style={styles.txTitle}>{item.title}</Text>
+                    <Text style={styles.txSubtitle}>{item.subtitle}</Text>
                   </View>
                   <View style={styles.txFinancials}>
-                    <Text style={[styles.txAmount, { fontFamily: 'Manrope-Bold', color: COLORS.successText }]}>+₱{item.amount}</Text>
-                    <Text style={[styles.txMethod, { fontFamily: 'Manrope-Bold' }]}>{item.method}</Text>
+                    <Text style={[styles.txAmount, { color: COLORS.successText }]}>+₱{item.amount}</Text>
+                    <Text style={styles.txMethod}>{item.method}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
             </View>
           ))}
         </View>
-        <View style={{ height: 130 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </>
   );
@@ -294,17 +297,18 @@ export default function OwnerLedger({ navigation }) {
     <>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconBtnBack} onPress={() => setActiveFilter('All')} activeOpacity={0.7}>
-          <ChevronLeft size={28} color={COLORS.primary} strokeWidth={2.5} />
+          <ChevronLeft size={28} color={COLORS.textMain} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { fontFamily: 'Manrope-ExtraBold' }]}>Add Manual Expense</Text>
+          <Text style={styles.headerSubtitle}>NEW ENTRY</Text>
+          <Text style={styles.headerTitle}>Add Expense</Text>
         </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={true}>
 
         {/* Select Property */}
-        <Text style={[styles.formLabel, { fontFamily: 'Manrope-ExtraBold' }]}>SELECT PROPERTY</Text>
+        <Text style={styles.formLabel}>SELECT PROPERTY</Text>
         <View style={styles.formPropertyRow}>
           {["Reine's", "Ryu's", "Casa M.O."].map((prop) => (
             <TouchableOpacity
@@ -313,7 +317,7 @@ export default function OwnerLedger({ navigation }) {
               onPress={() => setExpenseProperty(prop)}
               style={[styles.formPropertyPill, expenseProperty === prop && styles.formPropertyPillActive]}
             >
-              <Text style={[styles.formPropertyText, { fontFamily: 'Manrope-Bold' }, expenseProperty === prop && styles.formPropertyTextActive]}>
+              <Text style={[styles.formPropertyText, expenseProperty === prop && styles.formPropertyTextActive]}>
                 {prop}
               </Text>
             </TouchableOpacity>
@@ -321,20 +325,20 @@ export default function OwnerLedger({ navigation }) {
         </View>
 
         {/* Expense Category */}
-        <Text style={[styles.formLabel, { fontFamily: 'Manrope-ExtraBold' }]}>EXPENSE CATEGORY</Text>
+        <Text style={styles.formLabel}>EXPENSE CATEGORY</Text>
         <TouchableOpacity style={styles.formSelectBox} activeOpacity={0.8}>
-          <Text style={[styles.formSelectText, { fontFamily: 'Manrope-SemiBold' }]}>Select category</Text>
+          <Text style={styles.formSelectText}>Select category</Text>
           <ChevronDown size={20} color={COLORS.textMuted} />
         </TouchableOpacity>
 
         {/* Amount */}
-        <Text style={[styles.formLabel, { fontFamily: 'Manrope-ExtraBold' }]}>AMOUNT</Text>
+        <Text style={styles.formLabel}>AMOUNT</Text>
         <View style={styles.formInputBox}>
           <View style={styles.pesoIconWrapper}>
-            <Text style={[styles.pesoIconText, { fontFamily: 'Manrope-ExtraBold' }]}>₱</Text>
+            <Text style={styles.pesoIconText}>₱</Text>
           </View>
           <TextInput
-            style={[styles.formAmountInput, { fontFamily: 'Manrope-Bold' }]}
+            style={styles.formAmountInput}
             placeholder="0.00"
             placeholderTextColor={COLORS.textMuted}
             keyboardType="decimal-pad"
@@ -344,10 +348,10 @@ export default function OwnerLedger({ navigation }) {
         </View>
 
         {/* Date */}
-        <Text style={[styles.formLabel, { fontFamily: 'Manrope-ExtraBold' }]}>DATE</Text>
+        <Text style={styles.formLabel}>DATE</Text>
         <View style={styles.formInputBox}>
           <TextInput
-            style={[styles.formInput, { fontFamily: 'Manrope-SemiBold' }]}
+            style={styles.formInput}
             placeholder="MM/DD/YYYY"
             placeholderTextColor={COLORS.textMuted}
             value={expenseDate}
@@ -358,12 +362,11 @@ export default function OwnerLedger({ navigation }) {
         {/* Save Button */}
         <View style={styles.formFooter}>
           <TouchableOpacity activeOpacity={0.8} style={styles.saveExpenseBtn} onPress={() => setActiveFilter('All')}>
-            <Text style={[styles.saveExpenseBtnText, { fontFamily: 'Manrope-ExtraBold' }]}>Save Expense</Text>
+            <Text style={styles.saveExpenseBtnText}>Save Expense</Text>
           </TouchableOpacity>
-          <View style={styles.formIndicator} />
         </View>
 
-        <View style={{ height: 130 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </>
   );
@@ -373,32 +376,32 @@ export default function OwnerLedger({ navigation }) {
     <>
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconBtnBack} onPress={() => setActiveFilter('All')} activeOpacity={0.7}>
-          <ChevronLeft size={28} color={COLORS.primary} strokeWidth={2.5} />
+          <ChevronLeft size={28} color={COLORS.textMain} strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={[styles.headerTitle, { fontFamily: 'Manrope-ExtraBold' }]}>Refund History</Text>
-          <Text style={[styles.headerSubtitle, { fontFamily: 'Manrope-Bold' }]}>REFUND LEDGER ONLY</Text>
+          <Text style={styles.headerSubtitle}>REFUND LEDGER ONLY</Text>
+          <Text style={styles.headerTitle}>Refund History</Text>
         </View>
         <TouchableOpacity style={styles.exportButton} activeOpacity={0.7}>
-          <ListFilter size={20} color={COLORS.primary} strokeWidth={2} />
+          <ListFilter size={20} color={COLORS.textMain} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={true}>
 
         <View style={styles.summaryCard}>
-          <Text style={[styles.summaryCardLabel, { fontFamily: 'Manrope-ExtraBold' }]}>TOTAL REFUNDED</Text>
+          <Text style={styles.summaryCardLabel}>TOTAL REFUNDED</Text>
           <View style={styles.summaryCardValueRow}>
-            <Text style={[styles.summaryCardCurrency, { fontFamily: 'Manrope-Bold' }]}>₱</Text>
-            <Text style={[styles.summaryCardValue, { fontFamily: 'Manrope-Bold' }]}>42,350.00</Text>
+            <Text style={styles.summaryCardCurrency}>₱</Text>
+            <Text style={styles.summaryCardValue}>42,350.00</Text>
           </View>
-          <Text style={[styles.summaryCardDate, { fontFamily: 'Manrope-Medium' }]}>October 01 - October 24, 2023</Text>
+          <Text style={styles.summaryCardDate}>October 01 - October 24, 2023</Text>
         </View>
 
         <View style={styles.searchContainer}>
-          <Search size={20} color={COLORS.primaryText} strokeWidth={2.5} style={styles.searchIcon} />
+          <Search size={20} color={COLORS.textMuted} strokeWidth={2.5} style={styles.searchIcon} />
           <TextInput
-            style={[styles.searchInput, { fontFamily: 'Manrope-Medium' }]}
+            style={styles.searchInput}
             placeholder="Search refund records..."
             placeholderTextColor={COLORS.textMuted}
             value={searchQuery}
@@ -410,90 +413,83 @@ export default function OwnerLedger({ navigation }) {
           {REFUND_DATA.map((section, sectionIndex) => (
             <View key={sectionIndex} style={styles.sectionContainer}>
               <View style={styles.sectionHeaderRow}>
-                <Text style={[styles.sectionTitle, { fontFamily: 'Manrope-ExtraBold' }]}>{section.title}</Text>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
                 <View style={styles.sectionLine} />
               </View>
 
               {section.data.map((item) => (
                 <TouchableOpacity key={item.id} activeOpacity={0.7} style={styles.transactionCard}>
-                  <View style={[styles.txIconWrapper, { backgroundColor: '#F8FAFC' }]}>
+                  <View style={[styles.txIconWrapper, { backgroundColor: COLORS.successBg }]}>
                     <ArrowLeftSquare size={22} color={COLORS.successText} strokeWidth={2} />
                   </View>
                   <View style={styles.txDetails}>
-                    <Text style={[styles.txTitle, { fontFamily: 'Manrope-Bold' }]}>{item.title}</Text>
-                    <Text style={[styles.txSubtitle, { fontFamily: 'Manrope-ExtraBold' }]}>{item.subtitle}</Text>
+                    <Text style={styles.txTitle}>{item.title}</Text>
+                    <Text style={styles.txSubtitle}>{item.subtitle}</Text>
                   </View>
                   <View style={styles.txFinancials}>
-                    <Text style={[styles.txAmount, { fontFamily: 'Manrope-Bold', color: COLORS.successText }]}>{item.amount}</Text>
-                    <Text style={[styles.txMethod, { fontFamily: 'Manrope-Bold' }]}>{item.method}</Text>
+                    <Text style={[styles.txAmount, { color: COLORS.successText }]}>{item.amount}</Text>
+                    <Text style={styles.txMethod}>{item.method}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
             </View>
           ))}
         </View>
-        <View style={{ height: 130 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </>
   );
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
-      {/* DYNAMIC CONTENT SWITCHER */}
-      {activeFilter === 'All' && renderAllLedger()}
-      {activeFilter === 'Income' && renderIncomeLedger()}
-      {activeFilter === 'Expenses' && renderExpensesForm()}
-      {activeFilter === 'Refunds' && renderRefundsLedger()}
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        {/* DYNAMIC CONTENT SWITCHER */}
+        {activeFilter === 'All' && renderAllLedger()}
+        {activeFilter === 'Income' && renderIncomeLedger()}
+        {activeFilter === 'Expenses' && renderExpensesForm()}
+        {activeFilter === 'Refunds' && renderRefundsLedger()}
+      </SafeAreaView>
 
-      {/* --- CUSTOM BOTTOM NAVIGATION BAR --- */}
-      <View style={styles.bottomNavContainer}>
-        <View style={styles.bottomNav}>
+      {/* --- FLOATING BOTTOM NAVIGATION (NO FAB) --- */}
+      <View style={styles.floatingNavWrapper}>
+        <View style={styles.floatingNav}>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem}>
-            <LayoutGrid size={24} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Property' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Property' && styles.navTextActive]}>PROPERTY</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]}>
+            <LayoutGrid size={22} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Property' && <Text style={styles.navTextActive}>Props</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={styles.navItem}>
-            <Calendar size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Bookings' && styles.navTextActive]}>BOOKINGS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}>
+            <Calendar size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Book</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={styles.navItem}>
-            <BarChart2 size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Finance' && styles.navTextActive]}>FINANCE</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]}>
+            <BarChart2 size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Fin</Text>}
           </TouchableOpacity>
 
-          <View style={styles.navSpacer} />
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={styles.navItem}>
-            <BookOpen size={24} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Ledger' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Ledger' && styles.navTextActive]}>LEDGER</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]}>
+            <BookOpen size={22} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Ledger' && <Text style={styles.navTextActive}>Ledg</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={styles.navItem}>
-            <TrendingUp size={24} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Insights' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Insights' && styles.navTextActive]}>INSIGHTS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]}>
+            <TrendingUp size={22} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Insights' && <Text style={styles.navTextActive}>Data</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={styles.navItem}>
-            <Settings size={24} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Settings' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Settings' && styles.navTextActive]}>SETTINGS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]}>
+            <Settings size={22} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Settings' && <Text style={styles.navTextActive}>Set</Text>}
           </TouchableOpacity>
 
         </View>
-
-        {/* --- FLOATING ACTION BUTTON --- */}
-        <TouchableOpacity activeOpacity={0.9} style={styles.fab}>
-          <View style={styles.fabInner}>
-            <Plus size={32} color="#FFFFFF" strokeWidth={2.5} />
-          </View>
-        </TouchableOpacity>
       </View>
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -502,56 +498,80 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  safeArea: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 20 : 10,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 48 : 20, // Increased to avoid status bar overlap
     paddingBottom: 24,
   },
   iconBtnBack: {
-    marginRight: 12,
+    marginRight: 16,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   headerTitleContainer: {
     flex: 1,
   },
-  headerTitle: {
-    fontSize: 24,
+  headerSubtitle: {
+    fontSize: 11,
     fontWeight: '800',
-    color: COLORS.primary,
+    color: COLORS.textMuted,
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: COLORS.textMain,
     letterSpacing: -0.5,
   },
-  headerSubtitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.primaryText,
-    letterSpacing: 1.5,
-    marginTop: 2,
-    textTransform: 'uppercase',
-  },
   exportButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.borderCard,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   scrollContent: {
     paddingHorizontal: 24,
+    paddingBottom: 20,
   },
 
   /* --- SEARCH BAR --- */
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 100,
-    paddingHorizontal: 16,
-    height: 56,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    height: 60,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   searchIcon: {
     marginRight: 12,
@@ -577,18 +597,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingVertical: 12,
     borderRadius: 100,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBg,
     borderWidth: 1,
-    borderColor: COLORS.borderCard,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1,
   },
   filterChipActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
   filterText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: COLORS.textMain,
+    color: COLORS.textMuted,
   },
   filterTextActive: {
     color: '#FFFFFF',
@@ -609,14 +634,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: COLORS.primaryText,
+    color: COLORS.textMuted,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   sectionLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.borderLight,
+    backgroundColor: COLORS.border,
     marginLeft: 12,
   },
   transactionCard: {
@@ -627,10 +652,10 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
+    shadowOpacity: 0.03,
     shadowRadius: 10,
     elevation: 2,
   },
@@ -638,7 +663,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -655,11 +679,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   txSubtitle: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.primaryText,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
   },
   txFinancials: {
     alignItems: 'flex-end',
@@ -672,7 +694,7 @@ const styles = StyleSheet.create({
   },
   txMethod: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.textMuted,
   },
 
@@ -691,7 +713,7 @@ const styles = StyleSheet.create({
   summaryCardLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.8)',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -714,13 +736,13 @@ const styles = StyleSheet.create({
   },
   summaryCardGrowth: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '800',
     color: COLORS.accent,
     marginLeft: 12,
   },
   summaryCardDate: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     color: 'rgba(255,255,255,0.7)',
     marginTop: 4,
   },
@@ -732,13 +754,13 @@ const styles = StyleSheet.create({
   summaryCardSubBox: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
   },
   summaryCardSubLabel: {
     fontSize: 9,
     fontWeight: '800',
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
     letterSpacing: 1,
     marginBottom: 6,
   },
@@ -752,7 +774,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: COLORS.primaryText,
+    color: COLORS.textMuted,
     letterSpacing: 1,
     marginBottom: 12,
     marginTop: 24,
@@ -765,14 +787,19 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 56,
     borderRadius: 20,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.cardBg,
     borderWidth: 1,
-    borderColor: COLORS.borderCard,
+    borderColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 1,
   },
   formPropertyPillActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.primaryLight,
     borderColor: COLORS.primary,
     borderWidth: 1.5,
   },
@@ -788,28 +815,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.cardBg,
     borderRadius: 20,
     paddingHorizontal: 20,
     height: 64,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 1,
   },
   formSelectText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.textMain,
   },
   formInputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.cardBg,
     borderRadius: 20,
     paddingHorizontal: 20,
     height: 64,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 1,
   },
   pesoIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     justifyContent: 'center',
@@ -830,29 +867,26 @@ const styles = StyleSheet.create({
   },
   formInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.textMain,
     height: '100%',
   },
   formFooter: {
     marginTop: 40,
-    marginBottom: 40,
-    borderTopWidth: 1,
-    borderColor: COLORS.borderLight,
-    paddingTop: 32,
+    paddingTop: 16,
   },
   saveExpenseBtn: {
     height: 64,
     backgroundColor: COLORS.primary,
-    borderRadius: 20,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 16,
-    elevation: 6,
+    elevation: 8,
   },
   saveExpenseBtnText: {
     color: '#FFFFFF',
@@ -860,75 +894,53 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.5,
   },
-  formIndicator: {
-    width: 140,
-    height: 5,
-    backgroundColor: COLORS.borderCard,
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginTop: 24,
+
+  bottomSpacer: {
+    height: 140, // Keeps it clear of the floating nav
   },
 
-  /* --- BOTTOM NAV --- */
-  bottomNavContainer: {
+  /* --- FLOATING BOTTOM NAV (Matched, NO FAB) --- */
+  floatingNavWrapper: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-    paddingHorizontal: 16,
-    backgroundColor: 'transparent',
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
   },
-  bottomNav: {
+  floatingNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.cardBg,
-    height: 75,
-    borderRadius: 35,
-    paddingHorizontal: 5,
+    backgroundColor: '#FFFFFF',
+    height: 72,
+    borderRadius: 36,
+    paddingHorizontal: 8,
+    width: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
     shadowRadius: 20,
-    elevation: 15,
+    elevation: 10,
   },
   navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    borderRadius: 28,
+  },
+  navItemActive: {
+    backgroundColor: COLORS.primaryLight,
   },
   navText: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: '800',
     color: COLORS.textMuted,
-    marginTop: 6,
-    letterSpacing: 0.5,
+    marginTop: 4,
+    letterSpacing: -0.2,
   },
   navTextActive: {
     color: COLORS.primary,
   },
-  navSpacer: {
-    width: 50,
-  },
-  fab: {
-    position: 'absolute',
-    top: -25,
-    alignSelf: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 18,
-  },
-  fabInner: {
-    width: 66,
-    height: 66,
-    backgroundColor: COLORS.primary,
-    borderRadius: 33,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: COLORS.background,
-  }
 });

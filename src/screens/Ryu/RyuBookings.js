@@ -12,316 +12,362 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  Calendar as CalendarIcon,
+  SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
   User,
   Phone,
   Mail,
-  CheckCircle2,
-  Calendar as CalendarIcon,
-  LayoutGrid,
+  Bell,
+  CalendarPlus,
+  Home,
+  CalendarDays,
   Users,
   Wallet,
-  Folder,
   Settings,
-  Home
+  X,
+  MessageSquare
 } from 'lucide-react-native';
 
-// Deep Navy Blue Theme (Ryu's Transient House)
+// Ryu-specific Palette Adapted to Reine's Design System
 const COLORS = {
-  background: '#F8FAFC',
-  primary: '#23324B',
-  primaryLight: '#3A4D6B',
-  accent: '#3B82F6',        // Soft blue for selected dates
-  textMain: '#0F172A',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
+  background: '#F8FAFC',    // Cool off-white for depth
+  primary: '#23324B',       // Ryu Deep Navy
+  primaryLight: '#E0E7FF',  // Soft indigo/blue tint
+  primaryDark: '#1A2537',   // Deeper navy
+  textMain: '#0F172A',      // Slate 900
+  textMuted: '#64748B',     // Slate 500
+  border: '#E2E8F0',        // Slate 200
   cardBg: '#FFFFFF',
-  success: '#10B981'
+  inputBg: '#F8FAFC',
+
+  // Accents
+  successBg: '#DCFCE7',
+  successText: '#16A34A',
+  warningBg: '#FFEDD5',
+  warningText: '#EA580C',
 };
 
-// Mock data for upcoming bookings
-const UPCOMING_BOOKINGS = [
-  { id: '1', name: 'Mark J.', date: 'Oct 15 - Oct 18', status: 'Confirmed' },
-  { id: '2', name: 'Sarah L.', date: 'Oct 22 - Oct 25', status: 'Pending' },
-];
-
 export default function RyuBookings({ navigation }) {
-  // Navigation & View State
-  const [activeNav, setActiveNav] = useState('Bookings');
-  const [isFormVisible, setIsFormVisible] = useState(false);
+  const activeNav = 'Bookings';
 
-  // Form State
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [fullName, setFullName] = useState('');
-  const [contact, setContact] = useState('');
-  const [email, setEmail] = useState('');
+  // 'calendar' or 'manual'
+  const [activeView, setActiveView] = useState('calendar');
+  const [selectedDate, setSelectedDate] = useState(20);
 
-  // Handle clicking a date on the calendar
   const handleDatePress = (day) => {
-    setSelectedDate(`10/${day < 10 ? '0'+day : day}/2023`);
-    setIsFormVisible(true);
+    setSelectedDate(day);
+    // If clicking an empty date, route to manual booking
+    if (![5, 6, 7, 11, 12, 20, 21, 22, 24].includes(day)) {
+      setActiveView('manual');
+    }
   };
 
   // --- RENDER: CALENDAR VIEW ---
   const renderCalendarView = () => {
-    // Simple calendar generation for October (starts on Sunday for demo)
     const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
     return (
-      <View style={styles.calendarViewContainer}>
-        {/* Header */}
-        <View style={styles.headerCal}>
+      <View style={styles.viewContainer}>
+        {/* --- MODERN HEADER --- */}
+        <View style={styles.header}>
           <View>
-            <Text style={styles.headerSubtitleCal}>RYU'S TRANSIENT HOUSE</Text>
-            <Text style={styles.headerTitleCal}>Bookings Calendar</Text>
+            <Text style={styles.greetingText}>Manage Reservations</Text>
+            <Text style={styles.headerTitle}>Calendar</Text>
           </View>
-          <TouchableOpacity style={styles.todayBtn}>
-            <Text style={styles.todayBtnText}>Today</Text>
-          </TouchableOpacity>
+
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+              <SlidersHorizontal size={20} color={COLORS.textMain} strokeWidth={2.5} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
+              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentCal}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-          {/* Custom Calendar Card */}
+          {/* --- CALENDAR CARD (MODERN) --- */}
           <View style={styles.calendarCard}>
+            {/* Month Selector */}
             <View style={styles.monthSelector}>
               <TouchableOpacity style={styles.monthBtn}>
-                <ChevronLeft size={20} color={COLORS.primary} />
+                <ChevronLeft size={24} color={COLORS.textMain} strokeWidth={2.5} />
               </TouchableOpacity>
               <Text style={styles.monthText}>October 2023</Text>
               <TouchableOpacity style={styles.monthBtn}>
-                <ChevronRight size={20} color={COLORS.primary} />
+                <ChevronRight size={24} color={COLORS.textMain} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
 
+            {/* Week Days */}
             <View style={styles.weekDaysRow}>
-              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day, idx) => (
+              {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day, idx) => (
                 <Text key={idx} style={styles.weekDayText}>{day}</Text>
               ))}
             </View>
 
+            {/* Days Grid */}
             <View style={styles.daysGrid}>
+              {/* Empty slots for start of month */}
+              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>25</Text></View>
+              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>26</Text></View>
+              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>27</Text></View>
+              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>28</Text></View>
+              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>29</Text></View>
+              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>30</Text></View>
+
               {days.map((day) => {
-                // Mocking some occupied/highlighted days
-                const isOccupied = day >= 15 && day <= 18;
-                const isSelected = selectedDate === `10/${day < 10 ? '0'+day : day}/2023`;
+                const isNavy = [5, 6, 7, 20, 21, 22, 24].includes(day);
+                const isDeepNavy = [11, 12].includes(day);
+                const isSelected = selectedDate === day;
+
+                let cellStyle = [styles.dayCell];
+                let textStyle = [styles.dayText];
+
+                if (isSelected) {
+                  cellStyle.push(styles.dayCellSelected);
+                  textStyle.push(styles.dayTextSelected);
+                } else if (isNavy) {
+                  cellStyle.push(styles.dayCellIndigo);
+                  textStyle.push(styles.dayTextIndigo);
+                } else if (isDeepNavy) {
+                  cellStyle.push(styles.dayCellDeepNavy);
+                  textStyle.push(styles.dayTextDeepNavy);
+                }
 
                 return (
                   <TouchableOpacity
                     key={day}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                     onPress={() => handleDatePress(day)}
-                    style={[
-                      styles.dayCell,
-                      isOccupied && styles.dayCellOccupied,
-                      isSelected && styles.dayCellSelected
-                    ]}
+                    style={styles.dayCellContainer}
                   >
-                    <Text style={[
-                      styles.dayText,
-                      isOccupied && styles.dayTextOccupied,
-                      isSelected && styles.dayTextSelected
-                    ]}>
-                      {day}
-                    </Text>
-                    {/* Small dot indicator for availability */}
-                    {!isOccupied && !isSelected && <View style={styles.availableDot} />}
+                    <View style={cellStyle}>
+                      <Text style={textStyle}>{day}</Text>
+                    </View>
                   </TouchableOpacity>
                 );
               })}
             </View>
           </View>
 
-          {/* Upcoming Bookings */}
-          <Text style={styles.sectionTitleCal}>UPCOMING BOOKINGS</Text>
-          {UPCOMING_BOOKINGS.map((booking) => (
-            <View key={booking.id} style={styles.upcomingCard}>
-              <View style={styles.upcomingIconBg}>
-                <User size={20} color={COLORS.primary} />
+          {/* --- GUEST DETAILS BENTO CARD --- */}
+          <View style={styles.detailsCard}>
+            <View style={styles.detailsHeader}>
+              <View>
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusBadgeText}>CONFIRMED</Text>
+                </View>
+                <Text style={styles.detailsTitle}>Guest Details</Text>
+                <Text style={styles.detailsSubtitle}>Booking for Oct 20 - Oct 22</Text>
               </View>
-              <View style={styles.upcomingInfo}>
-                <Text style={styles.upcomingName}>{booking.name}</Text>
-                <Text style={styles.upcomingDate}>{booking.date}</Text>
-              </View>
-              <View style={[styles.statusBadge, booking.status === 'Pending' && { backgroundColor: '#FEF3C7' }]}>
-                <Text style={[styles.statusText, booking.status === 'Pending' && { color: '#B45309' }]}>
-                  {booking.status}
-                </Text>
+              <View style={styles.avatarWrapper}>
+                 <User size={28} color={COLORS.primary} strokeWidth={2} />
               </View>
             </View>
-          ))}
 
-          <View style={{ height: 120 }} />
-        </ScrollView>
+            {/* Info Rows */}
+            <View style={styles.infoList}>
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconBox}>
+                  <User size={18} color={COLORS.textMuted} strokeWidth={2.5} />
+                </View>
+                <View style={styles.infoTextWrap}>
+                  <Text style={styles.infoLabel}>GUEST NAME</Text>
+                  <Text style={styles.infoValue}>Mark J.</Text>
+                </View>
+              </View>
 
-        {/* Bottom Navigation */}
-        <View style={styles.bottomNavContainer}>
-          <View style={styles.bottomNav}>
-            <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem}>
-              <Home size={24} color={COLORS.textMuted} strokeWidth={2} />
-              <Text style={styles.navText}>HOME</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navItem}>
-              <CalendarIcon size={24} color={COLORS.primary} strokeWidth={2.5} />
-              <Text style={[styles.navText, styles.navTextActive]}>BOOKINGS</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={styles.navItem}>
-              <Users size={24} color={COLORS.textMuted} strokeWidth={2} />
-              <Text style={styles.navText}>GUEST</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={styles.navItem}>
-              <Wallet size={24} color={COLORS.textMuted} strokeWidth={2} />
-              <Text style={styles.navText}>FINANCE</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem}>
-              <Folder size={24} color={COLORS.textMuted} strokeWidth={2} />
-              <Text style={styles.navText}>RECORDS</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem}>
-              <Settings size={24} color={COLORS.textMuted} strokeWidth={2} />
-              <Text style={styles.navText}>SETTING</Text>
-            </TouchableOpacity>
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconBox}>
+                  <Phone size={18} color={COLORS.textMuted} strokeWidth={2.5} />
+                </View>
+                <View style={styles.infoTextWrap}>
+                  <Text style={styles.infoLabel}>CONTACT</Text>
+                  <Text style={styles.infoValue}>+63 912 345 6789</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconBox}>
+                  <Mail size={18} color={COLORS.textMuted} strokeWidth={2.5} />
+                </View>
+                <View style={styles.infoTextWrap}>
+                  <Text style={styles.infoLabel}>EMAIL ADDRESS</Text>
+                  <Text style={styles.infoValue}>mark.j@example.com</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={styles.cancelBtn} activeOpacity={0.7}>
+                <X size={20} color={COLORS.textMain} strokeWidth={2.5} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.messageBtn} activeOpacity={0.8} onPress={() => setActiveView('manual')}>
+                <MessageSquare size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 8 }}/>
+                <Text style={styles.messageBtnText}>Message Guest</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
       </View>
     );
   };
 
-  // --- RENDER: MANUAL BOOKING FORM VIEW ---
-  const renderFormView = () => {
+  // --- RENDER: MANUAL BOOKING VIEW ---
+  const renderManualBookingView = () => {
+    const formattedDate = `10/${selectedDate < 10 ? '0' + selectedDate : selectedDate}/2023`;
+
     return (
-      <View style={styles.formViewContainer}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            activeOpacity={0.7}
-            onPress={() => setIsFormVisible(false)} // Go back to calendar
-          >
-            <ChevronLeft size={28} color={COLORS.primary} strokeWidth={2.5} />
+      <View style={styles.viewContainer}>
+        {/* Modern Header */}
+        <View style={styles.headerForm}>
+          <TouchableOpacity onPress={() => setActiveView('calendar')} style={styles.backButton}>
+            <ChevronLeft size={28} color={COLORS.textMain} strokeWidth={2.5} />
           </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>Booking for Ryu's House</Text>
+          <View>
+            <Text style={styles.greetingText}>Manual Entry</Text>
+            <Text style={styles.headerTitle}>New Booking</Text>
           </View>
-          <View style={{ width: 40 }} />
         </View>
 
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.keyboardView}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentForm}>
 
-            {/* GUEST INFORMATION */}
-            <View style={styles.sectionHeaderRow}>
-              <User size={16} color={COLORS.primary} strokeWidth={2.5} />
-              <Text style={styles.sectionTitle}>GUEST INFORMATION</Text>
+            {/* Form Section */}
+            <View style={styles.formSection}>
+              <Text style={styles.formLabel}>Full Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter guest name"
+                placeholderTextColor={COLORS.textMuted}
+              />
+
+              <Text style={styles.formLabel}>Contact Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="+63 000 000 0000"
+                placeholderTextColor={COLORS.textMuted}
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.formLabel}>Email Address <Text style={styles.optionalText}>(Optional)</Text></Text>
+              <TextInput
+                style={styles.input}
+                placeholder="guest@example.com"
+                placeholderTextColor={COLORS.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             </View>
 
-            <View style={styles.inputGroup}>
-              <View style={styles.inputWrapper}>
-                <User size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Full Name"
-                  placeholderTextColor={COLORS.textMuted}
-                  value={fullName}
-                  onChangeText={setFullName}
-                />
-              </View>
-
-              <View style={styles.inputWrapper}>
-                <Phone size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contact Number"
-                  placeholderTextColor={COLORS.textMuted}
-                  keyboardType="phone-pad"
-                  value={contact}
-                  onChangeText={setContact}
-                />
-              </View>
-
-              <View style={styles.inputWrapper}>
-                <Mail size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email Address (Optional)"
-                  placeholderTextColor={COLORS.textMuted}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
-            </View>
-
-            {/* STAY DURATION */}
-            <View style={styles.sectionHeaderRow}>
-              <CalendarIcon size={16} color={COLORS.primary} strokeWidth={2.5} />
-              <Text style={styles.sectionTitle}>STAY DURATION</Text>
-            </View>
-
-            <View style={styles.durationRow}>
-              <TouchableOpacity style={styles.datePickerBox} activeOpacity={0.7}>
-                <Text style={styles.dateLabel}>CHECK-IN</Text>
-                <Text style={styles.dateValue}>{selectedDate || 'mm/dd/yyyy'}</Text>
-                <Text style={styles.timeSubtext}>At 2:00 PM</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.datePickerBox} activeOpacity={0.7}>
-                <Text style={styles.dateLabel}>CHECK-OUT</Text>
-                <Text style={styles.dateValue}>mm/dd/yyyy</Text>
-                <Text style={styles.timeSubtext}>At 12:00 PM</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* FINANCIALS */}
-            <View style={styles.sectionHeaderRow}>
-              <Wallet size={16} color={COLORS.primary} strokeWidth={2.5} />
-              <Text style={styles.sectionTitle}>FINANCIALS</Text>
-            </View>
-
-            <View style={styles.financialsBox}>
-              <View>
-                <Text style={styles.financialsLabel}>TOTAL AMOUNT DUE</Text>
-                <View style={styles.amountRow}>
-                  <Text style={styles.currencySymbol}>₱</Text>
-                  <Text style={styles.financialsValue}>12,000.00</Text>
+            {/* Dates & Times Bento */}
+            <View style={styles.dateTimeBento}>
+              <View style={styles.row}>
+                <View style={styles.halfInput}>
+                  <Text style={styles.formLabelDark}>CHECK-IN</Text>
+                  <View style={styles.inputBox}>
+                    <Text style={styles.inputBoxSmall}>Time</Text>
+                    <Text style={styles.inputBoxValue}>2:00 PM</Text>
+                  </View>
+                </View>
+                <View style={styles.halfInput}>
+                  <Text style={styles.formLabelDark}>CHECK-OUT</Text>
+                  <View style={styles.inputBox}>
+                    <Text style={styles.inputBoxSmall}>Time</Text>
+                    <Text style={styles.inputBoxValue}>12:00 PM</Text>
+                  </View>
                 </View>
               </View>
-              <View style={styles.badgeFixed}>
-                <Text style={styles.badgeFixedText}>FIXED RATE</Text>
+
+              <View style={styles.row}>
+                <View style={styles.halfInput}>
+                  <Text style={styles.formLabelDark}>ARRIVAL</Text>
+                  <View style={styles.inputBoxDate}>
+                    <Text style={[styles.placeholderText, { color: COLORS.primary, fontWeight: '800' }]}>{formattedDate}</Text>
+                  </View>
+                </View>
+                <View style={styles.halfInput}>
+                  <Text style={styles.formLabelDark}>DEPARTURE</Text>
+                  <View style={styles.inputBoxDate}>
+                    <Text style={styles.placeholderText}>mm/dd/yyyy</Text>
+                  </View>
+                </View>
               </View>
             </View>
+
+            {/* Total Amount Card */}
+            <View style={styles.totalCard}>
+              <View style={styles.totalHeaderRow}>
+                <Text style={styles.totalLabel}>TOTAL AMOUNT DUE</Text>
+                <View style={styles.fixedRateBadge}>
+                  <Text style={styles.fixedRateText}>FIXED RATE</Text>
+                </View>
+              </View>
+              <View style={styles.totalAmountRow}>
+                <Text style={styles.totalCurrency}>₱12,000.00</Text>
+                <Text style={styles.totalNight}> / per night</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.confirmBtn} activeOpacity={0.85}>
+              <CalendarPlus size={20} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 10 }} />
+              <Text style={styles.confirmBtnText}>Confirm Booking</Text>
+            </TouchableOpacity>
 
             <View style={styles.bottomSpacer} />
           </ScrollView>
         </KeyboardAvoidingView>
-
-        {/* FIXED BOTTOM CONFIRM BUTTON */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.confirmBtn}
-            onPress={() => {
-              // Reset and go back to calendar for demo
-              setIsFormVisible(false);
-              setFullName('');
-              setContact('');
-            }}
-          >
-            <Text style={styles.confirmBtnText}>Confirm Booking</Text>
-            <CheckCircle2 size={20} color="#FFFFFF" strokeWidth={2.5} style={styles.btnIcon} />
-          </TouchableOpacity>
-        </View>
       </View>
     );
   };
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      {isFormVisible ? renderFormView() : renderCalendarView()}
-    </SafeAreaView>
+
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        {activeView === 'calendar' ? renderCalendarView() : renderManualBookingView()}
+      </SafeAreaView>
+
+      {/* --- FLOATING BOTTOM NAVIGATION (Matched to Home) --- */}
+      <View style={styles.floatingNavWrapper}>
+        <View style={styles.floatingNav}>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuHome')}>
+            <Home size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}
+            onPress={() => setActiveView('calendar')}
+          >
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Bookings</Text>}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuGuestMgmt')}>
+            <Users size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuFinance')}>
+            <Wallet size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuAdmin')}>
+            <Settings size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          </TouchableOpacity>
+
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -330,54 +376,122 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
-  // --- CALENDAR VIEW STYLES ---
-  calendarViewContainer: {
+  safeArea: {
     flex: 1,
   },
-  headerCal: {
+  viewContainer: {
+    flex: 1,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+
+  /* --- MODERN HEADER --- */
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 20 : 10,
+    paddingTop: Platform.OS === 'android' ? 20 : 12,
     paddingBottom: 20,
   },
-  headerSubtitleCal: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-    marginBottom: 4,
+  headerForm: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 20 : 12,
+    paddingBottom: 20,
   },
-  headerTitleCal: {
-    fontSize: 26,
+  backButton: {
+    marginRight: 16,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  greetingText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  headerTitle: {
+    fontSize: 24,
     fontWeight: '800',
-    color: COLORS.primary,
+    color: COLORS.textMain,
     letterSpacing: -0.5,
   },
-  todayBtn: {
-    backgroundColor: '#E0E7FF',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 100,
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  todayBtnText: {
-    color: COLORS.accent,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  scrollContentCal: {
-    paddingHorizontal: 24,
-  },
-  calendarCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 24,
+  iconButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  bellButton: {
+    width: 44,
+    height: 44,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    position: 'relative',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 10,
+    right: 12,
+    width: 10,
+    height: 10,
+    backgroundColor: COLORS.primary,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+  },
+  scrollContentForm: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+  },
+
+  /* --- CALENDAR BENTO CARD --- */
+  calendarCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 32,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
     shadowRadius: 16,
     elevation: 4,
   },
@@ -385,329 +499,194 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   monthBtn: {
-    padding: 8,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    padding: 4,
   },
   monthText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
     color: COLORS.textMain,
+    letterSpacing: -0.5,
   },
   weekDaysRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   weekDayText: {
-    width: '14%',
+    width: '14.28%',
     textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.textMuted,
+    letterSpacing: 1,
   },
   daysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
   },
-  dayCell: {
+  dayCellContainer: {
     width: '14.28%',
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
-  dayCellOccupied: {
-    backgroundColor: '#F1F5F9',
+  dayCell: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  dayCellIndigo: {
+    backgroundColor: COLORS.primaryLight,
+  },
+  dayCellDeepNavy: {
+    backgroundColor: COLORS.primaryDark,
   },
   dayCellSelected: {
     backgroundColor: COLORS.primary,
-    borderRadius: 12,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 4,
+    transform: [{ scale: 1.1 }],
   },
   dayText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: COLORS.textMain,
   },
-  dayTextOccupied: {
-    color: COLORS.textMuted,
-    textDecorationLine: 'line-through',
+  dayTextMuted: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#CBD5E1',
+  },
+  dayTextIndigo: {
+    color: COLORS.primary,
+  },
+  dayTextDeepNavy: {
+    color: '#FFFFFF',
   },
   dayTextSelected: {
     color: '#FFFFFF',
+  },
+
+  /* --- GUEST DETAILS BENTO CARD --- */
+  detailsCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 32,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  detailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.successBg,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  statusBadgeText: {
+    fontSize: 10,
     fontWeight: '800',
+    color: COLORS.successText,
+    letterSpacing: 0.5,
   },
-  availableDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.success,
-    position: 'absolute',
-    bottom: 6,
-  },
-  sectionTitleCal: {
-    fontSize: 12,
+  detailsTitle: {
+    fontSize: 22,
     fontWeight: '800',
-    color: COLORS.primaryLight,
-    letterSpacing: 1.5,
-    marginBottom: 16,
+    color: COLORS.textMain,
+    marginBottom: 4,
+    letterSpacing: -0.5,
   },
-  upcomingCard: {
+  detailsSubtitle: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+  },
+  avatarWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 20,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoList: {
+    gap: 16,
+    marginBottom: 24,
+  },
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 20,
+    backgroundColor: COLORS.background,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 20,
   },
-  upcomingIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: '#F8FAFC',
+  infoIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  upcomingInfo: {
+  infoTextWrap: {
     flex: 1,
   },
-  upcomingName: {
+  infoLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  infoValue: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
     color: COLORS.textMain,
-    marginBottom: 4,
   },
-  upcomingDate: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-  },
-  statusBadge: {
-    backgroundColor: '#DCFCE7',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#15803D',
-  },
-
-  // --- BOTTOM NAV STYLES ---
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
-  },
-  bottomNav: {
+  actionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 70,
-    paddingHorizontal: 16,
+    gap: 12,
   },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    height: '100%',
-  },
-  navText: {
-    fontSize: 8,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    marginTop: 6,
-    letterSpacing: 0.5,
-  },
-  navTextActive: {
-    color: COLORS.primary,
-  },
-
-  // --- FORM VIEW STYLES ---
-  formViewContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  backButton: {
-    width: 40,
-    justifyContent: 'center',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: 1.5,
-    marginLeft: 8,
-  },
-  inputGroup: {
-    gap: 16,
-    marginBottom: 32,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    paddingHorizontal: 16,
+  cancelBtn: {
+    width: 60,
     height: 60,
-    backgroundColor: '#FFFFFF',
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    height: '100%',
-    fontSize: 16,
-    color: COLORS.textMain,
-    fontWeight: '500',
-  },
-  durationRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  datePickerBox: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  dateLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.primaryLight,
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  dateValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    marginBottom: 4,
-  },
-  timeSubtext: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: COLORS.textMuted,
-  },
-  financialsBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
     borderRadius: 20,
-    padding: 24,
-    backgroundColor: '#FFFFFF',
-    marginBottom: 24,
-  },
-  financialsLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.primaryLight,
-    letterSpacing: 1,
-    marginBottom: 8,
-  },
-  amountRow: {
-    flexDirection: 'row',
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  currencySymbol: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginRight: 4,
-  },
-  financialsValue: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -1,
-  },
-  badgeFixed: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 100,
-  },
-  badgeFixedText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.primaryLight,
-    letterSpacing: 0.5,
-  },
-  bottomSpacer: {
-    height: 60,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 24,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  confirmBtn: {
+  messageBtn: {
+    flex: 1,
     flexDirection: 'row',
+    height: 60,
+    borderRadius: 20,
     backgroundColor: COLORS.primary,
-    borderRadius: 16,
-    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: COLORS.primary,
@@ -716,12 +695,210 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  confirmBtnText: {
+  messageBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
     color: '#FFFFFF',
+  },
+
+  /* --- MANUAL BOOKING FORM --- */
+  formSection: {
+    marginBottom: 24,
+  },
+  formLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  formLabelDark: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  optionalText: {
+    fontWeight: '500',
+    color: COLORS.textMuted,
+    textTransform: 'none',
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    height: 60,
+    fontSize: 15,
+    color: COLORS.textMain,
+    fontWeight: '500',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  dateTimeBento: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  halfInput: {
+    flex: 1,
+  },
+  inputBox: {
+    backgroundColor: COLORS.background,
+    borderRadius: 16,
+    padding: 16,
+    height: 64,
+    justifyContent: 'center',
+  },
+  inputBoxDate: {
+    backgroundColor: COLORS.background,
+    borderRadius: 16,
+    padding: 16,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  inputBoxSmall: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  inputBoxValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textMain,
+  },
+  placeholderText: {
+    fontSize: 15,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+  },
+  totalCard: {
+    backgroundColor: COLORS.primaryLight,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+  },
+  totalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  totalLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: 0.5,
+  },
+  fixedRateBadge: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  fixedRateText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.primary,
+  },
+  totalAmountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  totalCurrency: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: -1,
+  },
+  totalNight: {
+    fontSize: 14,
+    color: COLORS.primaryDark,
+    fontWeight: '600',
+  },
+  confirmBtn: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.primary,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 32,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  confirmBtnText: {
     fontSize: 18,
     fontWeight: '800',
+    color: '#FFFFFF',
   },
-  btnIcon: {
-    marginLeft: 12,
-  }
+
+  bottomSpacer: {
+    height: 140,
+  },
+
+  /* --- FLOATING BOTTOM NAV (Matched from Home) --- */
+  floatingNavWrapper: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    left: 24,
+    right: 24,
+  },
+  floatingNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    height: 72,
+    borderRadius: 36,
+    paddingHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  navItem: {
+    flex: 1,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 28,
+  },
+  navItemActive: {
+    backgroundColor: COLORS.primaryLight,
+    flex: 1.5,
+  },
+  navTextActive: {
+    color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '800',
+    marginLeft: 6,
+    letterSpacing: -0.2,
+  },
 });

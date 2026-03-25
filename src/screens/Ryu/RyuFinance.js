@@ -12,14 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Landmark,
   Bell,
   Plus,
   Zap,
   Droplet,
   ChevronLeft,
-  UserCircle,
-  Trees,
   ChevronDown,
   Camera,
   ShoppingBag,
@@ -27,78 +24,123 @@ import {
   Wrench,
   Megaphone,
   Home,
-  Calendar,
+  CalendarDays,
   Users,
   Wallet,
-  Folder,
   Settings,
-  Banknote
+  Banknote,
+  PlusCircle,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react-native';
 
-// Deep Navy Blue Theme (Ryu's Transient House)
+// Ryu-specific Palette Adapted to Reine's Design System
 const COLORS = {
-  background: '#FAFAFA',
-  primary: '#23324B',       // Deep Navy Blue
-  primaryLight: '#3A4D6B',
-  accent: '#3B82F6',
-  textMain: '#0F172A',
-  textMuted: '#64748B',
-  border: '#E2E8F0',
+  background: '#F8FAFC',    // Cool off-white
+  primary: '#23324B',       // Ryu Deep Navy
+  primaryLight: '#E0E7FF',  // Indigo/Blue tint for soft backgrounds
+  primaryDark: '#1A2537',   // Deeper navy for gradients/accents
+  textMain: '#0F172A',      // Slate 900
+  textMuted: '#64748B',     // Slate 500
+  border: '#E2E8F0',        // Slate 200
   cardBg: '#FFFFFF',
-  successText: '#1E3A8A',   // Navy blue for income amounts in mockup
-  expenseText: '#DC2626',   // Red for expenses
-  darkCardBg: '#1E293B',    // Dark background for maintenance log
+  inputBg: '#F8FAFC',
+
+  // Accents
+  successBg: '#DCFCE7',
+  successText: '#16A34A',
+  dangerBg: '#FEE2E2',
+  dangerText: '#EF4444',
+  infoBg: '#DBEAFE',
+  infoIcon: '#1D4ED8',
 };
 
+// Mock Data for Transactions List
 const TRANSACTIONS = [
-  { id: '1', type: 'income', title: 'Daily Collection', subtitle: 'Guest: Jonathan Rivera', amount: '+ ₱4,500', date: 'Feb 3, 2026', icon: Plus, iconColor: '#1E3A8A', bg: '#F1F5F9' },
-  { id: '2', type: 'expense', title: 'Electricity Utility', subtitle: 'Monthly Bill - Meralco', amount: '- ₱8,240', date: 'Feb 2, 2026', icon: Zap, iconColor: '#DC2626', bg: '#FEF2F2' },
-  { id: '3', type: 'income', title: 'Daily Collection', subtitle: 'Guest: Sarah Jenkins', amount: '+ ₱3,200', date: 'Feb 1, 2026', icon: Plus, iconColor: '#1E3A8A', bg: '#F1F5F9' },
-  { id: '4', type: 'expense', title: 'Water Utility', subtitle: 'Monthly Bill - Primewater', amount: '- ₱1,150', date: 'Jan 30, 2026', icon: Droplet, iconColor: '#DC2626', bg: '#FEF2F2' },
-  { id: '5', type: 'income', title: 'Daily Collection', subtitle: 'Guest: Michael Chen', amount: '+ ₱2,800', date: 'Jan 28, 2026', icon: Plus, iconColor: '#1E3A8A', bg: '#F1F5F9' },
+  { id: '1', type: 'income', title: 'Daily Collection', subtitle: 'Guest: Jonathan Rivera', amount: '+ ₱4,500', date: 'Feb 3, 2026', icon: PlusCircle },
+  { id: '2', type: 'expense', title: 'Electricity Utility', subtitle: 'Monthly Bill - Meralco', amount: '- ₱8,240', date: 'Feb 2, 2026', icon: Zap },
+  { id: '3', type: 'income', title: 'Daily Collection', subtitle: 'Guest: Sarah Jenkins', amount: '+ ₱3,200', date: 'Feb 1, 2026', icon: PlusCircle },
+  { id: '4', type: 'expense', title: 'Water Utility', subtitle: 'Monthly Bill - Primewater', amount: '- ₱1,150', date: 'Jan 30, 2026', icon: Droplet },
+  { id: '5', type: 'income', title: 'Daily Collection', subtitle: 'Guest: Michael Chen', amount: '+ ₱2,800', date: 'Jan 28, 2026', icon: PlusCircle },
 ];
 
 export default function RyuFinance({ navigation }) {
-  const [activeNav, setActiveNav] = useState('Finance');
+  const activeNav = 'Finance';
   const [showExpenseForm, setShowExpenseForm] = useState(false);
 
   // Form States
-  const [pettyCashCategory, setPettyCashCategory] = useState('Daily Supplies');
   const [utilityAmount, setUtilityAmount] = useState('');
+  const [pettyCashCategory, setPettyCashCategory] = useState('Daily Supplies');
   const [itemDesc, setItemDesc] = useState('');
   const [pettyAmount, setPettyAmount] = useState('');
   const [issueDesc, setIssueDesc] = useState('');
 
   // --- RENDER: TRANSACTION LIST ---
   const renderTransactionList = () => (
-    <>
+    <View style={styles.viewContainer}>
+
+      {/* --- MODERN HEADER --- */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerIconBg}>
-            <Landmark size={24} color={COLORS.primary} strokeWidth={2} />
-          </View>
-          <View>
-            <Text style={styles.headerTitle}>Transaction Management</Text>
-            <Text style={styles.headerSubtitle}>RYU'S TRANSIENT HOUSE</Text>
-          </View>
+        <View>
+          <Text style={styles.greetingText}>Financial Overview</Text>
+          <Text style={styles.headerTitle}>Transactions</Text>
         </View>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
           <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
+          <View style={styles.notificationDot} />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-        <View style={styles.listHeaderRow}>
-          <View>
-            <Text style={styles.listTitle}>Recent Transactions</Text>
-            <Text style={styles.listSubtitle}>Activity for this property</Text>
+        {/* --- HERO BALANCE CARD (Reine Adaptive Design) --- */}
+        <View style={styles.heroCard}>
+          {/* Decorative Background Elements */}
+          <View style={styles.heroCircleTop} />
+          <View style={styles.heroCircleBottom} />
+
+          <View style={styles.heroHeader}>
+            <Text style={styles.heroSubtitle}>NET REVENUE (THIS MONTH)</Text>
+            <View style={styles.trendPill}>
+              <ArrowUpRight size={14} color={COLORS.successText} strokeWidth={3} />
+              <Text style={styles.trendText}>+12.5%</Text>
+            </View>
           </View>
+
+          <Text style={styles.heroBalance}>₱42,500.00</Text>
+
+          <View style={styles.heroStatsRow}>
+            <View style={styles.heroStat}>
+              <View style={styles.heroStatIconWrapper}>
+                <ArrowDownRight size={16} color={COLORS.successText} strokeWidth={3} />
+              </View>
+              <View>
+                <Text style={styles.heroStatLabel}>Income</Text>
+                <Text style={styles.heroStatValue}>₱54,200</Text>
+              </View>
+            </View>
+            <View style={styles.heroStatDivider} />
+            <View style={styles.heroStat}>
+              <View style={[styles.heroStatIconWrapper, { backgroundColor: COLORS.dangerBg }]}>
+                <ArrowUpRight size={16} color={COLORS.dangerText} strokeWidth={3} />
+              </View>
+              <View>
+                <Text style={styles.heroStatLabel}>Expenses</Text>
+                <Text style={styles.heroStatValue}>₱11,700</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* --- LIST HEADER --- */}
+        <View style={styles.listHeaderRow}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
           <TouchableOpacity activeOpacity={0.7}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
 
+        {/* --- TRANSACTIONS LIST --- */}
         <View style={styles.transactionsList}>
           {TRANSACTIONS.map((tx) => {
             const Icon = tx.icon;
@@ -107,8 +149,8 @@ export default function RyuFinance({ navigation }) {
             return (
               <TouchableOpacity key={tx.id} activeOpacity={0.7} style={styles.txCard}>
                 <View style={styles.txLeft}>
-                  <View style={[styles.txIconWrapper, { backgroundColor: tx.bg }]}>
-                    <Icon size={20} color={tx.iconColor} strokeWidth={2.5} />
+                  <View style={[styles.txIconWrapper, isIncome ? { backgroundColor: COLORS.successBg } : { backgroundColor: COLORS.primaryLight }]}>
+                    <Icon size={20} color={isIncome ? COLORS.successText : COLORS.primary} strokeWidth={2.5} />
                   </View>
                   <View>
                     <Text style={styles.txTitle}>{tx.title}</Text>
@@ -116,7 +158,7 @@ export default function RyuFinance({ navigation }) {
                   </View>
                 </View>
                 <View style={styles.txRight}>
-                  <Text style={[styles.txAmount, { color: isIncome ? COLORS.successText : COLORS.expenseText }]}>
+                  <Text style={[styles.txAmount, isIncome ? { color: COLORS.successText } : { color: COLORS.textMain }]}>
                     {tx.amount}
                   </Text>
                   <Text style={styles.txDate}>{tx.date}</Text>
@@ -125,64 +167,53 @@ export default function RyuFinance({ navigation }) {
             )
           })}
         </View>
-        <View style={{ height: 130 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Floating Action Button (Shows Form) */}
+      {/* Floating Action Button (Squircle shape) */}
       <TouchableOpacity
         activeOpacity={0.9}
         style={styles.fab}
         onPress={() => setShowExpenseForm(true)}
       >
         <View style={styles.fabInner}>
-          <Plus size={32} color="#FFFFFF" strokeWidth={2.5} />
+          <Plus size={28} color="#FFFFFF" strokeWidth={3} />
         </View>
       </TouchableOpacity>
-    </>
+    </View>
   );
 
   // --- RENDER: EXPENSE LOGGER FORM ---
   const renderExpenseLogger = () => (
-    <>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={styles.backButton}
-            activeOpacity={0.7}
-            onPress={() => setShowExpenseForm(false)}
-          >
-            <ChevronLeft size={28} color={COLORS.primary} strokeWidth={2.5} />
-          </TouchableOpacity>
-          <View style={styles.headerIconBgLight}>
-            <Trees size={22} color={COLORS.primary} strokeWidth={2} />
-          </View>
-          <View>
-            <Text style={styles.headerTitle}>Ryu's Expense Logger</Text>
-            <Text style={[styles.headerSubtitle, { color: '#16A34A' }]}>ON-SITE ADMIN</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.iconButtonLight} activeOpacity={0.7}>
-          <UserCircle size={24} color={COLORS.primary} strokeWidth={2} />
+    <View style={styles.viewContainer}>
+      {/* Modern Header for Form */}
+      <View style={styles.headerForm}>
+        <TouchableOpacity style={styles.backButton} activeOpacity={0.7} onPress={() => setShowExpenseForm(false)}>
+          <ChevronLeft size={28} color={COLORS.textMain} strokeWidth={2.5} />
         </TouchableOpacity>
+        <View>
+          <Text style={styles.greetingText}>Record Entry</Text>
+          <Text style={styles.headerTitle}>Expense Logger</Text>
+        </View>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.keyboardView}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.formScrollContent}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentForm}>
 
           {/* SECTION 1: UTILITY BILLS */}
           <View style={styles.sectionTitleRow}>
             <Zap size={20} color={COLORS.primary} strokeWidth={2.5} />
-            <Text style={styles.sectionTitle}>Utility Bills</Text>
+            <Text style={styles.sectionTitleForm}>Utility Bills</Text>
           </View>
 
           <View style={styles.formCard}>
-            <Text style={styles.formLabel}>Utility Type</Text>
+            <Text style={styles.formLabelDark}>UTILITY TYPE</Text>
             <TouchableOpacity style={styles.dropdownInput} activeOpacity={0.8}>
               <Text style={styles.dropdownText}>Electric Bill</Text>
               <ChevronDown size={20} color={COLORS.textMuted} />
             </TouchableOpacity>
 
-            <Text style={styles.formLabel}>Amount Due</Text>
+            <Text style={styles.formLabelDark}>AMOUNT DUE</Text>
             <View style={styles.amountInputBox}>
               <View style={styles.pesoBox}><Text style={styles.pesoText}>₱</Text></View>
               <TextInput
@@ -195,21 +226,21 @@ export default function RyuFinance({ navigation }) {
               />
             </View>
 
-            <Text style={styles.formLabel}>Bill Statement Photo</Text>
+            <Text style={styles.formLabelDark}>STATEMENT PHOTO</Text>
             <TouchableOpacity style={styles.uploadBox} activeOpacity={0.7}>
-              <Camera size={28} color={COLORS.primary} strokeWidth={2} style={{ marginBottom: 8 }} />
-              <Text style={styles.uploadText}>Upload Photo</Text>
+              <Camera size={28} color={COLORS.textMuted} strokeWidth={2} style={{ marginBottom: 8 }} />
+              <Text style={styles.uploadText}>Tap to Upload Photo</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.submitBtnNavy} activeOpacity={0.8}>
-              <Text style={styles.submitBtnNavyText}>Log Utility Expense</Text>
+            <TouchableOpacity style={styles.submitBtnSolid} activeOpacity={0.8}>
+              <Text style={styles.submitBtnSolidText}>Log Utility Expense</Text>
             </TouchableOpacity>
           </View>
 
           {/* SECTION 2: PETTY CASH */}
           <View style={styles.sectionTitleRow}>
             <Banknote size={20} color={COLORS.primary} strokeWidth={2.5} />
-            <Text style={styles.sectionTitle}>Petty Cash</Text>
+            <Text style={styles.sectionTitleForm}>Petty Cash</Text>
           </View>
 
           <View style={styles.formCard}>
@@ -219,8 +250,8 @@ export default function RyuFinance({ navigation }) {
                 onPress={() => setPettyCashCategory('Daily Supplies')}
                 activeOpacity={0.8}
               >
-                <ShoppingBag size={20} color={pettyCashCategory === 'Daily Supplies' ? COLORS.primary : COLORS.textMuted} />
-                <Text style={[styles.toggleText, pettyCashCategory === 'Daily Supplies' && styles.toggleTextActive]}>Daily Supplies</Text>
+                <ShoppingBag size={20} color={pettyCashCategory === 'Daily Supplies' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+                <Text style={[styles.toggleText, pettyCashCategory === 'Daily Supplies' && styles.toggleTextActive]}>Supplies</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -228,12 +259,12 @@ export default function RyuFinance({ navigation }) {
                 onPress={() => setPettyCashCategory('Cleaning')}
                 activeOpacity={0.8}
               >
-                <Wind size={20} color={pettyCashCategory === 'Cleaning' ? COLORS.primary : COLORS.textMuted} />
+                <Wind size={20} color={pettyCashCategory === 'Cleaning' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
                 <Text style={[styles.toggleText, pettyCashCategory === 'Cleaning' && styles.toggleTextActive]}>Cleaning</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.formLabel}>Item Description</Text>
+            <Text style={styles.formLabelDark}>ITEM DESCRIPTION</Text>
             <TextInput
               style={styles.textInput}
               placeholder="e.g. 5kg Detergent, Coffee"
@@ -242,7 +273,7 @@ export default function RyuFinance({ navigation }) {
               onChangeText={setItemDesc}
             />
 
-            <Text style={styles.formLabel}>Total Spent</Text>
+            <Text style={styles.formLabelDark}>TOTAL SPENT</Text>
             <View style={styles.amountInputBox}>
               <View style={styles.pesoBox}><Text style={styles.pesoText}>₱</Text></View>
               <TextInput
@@ -260,90 +291,89 @@ export default function RyuFinance({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* SECTION 3: MAINTENANCE LOG */}
+          {/* SECTION 3: MAINTENANCE LOG (Navy Themed) */}
           <View style={styles.sectionTitleRow}>
             <Wrench size={20} color={COLORS.primary} strokeWidth={2.5} />
-            <Text style={styles.sectionTitle}>Maintenance Log</Text>
+            <Text style={styles.sectionTitleForm}>Maintenance Log</Text>
           </View>
 
-          <View style={styles.darkFormCard}>
-            <View style={styles.darkAlertBox}>
-              <View style={styles.darkAlertIcon}>
-                <Megaphone size={16} color="#FFFFFF" />
+          <View style={styles.maintenanceCard}>
+            <View style={styles.maintenanceAlertBox}>
+              <View style={styles.maintenanceAlertIcon}>
+                <Megaphone size={16} color="#FFFFFF" strokeWidth={2.5} />
               </View>
-              <Text style={styles.darkAlertText}>Report issues directly to owner</Text>
+              <Text style={styles.maintenanceAlertText}>Report issues directly to owner</Text>
             </View>
 
-            <Text style={styles.darkFormLabel}>Issue Type</Text>
-            <TouchableOpacity style={styles.darkDropdown} activeOpacity={0.8}>
-              <Text style={styles.darkDropdownText}>Plumbing</Text>
-              <ChevronDown size={20} color="#94A3B8" />
+            <Text style={styles.maintenanceFormLabel}>ISSUE TYPE</Text>
+            <TouchableOpacity style={styles.maintenanceDropdown} activeOpacity={0.8}>
+              <Text style={styles.maintenanceDropdownText}>Plumbing</Text>
+              <ChevronDown size={20} color="#FFFFFF" opacity={0.7} />
             </TouchableOpacity>
 
-            <Text style={styles.darkFormLabel}>Description</Text>
+            <Text style={styles.maintenanceFormLabel}>DESCRIPTION</Text>
             <TextInput
-              style={styles.darkTextArea}
+              style={styles.maintenanceTextArea}
               placeholder="Describe the problem..."
-              placeholderTextColor="#64748B"
+              placeholderTextColor="rgba(255,255,255,0.6)"
               multiline
               textAlignVertical="top"
               value={issueDesc}
               onChangeText={setIssueDesc}
             />
 
-            <View style={styles.darkActionRow}>
-              <TouchableOpacity style={styles.submitBtnWhite} activeOpacity={0.8}>
-                <Text style={styles.submitBtnWhiteText}>Report Issue</Text>
+            <View style={styles.maintenanceActionRow}>
+              <TouchableOpacity style={styles.maintenanceSubmitBtn} activeOpacity={0.8}>
+                <Text style={styles.maintenanceSubmitBtnText}>Report Issue</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.darkCameraBtn} activeOpacity={0.8}>
-                <Camera size={24} color="#FFFFFF" />
+              <TouchableOpacity style={styles.maintenanceCameraBtn} activeOpacity={0.8}>
+                <Camera size={24} color="#FFFFFF" strokeWidth={2} />
               </TouchableOpacity>
             </View>
           </View>
 
-          <View style={{ height: 130 }} />
+          <View style={styles.bottomSpacer} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </>
+    </View>
   );
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
-      {/* Content Switcher */}
-      {showExpenseForm ? renderExpenseLogger() : renderTransactionList()}
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        {showExpenseForm ? renderExpenseLogger() : renderTransactionList()}
+      </SafeAreaView>
 
-      {/* --- BOTTOM NAVIGATION --- */}
-      <View style={styles.bottomNavContainer}>
-        <View style={styles.bottomNav}>
-          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem}>
-            <Home size={24} color={COLORS.textMuted} strokeWidth={2} />
-            <Text style={styles.navText}>HOME</Text>
+      {/* --- FLOATING BOTTOM NAVIGATION (Pill Shape) --- */}
+      <View style={styles.floatingNavWrapper}>
+        <View style={styles.floatingNav}>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuHome')}>
+            <Home size={22} color={COLORS.textMuted} strokeWidth={2.5} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={styles.navItem}>
-            <Calendar size={24} color={COLORS.textMuted} strokeWidth={2} />
-            <Text style={styles.navText}>BOOKINGS</Text>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuBookings')}>
+            <CalendarDays size={22} color={COLORS.textMuted} strokeWidth={2.5} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={styles.navItem}>
-            <Users size={24} color={COLORS.textMuted} strokeWidth={2} />
-            <Text style={styles.navText}>GUEST</Text>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuGuestMgmt')}>
+            <Users size={22} color={COLORS.textMuted} strokeWidth={2.5} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Wallet size={24} color={COLORS.primary} strokeWidth={2.5} />
-            <Text style={[styles.navText, styles.navTextActive]}>FINANCE</Text>
+
+          <TouchableOpacity style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} onPress={() => { setShowExpenseForm(false); }}>
+            <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Finance</Text>}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem}>
-            <Folder size={24} color={COLORS.textMuted} strokeWidth={2} />
-            <Text style={styles.navText}>RECORDS</Text>
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuAdmin')}>
+            <Settings size={22} color={COLORS.textMuted} strokeWidth={2.5} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem}>
-            <Settings size={24} color={COLORS.textMuted} strokeWidth={2} />
-            <Text style={styles.navText}>SETTING</Text>
-          </TouchableOpacity>
+
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -352,108 +382,216 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  safeArea: {
+    flex: 1,
+  },
+  viewContainer: {
+    flex: 1,
+  },
   keyboardView: {
     flex: 1,
   },
 
-  /* --- COMMON HEADER --- */
+  /* --- MODERN HEADER --- */
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 20 : 10,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 20 : 12,
     paddingBottom: 20,
   },
-  headerLeft: {
+  headerForm: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 20 : 12,
+    paddingBottom: 20,
   },
-  headerIconBg: {
+  backButton: {
+    marginRight: 16,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  greetingText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+  },
+  bellButton: {
     width: 44,
     height: 44,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    position: 'relative',
   },
-  headerIconBgLight: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#F0FDF4',
-    borderRadius: 14,
+  notificationDot: {
+    position: 'absolute',
+    top: 10,
+    right: 12,
+    width: 10,
+    height: 10,
+    backgroundColor: COLORS.primary,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+  },
+  scrollContentForm: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+  },
+
+  /* --- HERO BALANCE CARD (REINE DESIGN) --- */
+  heroCard: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 32,
+    padding: 24,
+    marginBottom: 32,
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  heroCircleTop: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    top: -80,
+    right: -40,
+  },
+  heroCircleBottom: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    bottom: -60,
+    left: -40,
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroSubtitle: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  trendPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.successBg,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    gap: 4,
+  },
+  trendText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.successText,
+  },
+  heroBalance: {
+    fontSize: 40,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1.5,
+    marginBottom: 32,
+  },
+  heroStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20,
+    padding: 16,
+  },
+  heroStat: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  heroStatIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: COLORS.successBg,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  headerTitle: {
-    fontSize: 18,
+  heroStatLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 2,
+  },
+  heroStatValue: {
+    fontSize: 16,
     fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-    marginBottom: 4,
+    color: '#FFFFFF',
   },
-  headerSubtitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  iconButtonLight: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 8,
+  heroStatDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginHorizontal: 16,
   },
 
-  /* --- TRANSACTIONS LIST VIEW --- */
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
+  /* --- TRANSACTIONS LIST --- */
   listHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 24,
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  listTitle: {
-    fontSize: 22,
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: '800',
     color: COLORS.textMain,
     letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  listSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.textMuted,
   },
   viewAllText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     color: COLORS.primary,
-    marginBottom: 4,
   },
   transactionsList: {
     gap: 16,
@@ -462,16 +600,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.cardBg,
     borderRadius: 24,
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
+    shadowOpacity: 0.03,
     shadowRadius: 10,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   txLeft: {
     flexDirection: 'row',
@@ -479,22 +617,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   txIconWrapper: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
   txTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     color: COLORS.textMain,
     marginBottom: 4,
     letterSpacing: -0.2,
   },
   txDesc: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '500',
     color: COLORS.textMuted,
   },
@@ -512,9 +650,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.textMuted,
   },
+
+  /* --- FAB --- */
   fab: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 100 : 90,
+    bottom: Platform.OS === 'ios' ? 120 : 110,
     right: 24,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
@@ -525,87 +665,86 @@ const styles = StyleSheet.create({
   fabInner: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: 20,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   /* --- EXPENSE LOGGER FORM VIEW --- */
-  formScrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
   sectionTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
     marginTop: 8,
   },
-  sectionTitle: {
+  sectionTitleForm: {
     fontSize: 18,
     fontWeight: '800',
     color: COLORS.textMain,
     letterSpacing: -0.5,
-    marginLeft: 8,
+    marginLeft: 10,
   },
   formCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 32,
+    padding: 24,
     marginBottom: 32,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
-    shadowRadius: 12,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  formLabel: {
+  formLabelDark: {
     fontSize: 11,
     fontWeight: '800',
-    color: COLORS.primaryLight,
+    color: COLORS.textMuted,
     marginBottom: 8,
+    letterSpacing: 0.5,
   },
   dropdownInput: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 56,
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    height: 60,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   dropdownText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.textMain,
   },
   amountInputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 56,
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    height: 60,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   pesoBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   pesoText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '800',
-    color: COLORS.primaryLight,
+    color: COLORS.primary,
   },
   amountInput: {
     flex: 1,
@@ -615,45 +754,52 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   textInput: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 56,
-    fontSize: 14,
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    height: 60,
+    fontSize: 15,
     fontWeight: '500',
     color: COLORS.textMain,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   uploadBox: {
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    borderWidth: 2,
+    borderColor: COLORS.border,
     borderStyle: 'dashed',
-    borderRadius: 16,
-    height: 100,
+    borderRadius: 20,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.inputBg,
   },
   uploadText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: COLORS.textMain,
+    color: COLORS.textMuted,
   },
-  submitBtnNavy: {
+  submitBtnSolid: {
     backgroundColor: COLORS.primary,
-    borderRadius: 16,
-    height: 56,
+    borderRadius: 20,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  submitBtnNavyText: {
+  submitBtnSolidText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
   },
 
-  /* Petty Cash specific */
+  /* Petty Cash Toggle */
   toggleRow: {
     flexDirection: 'row',
     gap: 12,
@@ -662,160 +808,182 @@ const styles = StyleSheet.create({
   toggleBtn: {
     flex: 1,
     height: 90,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.inputBg,
   },
   toggleBtnActive: {
     borderColor: COLORS.primary,
     borderWidth: 2,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.primaryLight,
   },
   toggleText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     color: COLORS.textMuted,
     marginTop: 8,
   },
   toggleTextActive: {
-    color: COLORS.textMain,
+    color: COLORS.primary,
   },
   submitBtnOutline: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: COLORS.textMain,
-    borderRadius: 16,
-    height: 56,
+    borderColor: COLORS.primary,
+    borderRadius: 20,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
   submitBtnOutlineText: {
-    color: COLORS.textMain,
-    fontSize: 15,
+    color: COLORS.primary,
+    fontSize: 16,
     fontWeight: '800',
   },
 
-  /* Dark Card (Maintenance Log) */
-  darkFormCard: {
-    backgroundColor: COLORS.darkCardBg,
-    borderRadius: 24,
-    padding: 20,
+  /* Maintenance Log (Solid Deep Navy Card) */
+  maintenanceCard: {
+    backgroundColor: COLORS.primaryDark,
+    borderRadius: 32,
+    padding: 24,
     marginBottom: 32,
+    shadowColor: COLORS.primaryDark,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  darkAlertBox: {
+  maintenanceAlertBox: {
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: 'rgba(255,255,255,0.15)',
     paddingBottom: 16,
     marginBottom: 20,
   },
-  darkAlertIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#475569',
+  maintenanceAlertIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  darkAlertText: {
+  maintenanceAlertText: {
     fontSize: 13,
-    fontWeight: '500',
-    color: '#E2E8F0',
-  },
-  darkFormLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    marginBottom: 8,
-  },
-  darkDropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#334155',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 52,
-    marginBottom: 20,
-  },
-  darkDropdownText: {
-    fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  darkTextArea: {
-    backgroundColor: '#334155',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
-    height: 100,
-    fontSize: 14,
+  maintenanceFormLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  maintenanceDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    height: 60,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  maintenanceDropdownText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  maintenanceTextArea: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    height: 120,
+    fontSize: 15,
+    fontWeight: '500',
     color: '#FFFFFF',
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  darkActionRow: {
+  maintenanceActionRow: {
     flexDirection: 'row',
     gap: 12,
   },
-  submitBtnWhite: {
+  maintenanceSubmitBtn: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    height: 56,
+    borderRadius: 20,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  submitBtnWhiteText: {
-    color: COLORS.darkCardBg,
-    fontSize: 15,
+  maintenanceSubmitBtnText: {
+    color: COLORS.primaryDark,
+    fontSize: 16,
     fontWeight: '800',
   },
-  darkCameraBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: '#334155',
+  maintenanceCameraBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  // --- BOTTOM NAV STYLES ---
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+  bottomSpacer: {
+    height: 140,
   },
-  bottomNav: {
+
+  /* --- FLOATING BOTTOM NAV (PILL SHAPE) --- */
+  floatingNavWrapper: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    left: 24,
+    right: 24,
+  },
+  floatingNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: 70,
-    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    height: 72,
+    borderRadius: 36,
+    paddingHorizontal: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 10,
   },
   navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 28,
   },
-  navText: {
-    fontSize: 8,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    marginTop: 6,
-    letterSpacing: 0.5,
+  navItemActive: {
+    backgroundColor: COLORS.primaryLight,
+    flex: 1.5,
   },
   navTextActive: {
     color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '800',
+    marginLeft: 6,
+    letterSpacing: -0.2,
   },
 });

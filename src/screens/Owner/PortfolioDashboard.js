@@ -31,26 +31,31 @@ import {
   Coffee,
   Wifi,
   Car,
-  CheckCircle2
+  CheckCircle2,
+  Search
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-// Premium Color Palette
+// Premium Color Palette (Adapted to Modern UI)
 const COLORS = {
-  background: '#F4F7F6',
-  primary: '#1A3626',
-  primarySoft: '#E8F0EA',
-  accent: '#2DD4BF',
+  background: '#F8FAFC',    // Cool off-white for depth
+  primary: '#1A3626',       // Deep Forest Green
+  primaryLight: '#E8F0EA',  // Soft Green for active states
+  primaryDark: '#0D1E14',   // Darker green for contrast
+  accent: '#2DD4BF',        // Teal
+  textMain: '#0F172A',      // Slate 900
+  textMuted: '#64748B',     // Slate 500
+  border: '#E2E8F0',        // Slate 200
   cardBg: '#FFFFFF',
-  textDark: '#0F172A',
-  textMuted: '#64748B',
-  border: '#E2E8F0',
-  successText: '#15803D',
+
+  // Accents & Badges
   successBg: '#DCFCE7',
-  warningText: '#B45309',
-  warningBg: '#FEF3C7',
-  red: '#EF4444'
+  successText: '#16A34A',
+  warningBg: '#FEF9C3',
+  warningText: '#CA8A04',
+  dangerBg: '#FEE2E2',
+  dangerText: '#EF4444'
 };
 
 // Detailed Data for Property Status View
@@ -137,343 +142,345 @@ export default function PortfolioDashboard({ navigation }) {
   const activePropertyDetails = PROPERTY_DETAILS[activeTab];
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
-      {/* --- DYNAMIC HEADER --- */}
-      <View style={styles.header}>
-        {activeTab === 'All Properties' ? (
-          <View>
-            <Text style={[styles.headerSubtitle, { fontFamily: 'Manrope-ExtraBold' }]}>PORTFOLIO OVERVIEW</Text>
-            <Text style={[styles.headerTitle, { fontFamily: 'Manrope-Regular' }]}>Resort Admin</Text>
-          </View>
-        ) : (
-          <View>
-            <Text style={[styles.headerTitle, { textTransform: 'uppercase', fontFamily: 'Manrope-ExtraBold' }]}>PROPERTY STATUS</Text>
-            <Text style={[styles.headerSubtitle, { marginTop: 4, letterSpacing: 0, color: COLORS.primary, fontFamily: 'Manrope-Bold' }]}>
-              Live update • Just now
-            </Text>
-          </View>
-        )}
-        <View style={styles.headerActions}>
-          {activeTab === 'All Properties' && (
-            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-              <Bell size={22} color={COLORS.textDark} strokeWidth={2} />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.profileButton} activeOpacity={0.8}>
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+
+        {/* --- MODERN HEADER --- */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
             <Image
               source={{ uri: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop' }}
-              style={styles.profileImage}
+              style={styles.profileAvatar}
             />
-          </TouchableOpacity>
-        </View>
-      </View>
+            {activeTab === 'All Properties' ? (
+              <View>
+                <Text style={styles.greetingText}>PORTFOLIO OVERVIEW</Text>
+                <Text style={styles.headerTitle}>Resort Admin</Text>
+              </View>
+            ) : (
+              <View>
+                <Text style={styles.greetingText}>PROPERTY STATUS</Text>
+                <View style={styles.liveUpdateRow}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveText}>Live update • Just now</Text>
+                </View>
+              </View>
+            )}
+          </View>
 
-      {/* --- SCROLLABLE CONTENT --- */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        bounces={true}
-      >
-        {/* Top Property Tabs */}
-        <View style={styles.tabsContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tabsScroll}
-          >
-            {topTabs.map((tab, index) => {
-              const isActive = activeTab === tab;
-              return (
-                <TouchableOpacity
-                  key={index}
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    setActiveTab(tab);
-                    setPropertyStatus('AVAILABLE');
-                  }}
-                  style={[styles.tab, isActive && styles.tabActive]}
-                >
-                  <Text style={[styles.tabText, { fontFamily: 'Manrope-SemiBold' }, isActive && styles.tabTextActive]}>
-                    {tab}
-                  </Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+              <Search size={20} color={COLORS.textMain} strokeWidth={2.5} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
+              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* --- SCROLLABLE CONTENT --- */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Modern Top Tabs */}
+          <View style={styles.tabsContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsScroll}
+            >
+              {topTabs.map((tab, index) => {
+                const isActive = activeTab === tab;
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      setActiveTab(tab);
+                      setPropertyStatus('AVAILABLE');
+                    }}
+                    style={[styles.tab, isActive && styles.tabActive]}
+                  >
+                    <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                      {tab}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {activeTab === 'All Properties' ? (
+            /* ==========================================
+               ALL PROPERTIES OVERVIEW (BENTO GRID)
+               ========================================== */
+            <>
+              {/* Hero Revenue Bento Card */}
+              <View style={styles.heroCard}>
+                <View style={styles.heroCircleTop} />
+                <View style={styles.heroCircleBottom} />
+
+                <View style={styles.heroHeader}>
+                  <View style={styles.walletIconWrapper}>
+                    <Wallet size={24} color={COLORS.accent} strokeWidth={2} />
+                  </View>
+                  <View style={styles.trendPill}>
+                    <TrendingUp size={16} color={COLORS.successText} strokeWidth={2.5} style={{ marginRight: 4 }} />
+                    <Text style={styles.trendText}>+12.4%</Text>
+                  </View>
+                </View>
+
+                <View style={styles.heroBody}>
+                  <Text style={styles.heroSubtitle}>TOTAL MONTHLY REVENUE</Text>
+                  <View style={styles.heroValueRow}>
+                    <Text style={styles.heroCurrency}>₱</Text>
+                    <Text style={styles.heroValue}>54,230</Text>
+                    <Text style={styles.heroDecimals}>.00</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Stacked KPI Bento Row */}
+              <View style={styles.bentoGrid}>
+                <View style={[styles.bentoCard, styles.smallBento]}>
+                  <View style={styles.bentoTopRow}>
+                    <View style={[styles.bentoIconWrapper, { backgroundColor: '#EEF2FF' }]}>
+                      <Users size={20} color="#4F46E5" strokeWidth={2.5} />
+                    </View>
+                    <MoreHorizontal size={20} color={COLORS.textMuted} />
+                  </View>
+                  <Text style={styles.smallBentoValue}>32</Text>
+                  <Text style={styles.bentoLabelDark}>ACTIVE GUESTS</Text>
+                  <View style={styles.progressBarBg}>
+                    <View style={[styles.progressBarFill, { width: '40%', backgroundColor: '#4F46E5' }]} />
+                  </View>
+                </View>
+
+                <View style={[styles.bentoCard, styles.smallBento]}>
+                  <View style={styles.bentoTopRow}>
+                    <View style={[styles.bentoIconWrapper, { backgroundColor: '#FFF7ED' }]}>
+                      <BedDouble size={20} color="#EA580C" strokeWidth={2.5} />
+                    </View>
+                    <MoreHorizontal size={20} color={COLORS.textMuted} />
+                  </View>
+                  <Text style={styles.smallBentoValue}>88.5%</Text>
+                  <Text style={styles.bentoLabelDark}>OCCUPANCY RATE</Text>
+                  <View style={styles.progressBarBg}>
+                    <View style={[styles.progressBarFill, { width: '88.5%', backgroundColor: '#EA580C' }]} />
+                  </View>
+                </View>
+              </View>
+
+              {/* Net Operating Income Bento */}
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Net Operating Income</Text>
+                <TouchableOpacity style={styles.detailsBtn} activeOpacity={0.7} onPress={() => navigation.navigate('OwnerFinance')}>
+                  <Text style={styles.detailsBtnText}>Report</Text>
+                  <ArrowRight size={14} color={COLORS.primary} strokeWidth={2.5} />
                 </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {activeTab === 'All Properties' ? (
-          /* ==========================================
-             ALL PROPERTIES OVERVIEW (DASHBOARD)
-             ========================================== */
-          <>
-            <View style={styles.revenueCard}>
-              <View style={styles.decorativeCircle1} />
-              <View style={styles.decorativeCircle2} />
-
-              <View style={styles.revenueHeader}>
-                <View style={styles.walletIconWrapper}>
-                  <Wallet size={22} color={COLORS.accent} strokeWidth={2} />
-                </View>
-                <View style={styles.revenueBadge}>
-                  <TrendingUp size={14} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 4 }} />
-                  <Text style={[styles.revenueBadgeText, { fontFamily: 'Manrope-Bold' }]}>12.4%</Text>
-                </View>
               </View>
 
-              <View style={styles.revenueBody}>
-                <Text style={[styles.revenueSubtitle, { fontFamily: 'Manrope-Medium' }]}>Total Monthly Revenue</Text>
-                <View style={styles.revenueValueRow}>
-                  <Text style={[styles.revenueCurrency, { fontFamily: 'Manrope-Bold' }]}>₱</Text>
-                  <Text style={[styles.revenueValue, { fontFamily: 'Manrope-Bold' }]}>54,230</Text>
-                  <Text style={[styles.revenueDecimals, { fontFamily: 'Manrope-Bold' }]}>.00</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.kpiRow}>
-              <View style={styles.kpiCard}>
-                <View style={styles.kpiTopRow}>
-                  <View style={[styles.kpiIconWrapper, { backgroundColor: '#EEF2FF' }]}>
-                    <Users size={20} color="#4F46E5" strokeWidth={2} />
+              <View style={styles.noiCard}>
+                <View style={styles.noiDataRow}>
+                  <View>
+                    <Text style={styles.noiLabel}>TOTAL NOI (Q3 2023)</Text>
+                    <Text style={styles.noiValueMain}>₱ 38,150.40</Text>
                   </View>
-                  <MoreHorizontal size={20} color={COLORS.textMuted} />
-                </View>
-                <Text style={[styles.kpiValue, { fontFamily: 'Manrope-Bold' }]}>32</Text>
-                <Text style={[styles.kpiLabel, { fontFamily: 'Manrope-Bold' }]}>Active Guests</Text>
-                <View style={styles.modernProgressBarBg}>
-                  <View style={[styles.modernProgressBarFill, { width: '40%', backgroundColor: '#4F46E5' }]} />
-                </View>
-              </View>
-
-              <View style={styles.kpiCard}>
-                <View style={styles.kpiTopRow}>
-                  <View style={[styles.kpiIconWrapper, { backgroundColor: '#FFF7ED' }]}>
-                    <BedDouble size={20} color="#EA580C" strokeWidth={2} />
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.noiLabel}>EXPENSES</Text>
+                    <Text style={styles.noiValueExpense}>₱ 16,079.00</Text>
                   </View>
-                  <MoreHorizontal size={20} color={COLORS.textMuted} />
                 </View>
-                <Text style={[styles.kpiValue, { fontFamily: 'Manrope-Bold' }]}>88.5%</Text>
-                <Text style={[styles.kpiLabel, { fontFamily: 'Manrope-Bold' }]}>Occupancy Rate</Text>
-                <View style={styles.modernProgressBarBg}>
-                  <View style={[styles.modernProgressBarFill, { width: '88.5%', backgroundColor: '#EA580C' }]} />
-                </View>
-              </View>
-            </View>
 
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { fontFamily: 'Manrope-Bold' }]}>Net Operating Income</Text>
-              <TouchableOpacity style={styles.detailsBtn} activeOpacity={0.7} onPress={() => navigation.navigate('OwnerFinance')}>
-                <Text style={[styles.detailsBtnText, { fontFamily: 'Manrope-Bold' }]}>Full Report</Text>
-                <ArrowRight size={14} color={COLORS.primary} strokeWidth={2.5} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.noiCard}>
-              <View style={styles.noiDataRow}>
-                <View>
-                  <Text style={[styles.noiLabel, { fontFamily: 'Manrope-Bold' }]}>TOTAL NOI (Q3 2023)</Text>
-                  <Text style={[styles.noiValueMain, { fontFamily: 'Manrope-Bold' }]}>₱ 38,150.40</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[styles.noiLabel, { fontFamily: 'Manrope-Bold' }]}>EXPENSES</Text>
-                  <Text style={[styles.noiValueExpense, { fontFamily: 'Manrope-Bold' }]}>₱ 16,079.00</Text>
-                </View>
-              </View>
-
-              <View style={styles.chartContainer}>
-                {['JUL', 'AUG', 'SEP'].map((month, index) => {
-                  const isCurrent = index === 2;
-                  const barHeight = index === 0 ? 30 : index === 1 ? 50 : 80;
-                  return (
-                    <View key={month} style={styles.chartColumn}>
-                      <View style={styles.chartTrack}>
-                        <View style={[styles.chartBar, { height: `${barHeight}%`, backgroundColor: isCurrent ? COLORS.primary : '#CBD5E1' }]} />
+                <View style={styles.chartContainer}>
+                  {['JUL', 'AUG', 'SEP'].map((month, index) => {
+                    const isCurrent = index === 2;
+                    const barHeight = index === 0 ? 30 : index === 1 ? 50 : 80;
+                    return (
+                      <View key={month} style={styles.chartColumn}>
+                        <View style={styles.chartTrack}>
+                          <View style={[styles.chartBar, { height: `${barHeight}%`, backgroundColor: isCurrent ? COLORS.accent : COLORS.border }]} />
+                        </View>
+                        <Text style={[styles.chartLabel, isCurrent && styles.chartLabelActive]}>{month}</Text>
                       </View>
-                      <Text style={[styles.chartLabel, { fontFamily: 'Manrope-Bold' }, isCurrent && { color: COLORS.primary, fontWeight: '800' }]}>{month}</Text>
-                    </View>
-                  );
-                })}
+                    );
+                  })}
+                </View>
               </View>
-            </View>
 
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { fontFamily: 'Manrope-Bold' }]}>Property Performance</Text>
-            </View>
+              {/* Property Performance List */}
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Property Performance</Text>
+              </View>
 
-            {propertyPerformance.map((property) => (
-              <TouchableOpacity
-                key={property.id}
-                activeOpacity={0.9}
-                onPress={() => setActiveTab(property.tabName)}
-                style={styles.propertyCard}
-              >
-                <Image source={{ uri: property.image }} style={styles.propertyImage} />
+              <View style={styles.propertyList}>
+                {propertyPerformance.map((property) => (
+                  <TouchableOpacity
+                    key={property.id}
+                    activeOpacity={0.9}
+                    onPress={() => setActiveTab(property.tabName)}
+                    style={styles.propertyCard}
+                  >
+                    <Image source={{ uri: property.image }} style={styles.propertyImage} />
 
-                <View style={styles.propertyInfo}>
-                  <View style={styles.propertyHeaderRow}>
-                    <Text style={[styles.propertyName, { fontFamily: 'Manrope-SemiBold' }]} numberOfLines={1}>{property.name}</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: property.statusColor }]}>
-                      <Text style={[styles.statusText, { fontFamily: 'Manrope-ExtraBold', color: property.statusTextColor }]}>
-                        {property.status}
-                      </Text>
+                    <View style={styles.propertyInfo}>
+                      <View style={styles.propertyHeaderRow}>
+                        <Text style={styles.propertyName} numberOfLines={1}>{property.name}</Text>
+                        <View style={[styles.statusBadge, { backgroundColor: property.statusColor }]}>
+                          <Text style={[styles.statusText, { color: property.statusTextColor }]}>
+                            {property.status}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.propertyStatsRow}>
+                        <View style={styles.statBox}>
+                          <Text style={styles.statLabel}>REV</Text>
+                          <Text style={styles.statValue}>{property.rev}</Text>
+                        </View>
+                        <View style={styles.statDivider} />
+                        <View style={styles.statBox}>
+                          <Text style={styles.statLabel}>OCC</Text>
+                          <Text style={styles.statValue}>{property.occ}</Text>
+                        </View>
+                      </View>
                     </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          ) : (
+            /* ==========================================
+               SPECIFIC PROPERTY VIEW (MODERNIZED MOCKUP)
+               ========================================== */
+            <View style={styles.detailsContainer}>
+
+              <View style={styles.detailCard}>
+                <View style={styles.detailHeader}>
+                  <View style={[styles.availableBadge, { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successBg : COLORS.warningBg }]}>
+                    <View style={[styles.availableDot, { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText }]} />
+                    <Text style={[styles.availableText, { color: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText }]}>
+                      {propertyStatus}
+                    </Text>
                   </View>
-
-                  <View style={styles.propertyStatsRow}>
-                    <View style={styles.statBox}>
-                      <Text style={[styles.statLabel, { fontFamily: 'Manrope-Bold' }]}>REV</Text>
-                      <Text style={[styles.statValue, { fontFamily: 'Manrope-Bold' }]}>{property.rev}</Text>
-                    </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statBox}>
-                      <Text style={[styles.statLabel, { fontFamily: 'Manrope-Bold' }]}>OCC</Text>
-                      <Text style={[styles.statValue, { fontFamily: 'Manrope-Bold' }]}>{property.occ}</Text>
-                    </View>
+                  <View style={styles.houseIconBtn}>
+                    <Home size={22} color={COLORS.primary} strokeWidth={2.5}/>
                   </View>
                 </View>
-              </TouchableOpacity>
-            ))}
-          </>
-        ) : (
-          /* ==========================================
-             SPECIFIC PROPERTY VIEW (FROM MOCKUP)
-             ========================================== */
-          <View style={styles.detailsContainer}>
 
-            <View style={styles.detailCard}>
-              <View style={styles.detailHeader}>
-                <View style={styles.availableBadge}>
-                  <View style={[styles.availableDot, { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText }]} />
-                  <Text style={[styles.availableText, { fontFamily: 'Manrope-ExtraBold', color: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText }]}>
-                    {propertyStatus}
-                  </Text>
+                <Text style={styles.detailTitle}>{activePropertyDetails.title}</Text>
+
+                <Text style={styles.amenityHeader}>INCLUDED AMENITIES</Text>
+                <View style={styles.amenityGrid}>
+                  {activePropertyDetails.amenities.map((item, idx) => {
+                    const Icon = item.icon;
+                    return (
+                      <View key={idx} style={styles.amenityPill}>
+                        <Icon size={16} color={COLORS.primary} strokeWidth={2.5} style={{ marginRight: 8 }} />
+                        <Text style={styles.amenityPillText}>{item.label}</Text>
+                      </View>
+                    );
+                  })}
                 </View>
-                <View style={styles.houseIconBtn}>
-                  <Home size={22} color={COLORS.primary} />
+
+                <View style={styles.dividerLine} />
+
+                <View style={styles.detailFooter}>
+                  <View>
+                    <Text style={styles.footerLabel}>CAPACITY</Text>
+                    <Text style={styles.footerValue}>{activePropertyDetails.capacity}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.footerLabel}>BASE RATE</Text>
+                    <Text style={styles.footerValue}>{activePropertyDetails.baseRate}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.updateCard}>
+                <View style={styles.updateHeader}>
+                  <View>
+                    <Text style={styles.updateTitle}>Property Status</Text>
+                    <Text style={styles.updateSubtitle}>{activePropertyDetails.title}</Text>
+                  </View>
+                  <View style={styles.syncBadge}>
+                    <Text style={styles.syncText}>SYNCING</Text>
+                  </View>
+                </View>
+
+                <View style={styles.updateActions}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setPropertyStatus('AVAILABLE')}
+                    style={[styles.actionBtn, propertyStatus === 'AVAILABLE' && styles.actionBtnActive]}
+                  >
+                    <CheckCircle2 size={24} color={propertyStatus === 'AVAILABLE' ? COLORS.textMain : COLORS.textMuted} strokeWidth={2} />
+                    <Text style={[styles.actionBtnText, propertyStatus === 'AVAILABLE' && styles.actionBtnTextActive]}>
+                      AVAILABLE
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setPropertyStatus('OCCUPIED')}
+                    style={[styles.actionBtn, propertyStatus === 'OCCUPIED' && styles.actionBtnActive]}
+                  >
+                    <User size={24} color={propertyStatus === 'OCCUPIED' ? COLORS.textMain : COLORS.textMuted} strokeWidth={2} />
+                    <Text style={[styles.actionBtnText, propertyStatus === 'OCCUPIED' && styles.actionBtnTextActive]}>
+                      OCCUPIED
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              <Text style={[styles.detailTitle, { fontFamily: 'Manrope-ExtraBold' }]}>{activePropertyDetails.title}</Text>
-
-              <Text style={[styles.amenityHeader, { fontFamily: 'Manrope-ExtraBold' }]}>INCLUDED AMENITIES</Text>
-              <View style={styles.amenityGrid}>
-                {activePropertyDetails.amenities.map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <View key={idx} style={styles.amenityPill}>
-                      <Icon size={16} color={COLORS.primary} strokeWidth={2} style={{ marginRight: 8 }} />
-                      <Text style={[styles.amenityPillText, { fontFamily: 'Manrope-Bold' }]}>{item.label}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-
-              <View style={styles.dividerLine} />
-
-              <View style={styles.detailFooter}>
-                <View>
-                  <Text style={[styles.footerLabel, { fontFamily: 'Manrope-ExtraBold' }]}>CAPACITY</Text>
-                  <Text style={[styles.footerValue, { fontFamily: 'Manrope-Bold' }]}>{activePropertyDetails.capacity}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[styles.footerLabel, { fontFamily: 'Manrope-ExtraBold' }]}>BASE RATE</Text>
-                  <Text style={[styles.footerValue, { fontFamily: 'Manrope-Bold' }]}>{activePropertyDetails.baseRate}</Text>
-                </View>
-              </View>
             </View>
+          )}
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      </SafeAreaView>
 
-            <View style={styles.updateCard}>
-              <View style={styles.updateHeader}>
-                <View>
-                  <Text style={[styles.updateTitle, { fontFamily: 'Manrope-Bold' }]}>Update Entire Property</Text>
-                  <Text style={[styles.updateSubtitle, { fontFamily: 'Manrope-SemiBold' }]}>{activePropertyDetails.title}</Text>
-                </View>
-                <View style={styles.syncBadge}>
-                  <Text style={[styles.syncText, { fontFamily: 'Manrope-ExtraBold' }]}>SYNCING</Text>
-                </View>
-              </View>
+      {/* --- FLOATING BOTTOM NAVIGATION --- */}
+      <View style={styles.floatingNavWrapper}>
+        <View style={styles.floatingNav}>
 
-              <View style={styles.updateActions}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setPropertyStatus('AVAILABLE')}
-                  style={[styles.actionBtn, propertyStatus === 'AVAILABLE' && styles.actionBtnActive]}
-                >
-                  <CheckCircle2 size={24} color={propertyStatus === 'AVAILABLE' ? COLORS.textDark : '#94A3B8'} strokeWidth={2} />
-                  <Text style={[styles.actionBtnText, { fontFamily: 'Manrope-ExtraBold' }, propertyStatus === 'AVAILABLE' && styles.actionBtnTextActive]}>
-                    AVAILABLE
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setPropertyStatus('OCCUPIED')}
-                  style={[styles.actionBtn, propertyStatus === 'OCCUPIED' && styles.actionBtnActive]}
-                >
-                  <User size={24} color={propertyStatus === 'OCCUPIED' ? COLORS.textDark : '#94A3B8'} strokeWidth={2} />
-                  <Text style={[styles.actionBtnText, { fontFamily: 'Manrope-ExtraBold' }, propertyStatus === 'OCCUPIED' && styles.actionBtnTextActive]}>
-                    OCCUPIED
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-          </View>
-        )}
-      </ScrollView>
-
-      {/* --- COMPLETE 6-ITEM BOTTOM NAVIGATION BAR --- */}
-      <View style={styles.bottomNavContainer}>
-        <View style={styles.bottomNav}>
-
-          <TouchableOpacity onPress={() => setActiveNav('Property')} style={styles.navItem}>
-            <LayoutGrid size={20} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Property' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Property' && styles.navTextActive]} numberOfLines={1}>PROPERTY</Text>
+          <TouchableOpacity onPress={() => setActiveNav('Property')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]}>
+            <LayoutGrid size={22} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Property' && <Text style={styles.navTextActive}>Props</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={styles.navItem}>
-            <Calendar size={20} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Bookings' && styles.navTextActive]} numberOfLines={1}>BOOKINGS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}>
+            <Calendar size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Book</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={styles.navItem}>
-            <BarChart2 size={20} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Finance' && styles.navTextActive]} numberOfLines={1}>FINANCE</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]}>
+            <BarChart2 size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Fin</Text>}
           </TouchableOpacity>
 
-          {/* Spacer for the Floating Action Button */}
-          <View style={styles.navSpacer} />
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={styles.navItem}>
-            <BookOpen size={20} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Ledger' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Ledger' && styles.navTextActive]} numberOfLines={1}>LEDGER</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]}>
+            <BookOpen size={22} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Ledger' && <Text style={styles.navTextActive}>Ledg</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={styles.navItem}>
-            <TrendingUp size={20} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Insights' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Insights' && styles.navTextActive]} numberOfLines={1}>INSIGHTS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]}>
+            <TrendingUp size={22} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Insights' && <Text style={styles.navTextActive}>Data</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={styles.navItem}>
-            <Settings size={20} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Settings' ? 2.5 : 2} />
-            <Text style={[styles.navText, { fontFamily: 'Manrope-Bold' }, activeNav === 'Settings' && styles.navTextActive]} numberOfLines={1}>SETTINGS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]}>
+            <Settings size={22} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+            {activeNav === 'Settings' && <Text style={styles.navTextActive}>Set</Text>}
           </TouchableOpacity>
 
         </View>
-
-        {/* Floating Action Button */}
-        <TouchableOpacity activeOpacity={0.9} style={styles.fab}>
-          <View style={styles.fabInner}>
-            <Plus size={30} color="#FFFFFF" strokeWidth={2.5} />
-          </View>
-        </TouchableOpacity>
       </View>
 
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -482,77 +489,108 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  safeArea: {
+    flex: 1,
+  },
+
+  /* --- MODERN HEADER --- */
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 20 : 10,
-    paddingBottom: 15,
+    paddingTop: Platform.OS === 'android' ? 48 : 20,
+    paddingBottom: 20,
   },
-  headerSubtitle: {
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 14,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  greetingText: {
     fontSize: 11,
     fontWeight: '800',
     color: COLORS.textMuted,
-    letterSpacing: 1.5,
-    marginBottom: 4,
+    marginBottom: 2,
+    letterSpacing: 1,
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textMain,
     letterSpacing: -0.5,
   },
-  headerActions: {
+  liveUpdateRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 2,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.accent,
+    marginRight: 6,
+  },
+  liveText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.accent,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   iconButton: {
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-    backgroundColor: COLORS.cardBg,
+    backgroundColor: '#FFFFFF',
     borderRadius: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
     elevation: 2,
   },
-  notificationDot: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 8,
-    height: 8,
-    backgroundColor: COLORS.red,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  profileButton: {
+  bellButton: {
     width: 44,
     height: 44,
+    backgroundColor: '#FFFFFF',
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    position: 'relative',
   },
-  profileImage: {
-    width: '100%',
-    height: '100%',
+  notificationDot: {
+    position: 'absolute',
+    top: 10,
+    right: 12,
+    width: 10,
+    height: 10,
+    backgroundColor: COLORS.dangerBg,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
+
+  /* --- TABS --- */
   tabsContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   tabsScroll: {
     paddingHorizontal: 24,
@@ -568,9 +606,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 8,
     elevation: 1,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   tabActive: {
-    backgroundColor: COLORS.textDark,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   tabText: {
     fontSize: 14,
@@ -580,169 +621,180 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: '#FFFFFF',
   },
+
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 130,
+    paddingBottom: 20,
   },
 
-  /* --- DASHBOARD STYLES --- */
-  revenueCard: {
+  /* --- HERO REVENUE BENTO --- */
+  heroCard: {
     backgroundColor: COLORS.primary,
     borderRadius: 32,
-    padding: 28,
-    marginBottom: 24,
+    padding: 24,
+    marginHorizontal: 24,
+    marginBottom: 20,
+    position: 'relative',
+    overflow: 'hidden',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.25,
     shadowRadius: 24,
     elevation: 12,
-    overflow: 'hidden',
   },
-  decorativeCircle1: {
+  heroCircleTop: {
     position: 'absolute',
-    top: -50,
-    right: -20,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    top: -80,
+    right: -40,
+  },
+  heroCircleBottom: {
+    position: 'absolute',
     width: 150,
     height: 150,
     borderRadius: 75,
     backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  decorativeCircle2: {
-    position: 'absolute',
-    bottom: -80,
+    bottom: -60,
     left: -40,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  revenueHeader: {
+  heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 24,
   },
   walletIconWrapper: {
     width: 52,
     height: 52,
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 16,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  revenueBadge: {
+  trendPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: COLORS.primaryLight,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: 100,
   },
-  revenueBadgeText: {
-    color: '#FFFFFF',
+  trendText: {
+    color: COLORS.successText,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
-  revenueBody: {
+  heroBody: {
     marginTop: 10,
   },
-  revenueSubtitle: {
+  heroSubtitle: {
     color: 'rgba(255,255,255,0.7)',
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
     marginBottom: 6,
-    textTransform: 'uppercase',
   },
-  revenueValueRow: {
+  heroValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
-  revenueCurrency: {
+  heroCurrency: {
     color: '#FFFFFF',
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '700',
     marginRight: 4,
   },
-  revenueValue: {
+  heroValue: {
     color: '#FFFFFF',
     fontSize: 42,
     fontWeight: '800',
     letterSpacing: -1.5,
   },
-  revenueDecimals: {
+  heroDecimals: {
     color: 'rgba(255,255,255,0.6)',
     fontSize: 20,
     fontWeight: '700',
   },
-  kpiRow: {
+
+  /* --- BENTO KPI GRID --- */
+  bentoGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 16,
+    paddingHorizontal: 24,
     marginBottom: 24,
   },
-  kpiCard: {
-    width: (width - 48 - 16) / 2,
+  bentoCard: {
     backgroundColor: COLORS.cardBg,
     borderRadius: 28,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
-  kpiTopRow: {
+  smallBento: {
+    flex: 1,
+  },
+  bentoTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  kpiIconWrapper: {
+  bentoIconWrapper: {
     width: 44,
     height: 44,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  kpiValue: {
-    color: COLORS.textDark,
+  smallBentoValue: {
     fontSize: 28,
     fontWeight: '800',
+    color: COLORS.textMain,
     letterSpacing: -0.5,
     marginBottom: 4,
   },
-  kpiLabel: {
+  bentoLabelDark: {
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.textMuted,
-    fontSize: 12,
-    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: 16,
   },
-  modernProgressBarBg: {
+  progressBarBg: {
     height: 6,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.border,
     borderRadius: 3,
   },
-  modernProgressBarFill: {
+  progressBarFill: {
     height: '100%',
     borderRadius: 3,
   },
-  sectionHeader: {
+
+  /* --- SECTION HEADERS --- */
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 24,
     marginBottom: 16,
-    marginTop: 8,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textMain,
     letterSpacing: -0.5,
   },
   detailsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.primarySoft,
+    backgroundColor: COLORS.primaryLight,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 100,
@@ -752,18 +804,22 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.primary,
     marginRight: 6,
-    letterSpacing: 0.5,
   },
+
+  /* --- NOI CARD --- */
   noiCard: {
     backgroundColor: COLORS.cardBg,
     borderRadius: 32,
     padding: 24,
+    marginHorizontal: 24,
     marginBottom: 32,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.03,
     shadowRadius: 16,
-    elevation: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   noiDataRow: {
     flexDirection: 'row',
@@ -771,22 +827,22 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   noiLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: COLORS.textMuted,
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   noiValueMain: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '800',
     color: COLORS.primary,
     letterSpacing: -0.5,
   },
   noiValueExpense: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
-    color: COLORS.red,
+    color: COLORS.dangerText,
   },
   chartContainer: {
     flexDirection: 'row',
@@ -804,38 +860,49 @@ const styles = StyleSheet.create({
   },
   chartTrack: {
     flex: 1,
-    width: 14,
+    width: 16,
     backgroundColor: '#F1F5F9',
-    borderRadius: 7,
+    borderRadius: 8,
     marginBottom: 12,
     justifyContent: 'flex-end',
   },
   chartBar: {
     width: '100%',
-    borderRadius: 7,
+    borderRadius: 8,
   },
   chartLabel: {
     fontSize: 11,
     fontWeight: '700',
     color: COLORS.textMuted,
   },
+  chartLabelActive: {
+    color: COLORS.accent,
+    fontWeight: '800',
+  },
+
+  /* --- PROPERTY LIST --- */
+  propertyList: {
+    paddingHorizontal: 24,
+    gap: 16,
+  },
   propertyCard: {
     flexDirection: 'row',
     backgroundColor: COLORS.cardBg,
     borderRadius: 24,
-    padding: 14,
-    marginBottom: 16,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   propertyImage: {
-    width: 85,
-    height: 85,
-    borderRadius: 18,
+    width: 80,
+    height: 80,
+    borderRadius: 16,
     backgroundColor: '#F1F5F9',
   },
   propertyInfo: {
@@ -851,7 +918,7 @@ const styles = StyleSheet.create({
   propertyName: {
     fontSize: 16,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textMain,
     flex: 1,
     marginRight: 8,
     letterSpacing: -0.2,
@@ -880,31 +947,33 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   statLabel: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.textMuted,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 14,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textMain,
   },
 
-  /* --- PROPERTY DETAILS VIEW (MOCKUP MATCH) --- */
+  /* --- PROPERTY DETAILS VIEW --- */
   detailsContainer: {
-    paddingBottom: 20,
+    paddingHorizontal: 24,
   },
   detailCard: {
     backgroundColor: COLORS.cardBg,
-    borderRadius: 40,
+    borderRadius: 32,
     padding: 24,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   detailHeader: {
     flexDirection: 'row',
@@ -915,7 +984,6 @@ const styles = StyleSheet.create({
   availableBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.successBg,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 100,
@@ -934,21 +1002,21 @@ const styles = StyleSheet.create({
   houseIconBtn: {
     width: 44,
     height: 44,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.primaryLight,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   detailTitle: {
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: '800',
     color: COLORS.primary,
     letterSpacing: -1,
-    marginBottom: 32,
-    lineHeight: 40,
+    marginBottom: 24,
+    lineHeight: 38,
   },
   amenityHeader: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: COLORS.textMuted,
     letterSpacing: 1.5,
@@ -962,7 +1030,7 @@ const styles = StyleSheet.create({
   amenityPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: COLORS.background,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 16,
@@ -972,12 +1040,12 @@ const styles = StyleSheet.create({
   amenityPillText: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.textDark,
+    color: COLORS.textMain,
   },
   dividerLine: {
     height: 1,
     backgroundColor: COLORS.border,
-    marginVertical: 30,
+    marginVertical: 24,
   },
   detailFooter: {
     flexDirection: 'row',
@@ -993,17 +1061,19 @@ const styles = StyleSheet.create({
   footerValue: {
     fontSize: 16,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textMain,
   },
   updateCard: {
     backgroundColor: COLORS.cardBg,
-    borderRadius: 40,
+    borderRadius: 32,
     padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   updateHeader: {
     flexDirection: 'row',
@@ -1014,7 +1084,7 @@ const styles = StyleSheet.create({
   updateTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: COLORS.textDark,
+    color: COLORS.textMain,
     marginBottom: 4,
     letterSpacing: -0.5,
   },
@@ -1024,7 +1094,7 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   syncBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: COLORS.background,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1032,7 +1102,7 @@ const styles = StyleSheet.create({
   syncText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#7FA085',
+    color: COLORS.accent,
     letterSpacing: 0.5,
   },
   updateActions: {
@@ -1041,89 +1111,79 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     flex: 1,
-    height: 100,
+    height: 90,
     borderRadius: 24,
     borderWidth: 2,
     borderColor: COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: COLORS.background,
   },
   actionBtnActive: {
-    backgroundColor: '#F5FBEA',
-    borderColor: '#A3E635',
+    backgroundColor: '#F0FDF4', // very light green
+    borderColor: COLORS.successText,
   },
   actionBtnText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#94A3B8',
-    marginTop: 12,
+    color: COLORS.textMuted,
+    marginTop: 10,
     letterSpacing: 0.5,
   },
   actionBtnTextActive: {
-    color: COLORS.textDark,
+    color: COLORS.textMain,
   },
 
-  /* --- FULL 6-ITEM BOTTOM NAV --- */
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-    paddingHorizontal: 16,
-    backgroundColor: 'transparent',
+  bottomSpacer: {
+    height: 140, // Avoid overlap with floating nav
   },
-  bottomNav: {
+
+  /* --- FLOATING BOTTOM NAV (Matched style + FAB) --- */
+  floatingNavWrapper: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    left: 16,
+    right: 16,
+    alignItems: 'center', // helps center FAB
+  },
+  floatingNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.cardBg,
-    height: 75,
-    borderRadius: 35,
-    paddingHorizontal: 5,
+    backgroundColor: '#FFFFFF',
+    height: 72,
+    borderRadius: 36,
+    paddingHorizontal: 8,
+    width: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
     shadowRadius: 20,
-    elevation: 15,
+    elevation: 10,
   },
   navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
     flex: 1,
-    height: '100%',
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+    borderRadius: 28,
+  },
+  navItemActive: {
+    backgroundColor: COLORS.primaryLight,
   },
   navText: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: '800',
     color: COLORS.textMuted,
-    marginTop: 6,
-    letterSpacing: 0.5,
+    marginTop: 4,
+    letterSpacing: -0.2,
   },
   navTextActive: {
     color: COLORS.primary,
-  },
-  navSpacer: {
-    width: 50,
-  },
-  fab: {
-    position: 'absolute',
-    top: -25,
-    alignSelf: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 18,
-  },
-  fabInner: {
-    width: 66,
-    height: 66,
-    backgroundColor: COLORS.primary,
-    borderRadius: 33,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: COLORS.background,
+    fontSize: 13,
+    fontWeight: '800',
+    marginLeft: 6,
+    letterSpacing: -0.2,
   }
 });
