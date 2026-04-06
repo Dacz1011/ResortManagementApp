@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  StatusBar
+  StatusBar,
+  Image,
+  ImageBackground,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -18,116 +21,132 @@ import {
   Wallet,
   Settings,
   Building2,
-  UserPlus,
   Search,
-  ChevronRight
+  ChevronRight,
+  UserPlus
 } from 'lucide-react-native';
+import { useBookings } from '../../context/BookingContext';
 
-// Modernized Theme Palette (Matching Home, Bookings, Finance)
+const { width } = Dimensions.get('window');
+
 const COLORS = {
-  background: '#F8FAFC',    // Cool off-white for depth
-  primary: '#E64E76',       // Vibrant Pink
-  primaryLight: '#FDF0F4',  // Very soft pink
-  primaryDark: '#BE375A',   // Deep pink for gradients/accents
-  textMain: '#0F172A',      // Slate 900 (High contrast)
-  textMuted: '#64748B',     // Slate 500
-  border: '#E2E8F0',        // Slate 200
+  background: '#F4F7FA',
+  primary: '#E64E76',
+  primaryLight: '#FDF0F4',
+  primaryDark: '#BE375A',
+  textMain: '#0F172A',
+  textMuted: '#64748B',
+  border: '#E2E8F0',
   cardBg: '#FFFFFF',
-
-  // Accents & Badges
   successBg: '#DCFCE7',
   successText: '#16A34A',
-  warningBg: '#FEF9C3',
-  warningText: '#CA8A04',
-  infoBg: '#E0F2FE',
-  infoText: '#0EA5E9',
+  warningBg: '#FEF3C7',
+  warningText: '#D97706',
 };
-
-// Mock data for guests
-const GUEST_LIST = [
-  { id: '1', name: 'Jonathan Rivera', date: 'Feb 3, 2026 - Feb 5, 2026', status: 'FULLY PAID' },
-  { id: '2', name: 'Sarah Jenkins', date: 'Feb 4, 2026 - Feb 7, 2026', status: 'BALANCE DUE' },
-  { id: '3', name: 'Michael Chen', date: 'Feb 5, 2026 - Feb 8, 2026', status: 'FULLY PAID' },
-];
 
 export default function ReineGuestMgmt({ navigation }) {
   const activeNav = 'Guest';
+  const { getBookings } = useBookings();
+  const bookingsData = getBookings('Reine');
+
+  const guests = useMemo(() => {
+    const uniqueBookings = [];
+    const seen = new Set();
+
+    Object.values(bookingsData).forEach(booking => {
+      const identifier = `${booking.guestName}-${booking.checkIn}-${booking.checkOut}`;
+      if (!seen.has(identifier)) {
+        seen.add(identifier);
+        uniqueBookings.push({
+          id: identifier,
+          name: booking.guestName,
+          date: `${booking.checkIn} - ${booking.checkOut}`,
+          status: booking.status === 'CONFIRMED' ? 'FULLY PAID' : 'BALANCE DUE'
+        });
+      }
+    });
+
+    return uniqueBookings;
+  }, [bookingsData]);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
-        {/* --- MODERN HEADER --- */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greetingText}>Guest Roster</Text>
-            <Text style={styles.headerTitle}>Management</Text>
-          </View>
-
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-              <Search size={20} color={COLORS.textMain} strokeWidth={2.5} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
-              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+      >
+        <ImageBackground
+          source={require('../../assets/images/REINE BEACH HOUSE 4.png')}
+          style={styles.heroHeader}
         >
-          {/* --- BENTO BOX SUMMARY CARDS --- */}
-          <View style={styles.bentoGrid}>
+          <View style={styles.heroOverlay} />
 
-            {/* Hero Summary Card */}
-            <View style={[styles.bentoCard, styles.heroBento]}>
-              <View style={styles.heroCircleTop} />
-              <View style={styles.heroCircleBottom} />
-
-              <View style={styles.bentoTextWrap}>
-                <Text style={styles.bentoLabelWhite}>ACTIVE GUESTS</Text>
-                <Text style={styles.heroValueWhite}>12</Text>
-                <View style={styles.trendRowWhite}>
-                  <Text style={styles.trendTextWhite}>+2 this week</Text>
-                </View>
-              </View>
-              <Users size={48} color="#FFFFFF" strokeWidth={1} style={styles.heroBgIcon} opacity={0.2} />
-            </View>
-
-            {/* Stacked Supplementary Cards */}
-            <View style={styles.bentoCol}>
-              <View style={[styles.bentoCard, styles.smallBento]}>
-                <Text style={styles.bentoLabelDark}>PENDING BAL.</Text>
-                <Text style={styles.smallBentoValue}>₱450</Text>
+          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
+            <View style={styles.headerTopRow}>
+              <View>
+                <Text style={styles.greetingText}>Manage Guests</Text>
+                <Text style={styles.adminName}>Guest Roster</Text>
               </View>
 
-              <View style={[styles.bentoCard, styles.smallBento]}>
-                <Text style={styles.bentoLabelDark}>TODAY'S ARRIVALS</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                  <Text style={styles.smallBentoValue}>8</Text>
-                  <Text style={styles.smallBentoSub}> Guests</Text>
-                </View>
+              <View style={styles.headerRight}>
+                <TouchableOpacity style={styles.iconBtn} activeOpacity={0.8}>
+                  <Search size={20} color="#FFFFFF" strokeWidth={2.5} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconBtn} activeOpacity={0.8} onPress={() => navigation.navigate('ReineNotifications')}>
+                  <Bell size={20} color="#FFFFFF" strokeWidth={2.5} />
+                  <View style={styles.notificationDot} />
+                </TouchableOpacity>
               </View>
             </View>
 
-          </View>
+            <View style={styles.glassCard}>
+              <View style={styles.glassHeader}>
+                <View style={styles.statusPill}>
+                  <Users size={14} color={COLORS.textMain} strokeWidth={2.5} style={{ marginRight: 6 }} />
+                  <Text style={styles.statusText}>ACTIVE ROSTER</Text>
+                </View>
+              </View>
+              <Text style={styles.heroMainStat}>{guests.length} Guests</Text>
+              <Text style={styles.heroSubStat}>Currently in-house and upcoming</Text>
+            </View>
+          </SafeAreaView>
+        </ImageBackground>
 
-          {/* --- LIST HEADER --- */}
+        <View style={styles.mainSheet}>
           <View style={styles.listHeaderRow}>
-            <Text style={styles.listTitle}>Upcoming & Current</Text>
-            <TouchableOpacity style={styles.filterPill} activeOpacity={0.7}>
-              <Text style={styles.filterPillText}>Filter</Text>
+            <Text style={styles.sectionTitle}>Current & Upcoming</Text>
+            <TouchableOpacity
+              style={styles.filterPill}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('ReineGuestHistory')}
+            >
+              <Text style={styles.filterPillText}>History</Text>
               <ChevronRight size={14} color={COLORS.primary} strokeWidth={2.5} style={{ marginLeft: 2 }} />
             </TouchableOpacity>
           </View>
 
-          {/* --- GUEST LIST --- */}
           <View style={styles.guestList}>
-            {GUEST_LIST.map((guest) => {
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.propertyCard}
+              onPress={() => navigation.navigate('ReineBookings', { mode: 'manual' })}
+            >
+               <View style={styles.propertyAvatar}>
+                  <UserPlus size={22} color={COLORS.primary} strokeWidth={2} />
+               </View>
+
+               <View style={styles.guestInfo}>
+                 <Text style={styles.propertyName}>New Guest Entry</Text>
+                 <Text style={styles.propertyDesc}>Tap here to manually log a guest</Text>
+               </View>
+
+               <View style={styles.dotIndicator} />
+            </TouchableOpacity>
+
+            {guests.length > 0 ? guests.map((guest) => {
               const isPaid = guest.status === 'FULLY PAID';
 
               return (
@@ -146,7 +165,7 @@ export default function ReineGuestMgmt({ navigation }) {
                     { backgroundColor: isPaid ? COLORS.successBg : COLORS.warningBg }
                   ]}>
                     <Text style={[
-                      styles.statusText,
+                      styles.statusBadgeText,
                       { color: isPaid ? COLORS.successText : COLORS.warningText }
                     ]}>
                       {guest.status}
@@ -154,60 +173,57 @@ export default function ReineGuestMgmt({ navigation }) {
                   </View>
                 </TouchableOpacity>
               )
-            })}
-
-            {/* Special Property Available Card */}
-            <TouchableOpacity activeOpacity={0.7} style={styles.propertyCard}>
-               <View style={styles.propertyAvatar}>
-                  <Building2 size={22} color={COLORS.primary} strokeWidth={2} />
-               </View>
-
-               <View style={styles.guestInfo}>
-                 <Text style={styles.propertyName}>Property Available</Text>
-                 <Text style={styles.propertyDesc}>Ready for next check-in at 2:00 PM</Text>
-               </View>
-
-               <View style={styles.dotIndicator} />
-            </TouchableOpacity>
+            }) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No active guests currently scheduled.</Text>
+              </View>
+            )}
           </View>
+        </View>
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
 
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-      </SafeAreaView>
+      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNav}>
 
-      {/* --- FLOATING ACTION BUTTON --- */}
-      <TouchableOpacity activeOpacity={0.9} style={styles.fab}>
-        <UserPlus size={24} color="#FFFFFF" strokeWidth={2.5} />
-      </TouchableOpacity>
-
-      {/* --- FLOATING BOTTOM NAVIGATION --- */}
-      <View style={styles.floatingNavWrapper}>
-        <View style={styles.floatingNav}>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')}>
-            <Home size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
+              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineBookings')}>
-            <CalendarDays size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineBookings')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
+              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.navItem, activeNav === 'Guest' && styles.navItemActive]}>
-            <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Guest' && <Text style={styles.navTextActive}>Guest</Text>}
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineGuestMgmt')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
+              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')}>
-            <Wallet size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
+              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')}>
-            <Settings size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
+              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
 
         </View>
       </View>
-
     </View>
   );
 }
@@ -217,31 +233,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  safeArea: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
   },
-
-  /* --- MODERN HEADER --- */
-  header: {
+  bottomSpacer: {
+    height: 110,
+  },
+  heroHeader: {
+    width: '100%',
+    height: 380,
+    justifyContent: 'flex-start',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+  },
+  heroSafeArea: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'space-between',
+    paddingBottom: 40,
+  },
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 20 : 12,
-    paddingBottom: 20,
+    marginTop: Platform.OS === 'android' ? 16 : 8,
   },
   greetingText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textMuted,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  headerTitle: {
-    fontSize: 24,
+  adminName: {
+    fontSize: 28,
     fontWeight: '800',
-    color: COLORS.textMain,
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   headerRight: {
@@ -249,32 +279,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  iconButton: {
+  iconBtn: {
     width: 44,
     height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  bellButton: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   notificationDot: {
     position: 'absolute',
@@ -282,130 +295,66 @@ const styles = StyleSheet.create({
     right: 12,
     width: 10,
     height: 10,
-    backgroundColor: COLORS.primary,
     borderRadius: 5,
+    backgroundColor: COLORS.primary,
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
-
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-  },
-
-  /* --- BENTO BOX SUMMARY CARDS --- */
-  bentoGrid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  bentoCard: {
-    backgroundColor: COLORS.cardBg,
+  glassCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 28,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 2,
+    padding: 24,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 10,
   },
-  heroBento: {
-    flex: 1.2,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
+  glassHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  heroCircleTop: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    top: -40,
-    right: -20,
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
   },
-  heroCircleBottom: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    bottom: -30,
-    left: -20,
-  },
-  heroBgIcon: {
-    position: 'absolute',
-    right: -10,
-    bottom: 10,
-  },
-  bentoTextWrap: {
-    zIndex: 1,
-  },
-  bentoLabelWhite: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.85)',
-    letterSpacing: 1,
-    marginBottom: 8,
-  },
-  heroValueWhite: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -2,
-    marginBottom: 8,
-  },
-  trendRowWhite: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  trendTextWhite: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  bentoCol: {
-    flex: 1,
-    gap: 16,
-  },
-  smallBento: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  bentoLabelDark: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  smallBentoValue: {
-    fontSize: 22,
+  statusText: {
+    fontSize: 11,
     fontWeight: '800',
     color: COLORS.textMain,
-    letterSpacing: -0.5,
+    letterSpacing: 0.5,
   },
-  smallBentoSub: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textMuted,
+  heroMainStat: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1,
+    marginBottom: 4,
   },
-
-  /* --- LIST HEADER --- */
+  heroSubStat: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.9)',
+  },
+  mainSheet: {
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    marginTop: -36,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    flex: 1,
+  },
   listHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginBottom: 20,
   },
-  listTitle: {
+  sectionTitle: {
     fontSize: 20,
     fontWeight: '800',
     color: COLORS.textMain,
@@ -424,8 +373,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.primary,
   },
-
-  /* --- GUEST LIST --- */
   guestList: {
     gap: 16,
   },
@@ -435,13 +382,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cardBg,
     borderRadius: 24,
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
+    shadowOpacity: 0.03, shadowRadius: 10, elevation: 2, borderWidth: 1, borderColor: '#FFFFFF',
   },
   avatar: {
     width: 48,
@@ -459,7 +402,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#FFF0F5',
+    borderColor: 'rgba(230, 78, 118, 0.1)',
   },
   propertyAvatar: {
     width: 48,
@@ -508,7 +451,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
-  statusText: {
+  statusBadgeText: {
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.5,
@@ -522,68 +465,65 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
-
-  bottomSpacer: {
-    height: 140, // Avoid overlap with floating nav
-  },
-
-  /* --- FLOATING ACTION BUTTON --- */
-  fab: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : 110,
-    right: 24,
-    width: 64,
-    height: 64,
-    borderRadius: 20, // Modern squircle
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
+  emptyContainer: {
+    padding: 32,
     alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
-    zIndex: 10,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
-
-  /* --- FLOATING BOTTOM NAV --- */
-  floatingNavWrapper: {
+  emptyText: {
+    color: COLORS.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
+  bottomNavContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
-    left: 24,
-    right: 24,
-  },
-  floatingNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    bottom: 0,
+    width: '100%',
     backgroundColor: '#FFFFFF',
-    height: 72,
-    borderRadius: 36,
-    paddingHorizontal: 8,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.06,
     shadowRadius: 20,
-    elevation: 10,
+    elevation: 15,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: 16,
+    paddingHorizontal: 8,
   },
   navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
-    height: 56,
+  },
+  navIconWrapper: {
+    width: 48,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
-    borderRadius: 28,
+    marginBottom: 4,
   },
-  navItemActive: {
+  navIconWrapperActive: {
     backgroundColor: COLORS.primaryLight,
-    flex: 1.5,
+  },
+  navText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
   },
   navTextActive: {
     color: COLORS.primary,
-    fontSize: 13,
     fontWeight: '800',
-    marginLeft: 6,
-    letterSpacing: -0.2,
   },
 });

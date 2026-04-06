@@ -39,7 +39,14 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to log expense receipts.",
+          "cameraPermission": "The app accesses your camera to take photos of receipts."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

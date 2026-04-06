@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   Platform,
   KeyboardAvoidingView,
   StatusBar,
-  Image
+  Image,
+  Linking,
+  ImageBackground,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Calendar as CalendarIcon,
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
@@ -28,101 +30,210 @@ import {
   Wallet,
   Settings,
   MessageSquare,
-  X
+  X,
+  Calendar as CalendarIcon,
+  CheckCircle2
 } from 'lucide-react-native';
+import { REINE_DATA } from '../../datas/mockData';
 
-// Modernized Theme Palette (Matching ReineHome.js)
+const { width } = Dimensions.get('window');
+
+// High-End Boutique Palette (Matches ReineHome)
 const COLORS = {
-  background: '#F8FAFC',    // Cool off-white for depth
-  primary: '#E64E76',       // Vibrant Pink
-  primaryLight: '#FDF0F4',  // Very soft pink
-  primaryDark: '#BE375A',   // Deep pink for occupied/accents
-  textMain: '#0F172A',      // Slate 900 (High contrast)
+  background: '#F4F7FA',    // Deep, crisp off-white for the main sheet
+  primary: '#E64E76',       // Signature Reine Pink
+  primaryLight: '#FDF0F4',  // Soft pink background for accents
+  primaryDark: '#BE375A',
+  textMain: '#0F172A',      // Slate 900
   textMuted: '#64748B',     // Slate 500
   border: '#E2E8F0',        // Slate 200
   cardBg: '#FFFFFF',
-  inputBg: '#F8FAFC',       // Input background
-
-  // Accents
+  success: '#10B981',
   successBg: '#DCFCE7',
   successText: '#16A34A',
 };
 
-export default function ReineBookings({ navigation }) {
+export default function ReineBookings({ route, navigation }) {
   const activeNav = 'Bookings';
-
-  // 'calendar' or 'manual'
   const [activeView, setActiveView] = useState('calendar');
-  const [selectedDate, setSelectedDate] = useState(20);
+  const [bookings, setBookings] = useState(REINE_DATA.bookings);
+
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(today.getDate());
+
+  // Manual Booking States
+  const [guestName, setGuestName] = useState('');
+  const [contact, setContact] = useState('');
+  const [numDays, setNumDays] = useState('1');
+  const [checkInTime, setCheckInTime] = useState('2:00 PM');
+  const [checkOutTime, setCheckOutTime] = useState('12:00 PM');
+  const [departureDate, setDepartureDate] = useState('');
+
+  useEffect(() => {
+    if (route.params?.mode === 'manual') {
+      setActiveView('manual');
+      updateDepartureDate(selectedDate, '1');
+    }
+  }, [route.params, selectedDate]);
+
+  const updateDepartureDate = (day, daysStr) => {
+    const days = parseInt(daysStr);
+    if (!isNaN(days) && days > 0) {
+      const checkInDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      const checkout = new Date(checkInDate);
+      checkout.setDate(checkInDate.getDate() + days);
+
+      const formattedDeparture = `${checkout.getMonth() + 1}/${checkout.getDate() < 10 ? '0' + checkout.getDate() : checkout.getDate()}/${checkout.getFullYear()}`;
+      setDepartureDate(formattedDeparture);
+    }
+  };
+
+  const handleNumDaysChange = (value) => {
+    setNumDays(value);
+    updateDepartureDate(selectedDate, value);
+  };
+
+  const handleConfirmBooking = () => {
+    const days = parseInt(numDays);
+    if (!guestName || isNaN(days) || days <= 0) return;
+
+    const newBookings = { ...bookings };
+    const checkInDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate);
+
+    for (let i = 0; i < days; i++) {
+      const currentDay = new Date(checkInDate);
+      currentDay.setDate(checkInDate.getDate() + i);
+
+      if (currentDay.getMonth() === currentMonth.getMonth() &&
+          currentDay.getFullYear() === currentMonth.getFullYear()) {
+        newBookings[currentDay.getDate()] = {
+          guestName,
+          contact,
+          email: 'guest@example.com',
+          checkIn: `${currentDay.getMonth() + 1}/${currentDay.getDate()}`,
+          checkOut: departureDate,
+          status: 'CONFIRMED',
+          amount: `₱${(12000 * days).toLocaleString()}.00`
+        };
+      }
+    }
+
+    setBookings(newBookings);
+    setActiveView('calendar');
+    setGuestName('');
+    setContact('');
+    setNumDays('1');
+  };
+
+  const isSameMonthAsToday = currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear();
+  const occupiedDates = Object.keys(bookings).map(Number);
+  const currentBooking = bookings[selectedDate];
 
   const handleDatePress = (day) => {
     setSelectedDate(day);
-    // If clicking an empty date, route to manual booking
-    if (![5, 6, 7, 11, 12, 20, 21, 22, 24].includes(day)) {
+    if (!occupiedDates.includes(day)) {
       setActiveView('manual');
+      updateDepartureDate(day, numDays);
+    }
+  };
+
+  const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  const formatMonth = (date) => date.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  const handleDialGuest = () => {
+    if (currentBooking) {
+      Linking.openURL(`tel:${currentBooking.contact}`).catch(err => console.error("Couldn't load page", err));
     }
   };
 
   // --- RENDER: CALENDAR VIEW ---
   const renderCalendarView = () => {
-    const days = Array.from({ length: 31 }, (_, i) => i + 1);
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const days = [];
+    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+      days.push({ day: daysInPrevMonth - i, isCurrentMonth: false });
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({ day: i, isCurrentMonth: true });
+    }
+
+    const upcomingCount = Object.keys(bookings).length; // Mock count
 
     return (
-      <View style={styles.viewContainer}>
-        {/* --- MODERN HEADER --- */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greetingText}>Manage Reservations</Text>
-            <Text style={styles.headerTitle}>Calendar</Text>
-          </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
+        {/* HERO IMAGE HEADER */}
+        <ImageBackground
+          source={require('../../assets/images/REINE BEACH HOUSE 4.png')}
+          style={styles.heroHeader}
+        >
+          <View style={styles.heroOverlay} />
+          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
+            <View style={styles.headerTopRow}>
+              <View>
+                <Text style={styles.greetingText}>Manage Stays</Text>
+                <Text style={styles.adminName}>Reservations</Text>
+              </View>
+              <View style={styles.headerRight}>
+                <TouchableOpacity style={styles.iconBtn} activeOpacity={0.8}>
+                  <SlidersHorizontal size={20} color="#FFFFFF" strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
+            </View>
 
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-              <SlidersHorizontal size={20} color={COLORS.textMain} strokeWidth={2.5} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
-              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
-        </View>
+            <View style={styles.glassCard}>
+              <View style={styles.glassHeader}>
+                <View style={styles.statusPill}>
+                  <CalendarDays size={14} color={COLORS.textMain} strokeWidth={2.5} style={{ marginRight: 6 }} />
+                  <Text style={styles.statusText}>{formatMonth(currentMonth).toUpperCase()}</Text>
+                </View>
+              </View>
+              <Text style={styles.heroMainStat}>{upcomingCount} Upcoming</Text>
+              <Text style={styles.heroSubStat}>Bookings scheduled for this month</Text>
+            </View>
+          </SafeAreaView>
+        </ImageBackground>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-
-          {/* --- CALENDAR CARD --- */}
+        {/* MAIN OVERLAPPING SHEET */}
+        <View style={styles.mainSheet}>
           <View style={styles.calendarCard}>
-            {/* Month Selector */}
             <View style={styles.monthSelector}>
-              <TouchableOpacity style={styles.monthBtn}>
+              <TouchableOpacity style={styles.monthBtn} onPress={handlePrevMonth}>
                 <ChevronLeft size={24} color={COLORS.textMain} strokeWidth={2.5} />
               </TouchableOpacity>
-              <Text style={styles.monthText}>October 2023</Text>
-              <TouchableOpacity style={styles.monthBtn}>
+              <Text style={styles.monthText}>{formatMonth(currentMonth)}</Text>
+              <TouchableOpacity style={styles.monthBtn} onPress={handleNextMonth}>
                 <ChevronRight size={24} color={COLORS.textMain} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
 
-            {/* Week Days */}
             <View style={styles.weekDaysRow}>
               {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day, idx) => (
                 <Text key={idx} style={styles.weekDayText}>{day}</Text>
               ))}
             </View>
 
-            {/* Days Grid */}
             <View style={styles.daysGrid}>
-              {/* Empty slots for start of month */}
-              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>25</Text></View>
-              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>26</Text></View>
-              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>27</Text></View>
-              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>28</Text></View>
-              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>29</Text></View>
-              <View style={styles.dayCellContainer}><Text style={styles.dayTextMuted}>30</Text></View>
+              {days.map((item, index) => {
+                if (!item.isCurrentMonth) {
+                  return (
+                    <View key={`prev-${index}`} style={styles.dayCellContainer}>
+                      <Text style={styles.dayTextMuted}>{item.day}</Text>
+                    </View>
+                  );
+                }
 
-              {days.map((day) => {
-                const isPink = [5, 6, 7, 20, 21, 22, 24].includes(day);
-                const isDarkPink = [11, 12].includes(day);
+                const day = item.day;
+                const isOccupied = occupiedDates.includes(day);
                 const isSelected = selectedDate === day;
+                const isToday = isSameMonthAsToday && today.getDate() === day;
 
                 let cellStyle = [styles.dayCell];
                 let textStyle = [styles.dayText];
@@ -130,12 +241,9 @@ export default function ReineBookings({ navigation }) {
                 if (isSelected) {
                   cellStyle.push(styles.dayCellSelected);
                   textStyle.push(styles.dayTextSelected);
-                } else if (isPink) {
+                } else if (isOccupied) {
                   cellStyle.push(styles.dayCellPink);
                   textStyle.push(styles.dayTextPink);
-                } else if (isDarkPink) {
-                  cellStyle.push(styles.dayCellDarkPink);
-                  textStyle.push(styles.dayTextDarkPink);
                 }
 
                 return (
@@ -147,6 +255,7 @@ export default function ReineBookings({ navigation }) {
                   >
                     <View style={cellStyle}>
                       <Text style={textStyle}>{day}</Text>
+                      {isToday && !isSelected && <View style={styles.todayDot} />}
                     </View>
                   </TouchableOpacity>
                 );
@@ -154,110 +263,142 @@ export default function ReineBookings({ navigation }) {
             </View>
           </View>
 
-          {/* --- GUEST DETAILS BENTO CARD --- */}
-          <View style={styles.detailsCard}>
-            <View style={styles.detailsHeader}>
-              <View>
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusBadgeText}>CONFIRMED</Text>
-                </View>
-                <Text style={styles.detailsTitle}>Guest Details</Text>
-                <Text style={styles.detailsSubtitle}>Booking for Oct 20 - Oct 22</Text>
-              </View>
-              <View style={styles.avatarWrapper}>
-                 <User size={28} color={COLORS.primary} strokeWidth={2} />
-              </View>
-            </View>
-
-            {/* Info Rows */}
-            <View style={styles.infoList}>
-              <View style={styles.infoRow}>
-                <View style={styles.infoIconBox}>
-                  <User size={18} color={COLORS.textMuted} strokeWidth={2.5} />
-                </View>
-                <View style={styles.infoTextWrap}>
-                  <Text style={styles.infoLabel}>GUEST NAME</Text>
-                  <Text style={styles.infoValue}>Mark J.</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoRow}>
-                <View style={styles.infoIconBox}>
-                  <Phone size={18} color={COLORS.textMuted} strokeWidth={2.5} />
-                </View>
-                <View style={styles.infoTextWrap}>
-                  <Text style={styles.infoLabel}>CONTACT</Text>
-                  <Text style={styles.infoValue}>+63 912 345 6789</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoRow}>
-                <View style={styles.infoIconBox}>
-                  <Mail size={18} color={COLORS.textMuted} strokeWidth={2.5} />
-                </View>
-                <View style={styles.infoTextWrap}>
-                  <Text style={styles.infoLabel}>EMAIL ADDRESS</Text>
-                  <Text style={styles.infoValue}>mark.j@example.com</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Actions */}
-            <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.cancelBtn} activeOpacity={0.7}>
-                <X size={20} color={COLORS.textMain} strokeWidth={2.5} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.messageBtn} activeOpacity={0.8} onPress={() => setActiveView('manual')}>
-                <MessageSquare size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 8 }}/>
-                <Text style={styles.messageBtnText}>Message Guest</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Stay Details</Text>
           </View>
 
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-      </View>
+          {currentBooking ? (
+            <View style={styles.detailsCard}>
+              <View style={styles.detailsHeader}>
+                <View>
+                  <View style={styles.confirmedBadge}>
+                    <CheckCircle2 size={12} color={COLORS.successText} strokeWidth={3} style={{ marginRight: 4 }} />
+                    <Text style={styles.confirmedBadgeText}>{currentBooking.status}</Text>
+                  </View>
+                  <Text style={styles.detailsTitle}>{currentBooking.guestName}</Text>
+                  <Text style={styles.detailsSubtitle}>{currentBooking.checkIn} — {currentBooking.checkOut}</Text>
+                </View>
+                <Image source={{ uri: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=150&auto=format&fit=crop' }} style={styles.guestAvatarLarge} />
+              </View>
+
+              <View style={styles.infoList}>
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIconBox}>
+                    <Phone size={18} color={COLORS.primary} strokeWidth={2} />
+                  </View>
+                  <View style={styles.infoTextWrap}>
+                    <Text style={styles.infoLabel}>CONTACT</Text>
+                    <Text style={styles.infoValue}>{currentBooking.contact}</Text>
+                  </View>
+                </View>
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIconBox}>
+                    <Mail size={18} color={COLORS.primary} strokeWidth={2} />
+                  </View>
+                  <View style={styles.infoTextWrap}>
+                    <Text style={styles.infoLabel}>EMAIL</Text>
+                    <Text style={styles.infoValue}>{currentBooking.email}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.cancelBtn} activeOpacity={0.7}>
+                  <X size={20} color={COLORS.textMain} strokeWidth={2.5} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.messageBtn} activeOpacity={0.8} onPress={handleDialGuest}>
+                  <MessageSquare size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 8 }}/>
+                  <Text style={styles.messageBtnText}>Message Guest</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.emptyCard}>
+              <View style={styles.emptyIconBox}>
+                <CalendarPlus size={32} color={COLORS.textMuted} strokeWidth={1.5} />
+              </View>
+              <Text style={styles.emptyTitle}>Available Date</Text>
+              <Text style={styles.emptySub}>Select an occupied date to see details, or tap here to manually book this date.</Text>
+              <TouchableOpacity style={styles.bookNowBtn} onPress={() => handleDatePress(selectedDate)}>
+                <Text style={styles.bookNowBtnText}>Book {formatMonth(currentMonth).split(' ')[0]} {selectedDate}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+        </View>
+      </ScrollView>
     );
   };
 
-  // --- RENDER: MANUAL BOOKING VIEW ---
+  // --- RENDER: MANUAL BOOKING FORM ---
   const renderManualBookingView = () => {
-    const formattedDate = `10/${selectedDate < 10 ? '0' + selectedDate : selectedDate}/2023`;
+    const formattedDate = `${currentMonth.getMonth() + 1}/${selectedDate < 10 ? '0' + selectedDate : selectedDate}/${currentMonth.getFullYear()}`;
 
     return (
-      <View style={styles.viewContainer}>
-        {/* Modern Header */}
-        <View style={styles.headerForm}>
-          <TouchableOpacity onPress={() => setActiveView('calendar')} style={styles.backButton}>
-            <ChevronLeft size={28} color={COLORS.textMain} strokeWidth={2.5} />
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.greetingText}>Manual Entry</Text>
-            <Text style={styles.headerTitle}>New Booking</Text>
-          </View>
-        </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
+          {/* HERO IMAGE HEADER */}
+          <ImageBackground
+            source={require('../../assets/images/REINE BEACH HOUSE 4.png')}
+            style={styles.heroHeaderForm}
+          >
+            <View style={styles.heroOverlay} />
+            <SafeAreaView edges={['top']} style={styles.heroSafeAreaForm}>
+              <View style={styles.headerTopRow}>
+                <TouchableOpacity onPress={() => setActiveView('calendar')} style={styles.backBtnWrapper}>
+                  <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2.5} />
+                </TouchableOpacity>
+                <View style={{ flex: 1, paddingLeft: 16 }}>
+                  <Text style={styles.greetingText}>Manual Entry</Text>
+                  <Text style={styles.adminName}>New Booking</Text>
+                </View>
+              </View>
+            </SafeAreaView>
+          </ImageBackground>
 
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.keyboardView}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentForm}>
+          {/* MAIN OVERLAPPING SHEET */}
+          <View style={styles.mainSheet}>
 
-            {/* Form Section */}
-            <View style={styles.formSection}>
-              <Text style={styles.formLabel}>Full Name</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Guest Information</Text>
+            </View>
+
+            <View style={styles.formCard}>
+              <Text style={styles.formLabel}>FULL NAME</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter guest name"
                 placeholderTextColor={COLORS.textMuted}
+                value={guestName}
+                onChangeText={setGuestName}
               />
 
-              <Text style={styles.formLabel}>Contact Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+63 000 000 0000"
-                placeholderTextColor={COLORS.textMuted}
-                keyboardType="phone-pad"
-              />
+              <View style={styles.formRow}>
+                <View style={{ flex: 1.5 }}>
+                  <Text style={styles.formLabel}>CONTACT NUMBER</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="+63 000 000 0000"
+                    placeholderTextColor={COLORS.textMuted}
+                    keyboardType="phone-pad"
+                    value={contact}
+                    onChangeText={setContact}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.formLabel}>NIGHTS</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="1"
+                    placeholderTextColor={COLORS.textMuted}
+                    keyboardType="numeric"
+                    value={numDays}
+                    onChangeText={handleNumDaysChange}
+                  />
+                </View>
+              </View>
 
-              <Text style={styles.formLabel}>Email Address <Text style={styles.optionalText}>(Optional)</Text></Text>
+              <Text style={styles.formLabel}>EMAIL ADDRESS <Text style={{fontWeight: '400', textTransform: 'none'}}>(Optional)</Text></Text>
               <TextInput
                 style={styles.input}
                 placeholder="guest@example.com"
@@ -267,101 +408,98 @@ export default function ReineBookings({ navigation }) {
               />
             </View>
 
-            {/* Dates & Times Bento */}
-            <View style={styles.dateTimeBento}>
-              <View style={styles.row}>
-                <View style={styles.halfInput}>
-                  <Text style={styles.formLabelDark}>CHECK-IN</Text>
-                  <View style={styles.inputBox}>
-                    <Text style={styles.inputBoxSmall}>Time</Text>
-                    <Text style={styles.inputBoxValue}>2:00 PM</Text>
-                  </View>
-                </View>
-                <View style={styles.halfInput}>
-                  <Text style={styles.formLabelDark}>CHECK-OUT</Text>
-                  <View style={styles.inputBox}>
-                    <Text style={styles.inputBoxSmall}>Time</Text>
-                    <Text style={styles.inputBoxValue}>12:00 PM</Text>
-                  </View>
-                </View>
-              </View>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Stay Schedule</Text>
+            </View>
 
-              <View style={styles.row}>
+            <View style={styles.scheduleCard}>
+              <View style={styles.formRow}>
                 <View style={styles.halfInput}>
-                  <Text style={styles.formLabelDark}>ARRIVAL</Text>
-                  <View style={styles.inputBoxDate}>
-                    <Text style={[styles.placeholderText, { color: COLORS.primary, fontWeight: '800' }]}>{formattedDate}</Text>
+                  <Text style={styles.formLabel}>CHECK-IN</Text>
+                  <View style={styles.readOnlyBox}>
+                    <Text style={styles.readOnlySub}>Arrival</Text>
+                    <Text style={styles.readOnlyValueMain}>{formattedDate}</Text>
+                    <Text style={styles.readOnlySubTime}>{checkInTime}</Text>
                   </View>
                 </View>
                 <View style={styles.halfInput}>
-                  <Text style={styles.formLabelDark}>DEPARTURE</Text>
-                  <View style={styles.inputBoxDate}>
-                    <Text style={styles.placeholderText}>mm/dd/yyyy</Text>
+                  <Text style={styles.formLabel}>CHECK-OUT</Text>
+                  <View style={styles.readOnlyBox}>
+                    <Text style={styles.readOnlySub}>Departure</Text>
+                    <Text style={styles.readOnlyValueMain}>{departureDate || 'Select Nights'}</Text>
+                    <Text style={styles.readOnlySubTime}>{checkOutTime}</Text>
                   </View>
                 </View>
               </View>
             </View>
 
-            {/* Total Amount Card */}
-            <View style={styles.totalCard}>
-              <View style={styles.totalHeaderRow}>
-                <Text style={styles.totalLabel}>TOTAL AMOUNT DUE</Text>
-                <View style={styles.fixedRateBadge}>
-                  <Text style={styles.fixedRateText}>FIXED RATE</Text>
+            <View style={styles.financialCard}>
+              <View style={styles.financialHeader}>
+                <Text style={styles.financialLabel}>TOTAL AMOUNT DUE</Text>
+                <View style={styles.rateBadge}>
+                  <Text style={styles.rateText}>FIXED RATE</Text>
                 </View>
               </View>
-              <View style={styles.totalAmountRow}>
-                <Text style={styles.totalCurrency}>₱12,000.00</Text>
-                <Text style={styles.totalNight}> / per night</Text>
+              <View style={styles.financialValueRow}>
+                <Text style={styles.financialCurrency}>₱{(12000 * parseInt(numDays || 1)).toLocaleString()}</Text>
+                <Text style={styles.financialNight}>.00 / {numDays} night(s)</Text>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.confirmBtn} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.submitBtn} activeOpacity={0.85} onPress={handleConfirmBooking}>
               <CalendarPlus size={20} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 10 }} />
-              <Text style={styles.confirmBtnText}>Confirm Booking</Text>
+              <Text style={styles.submitBtnText}>Confirm Booking</Text>
             </TouchableOpacity>
 
-            <View style={styles.bottomSpacer} />
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
-        {activeView === 'calendar' ? renderCalendarView() : renderManualBookingView()}
-      </SafeAreaView>
+      {activeView === 'calendar' ? renderCalendarView() : renderManualBookingView()}
 
-      {/* --- FLOATING BOTTOM NAVIGATION (Matches Home) --- */}
-      <View style={styles.floatingNavWrapper}>
-        <View style={styles.floatingNav}>
+      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNav}>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')}>
-            <Home size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
+              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}
-            onPress={() => setActiveView('calendar')}
-          >
-            <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Bookings</Text>}
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineBookings')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
+              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineGuestMgmt')}>
-            <Users size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineGuestMgmt')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
+              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')}>
-            <Wallet size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
+              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')}>
-            <Settings size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
+              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
+            </View>
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
 
         </View>
@@ -375,124 +513,150 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  safeArea: {
-    flex: 1,
-  },
-  viewContainer: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 160, // Increased padding bottom to clear the modern nav bar and provide extra breathing room
   },
 
-  /* --- MODERN HEADER --- */
-  header: {
+  /* --- FULL BLEED HERO --- */
+  heroHeader: {
+    width: '100%',
+    height: 380, // Generous height for calendar view
+    justifyContent: 'flex-start',
+  },
+  heroHeaderForm: {
+    width: '100%',
+    height: 280, // Shorter height for form view
+    justifyContent: 'flex-start',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.55)', // Dark slate overlay for deep contrast
+  },
+  heroSafeArea: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'space-between',
+    paddingBottom: 40,
+  },
+  heroSafeAreaForm: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 32 : 16,
+  },
+
+  /* Top Nav in Hero */
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 20 : 12,
-    paddingBottom: 20,
-  },
-  headerForm: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 20 : 12,
-    paddingBottom: 20,
-  },
-  backButton: {
-    marginRight: 16,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    marginTop: Platform.OS === 'android' ? 16 : 8,
   },
   greetingText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textMuted,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  headerTitle: {
-    fontSize: 24,
+  adminName: {
+    fontSize: 28,
     fontWeight: '800',
-    color: COLORS.textMain,
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
-  iconButton: {
+  iconBtn: {
     width: 44,
     height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  bellButton: {
+  backBtnWrapper: {
     width: 44,
     height: 44,
-    backgroundColor: '#FFFFFF',
     borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-    position: 'relative',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 10,
-    right: 12,
-    width: 10,
-    height: 10,
-    backgroundColor: COLORS.primary,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
 
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
+  /* Glassmorphism Status Card */
+  glassCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 10,
   },
-  scrollContentForm: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
+  glassHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: 0.5,
+  },
+  heroMainStat: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1,
+    marginBottom: 4,
+  },
+  heroSubStat: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.9)',
   },
 
-  /* --- CALENDAR BENTO CARD --- */
+  /* --- OVERLAPPING MAIN SHEET --- */
+  mainSheet: {
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    marginTop: -36, // Overlaps the image header
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    flex: 1,
+    paddingBottom: 40, // Added padding bottom to main sheet
+  },
+
+  /* --- CALENDAR GRID --- */
   calendarCard: {
     backgroundColor: COLORS.cardBg,
     borderRadius: 32,
     padding: 24,
-    marginBottom: 24,
+    marginBottom: 32,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.03,
     shadowRadius: 16,
-    elevation: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   monthSelector: {
     flexDirection: 'row',
@@ -500,9 +664,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  monthBtn: {
-    padding: 4,
-  },
+  monthBtn: { padding: 4 },
   monthText: {
     fontSize: 18,
     fontWeight: '800',
@@ -545,9 +707,6 @@ const styles = StyleSheet.create({
   dayCellPink: {
     backgroundColor: COLORS.primaryLight,
   },
-  dayCellDarkPink: {
-    backgroundColor: COLORS.primaryDark,
-  },
   dayCellSelected: {
     backgroundColor: COLORS.primary,
     shadowColor: COLORS.primary,
@@ -570,23 +729,41 @@ const styles = StyleSheet.create({
   dayTextPink: {
     color: COLORS.primary,
   },
-  dayTextDarkPink: {
-    color: '#FFFFFF',
-  },
   dayTextSelected: {
     color: '#FFFFFF',
   },
+  todayDot: {
+    position: 'absolute',
+    bottom: 4,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+  },
 
-  /* --- GUEST DETAILS BENTO CARD --- */
+  /* Section Headers */
+  sectionHeader: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+  },
+
+  /* --- BOOKING DETAILS CARD --- */
   detailsCard: {
     backgroundColor: COLORS.cardBg,
     borderRadius: 32,
     padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.03,
     shadowRadius: 16,
-    elevation: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   detailsHeader: {
     flexDirection: 'row',
@@ -594,15 +771,17 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 24,
   },
-  statusBadge: {
-    alignSelf: 'flex-start',
+  confirmedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.successBg,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
     marginBottom: 12,
+    alignSelf: 'flex-start',
   },
-  statusBadgeText: {
+  confirmedBadgeText: {
     fontSize: 10,
     fontWeight: '800',
     color: COLORS.successText,
@@ -620,13 +799,11 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontWeight: '500',
   },
-  avatarWrapper: {
+  guestAvatarLarge: {
     width: 56,
     height: 56,
     borderRadius: 20,
     backgroundColor: COLORS.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   infoList: {
     gap: 16,
@@ -653,9 +830,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  infoTextWrap: {
-    flex: 1,
-  },
+  infoTextWrap: { flex: 1 },
   infoLabel: {
     fontSize: 10,
     fontWeight: '800',
@@ -692,7 +867,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 6,
   },
   messageBtnText: {
     fontSize: 16,
@@ -700,204 +875,243 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  /* --- MANUAL BOOKING FORM --- */
-  formSection: {
+  /* Empty State Card */
+  emptyCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 32,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.03,
+    shadowRadius: 16,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  emptyIconBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    marginBottom: 8,
+  },
+  emptySub: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    textAlign: 'center',
     marginBottom: 24,
+    lineHeight: 20,
+  },
+  bookNowBtn: {
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  bookNowBtnText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.primary,
+  },
+
+  /* --- FORM STYLES --- */
+  formCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 32,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.03,
+    shadowRadius: 16,
+    elevation: 2,
   },
   formLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  formLabelDark: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: COLORS.textMuted,
     marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  optionalText: {
-    fontWeight: '500',
-    color: COLORS.textMuted,
-    textTransform: 'none',
+    letterSpacing: 1,
+    marginLeft: 4,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
     borderRadius: 20,
     paddingHorizontal: 20,
     height: 60,
     fontSize: 15,
     color: COLORS.textMain,
-    fontWeight: '500',
+    fontWeight: '600',
     marginBottom: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-    elevation: 1,
   },
-  dateTimeBento: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  row: {
+  formRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  halfInput: {
-    flex: 1,
-  },
-  inputBox: {
-    backgroundColor: COLORS.background,
-    borderRadius: 16,
-    padding: 16,
-    height: 64,
-    justifyContent: 'center',
-  },
-  inputBoxDate: {
-    backgroundColor: COLORS.background,
-    borderRadius: 16,
-    padding: 16,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  inputBoxSmall: {
-    fontSize: 11,
-    color: COLORS.textMuted,
+    gap: 16,
     marginBottom: 4,
-    fontWeight: '600',
   },
-  inputBoxValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.textMain,
-  },
-  placeholderText: {
-    fontSize: 15,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-  },
-  totalCard: {
-    backgroundColor: COLORS.primaryLight,
-    borderRadius: 24,
+  halfInput: { flex: 1 },
+  scheduleCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 32,
     padding: 24,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.03,
+    shadowRadius: 16,
+    elevation: 2,
   },
-  totalHeaderRow: {
+  readOnlyBox: {
+    backgroundColor: COLORS.background,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  readOnlySub: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
+  readOnlyValueMain: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    marginBottom: 2,
+  },
+  readOnlySubTime: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+
+  /* Financial Card */
+  financialCard: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 32,
+    padding: 24,
+    marginBottom: 32,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  financialHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  totalLabel: {
+  financialLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: COLORS.primaryDark,
-    letterSpacing: 0.5,
+    color: 'rgba(255,255,255,0.8)',
+    letterSpacing: 1,
   },
-  fixedRateBadge: {
-    backgroundColor: '#FFFFFF',
+  rateBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  fixedRateText: {
+  rateText: {
     fontSize: 10,
     fontWeight: '800',
-    color: COLORS.primary,
+    color: '#FFFFFF',
   },
-  totalAmountRow: {
+  financialValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
-  totalCurrency: {
-    fontSize: 32,
+  financialCurrency: {
+    fontSize: 36,
     fontWeight: '800',
-    color: COLORS.primary,
+    color: '#FFFFFF',
     letterSpacing: -1,
   },
-  totalNight: {
+  financialNight: {
     fontSize: 14,
-    color: COLORS.primaryDark,
     fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+    marginLeft: 6,
   },
-  confirmBtn: {
+  submitBtn: {
     flexDirection: 'row',
-    backgroundColor: COLORS.primary,
     height: 64,
-    borderRadius: 20,
+    borderRadius: 24,
+    backgroundColor: COLORS.textMain, // Dark contrast button
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
-    shadowColor: COLORS.primary,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 6,
   },
-  confirmBtnText: {
-    fontSize: 18,
+  submitBtnText: {
+    fontSize: 16,
     fontWeight: '800',
     color: '#FFFFFF',
   },
 
-  bottomSpacer: {
-    height: 140, // Enough space so floating nav doesn't cover content
-  },
-
-  /* --- FLOATING BOTTOM NAV (Matched from Home) --- */
-  floatingNavWrapper: {
+  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
+  bottomNavContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
-    left: 24,
-    right: 24,
-  },
-  floatingNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    bottom: 0,
+    width: '100%',
     backgroundColor: '#FFFFFF',
-    height: 72,
-    borderRadius: 36,
-    paddingHorizontal: 8,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.06,
     shadowRadius: 20,
-    elevation: 10,
+    elevation: 15,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: 16,
+    paddingHorizontal: 8,
   },
   navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
-    height: 56,
+  },
+  navIconWrapper: {
+    width: 48,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
-    borderRadius: 28,
+    marginBottom: 4,
   },
-  navItemActive: {
+  navIconWrapperActive: {
     backgroundColor: COLORS.primaryLight,
-    flex: 1.5, // Make active tab slightly wider to fit text
+  },
+  navText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
   },
   navTextActive: {
     color: COLORS.primary,
-    fontSize: 13,
     fontWeight: '800',
-    marginLeft: 6,
-    letterSpacing: -0.2,
   },
 });

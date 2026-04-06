@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Image,
   Platform,
-  StatusBar
+  StatusBar,
+  ImageBackground,
+  Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -21,50 +23,62 @@ import {
   Users,
   Wallet,
   Settings,
-  CheckCircle2
+  CheckCircle2,
+  Building,
+  CreditCard,
+  Info
 } from 'lucide-react-native';
 
-// Reine's Beach House Theme (Vibrant Pink & Clean White)
+// Modernized Luxury Beach House Palette (Matched with ReineHome)
 const COLORS = {
-  background: '#FFFFFF',
-  primary: '#E64E76',       // Vibrant Pink
-  primaryLight: '#FDF0F4',  // Very soft pink for backgrounds
-  primaryMuted: '#F9A8BB',  // Muted pink
-  textMain: '#1E293B',      // Dark Slate
-  textMuted: '#94A3B8',     // Slate Gray
-  border: '#F8FAFC',
+  background: '#F4F7FA',    // Slightly cooler, deeper off-white for contrast
+  primary: '#E64E76',       // Vibrant Reine Pink
+  primaryLight: '#FDF0F4',  // Very soft pink
+  primaryDark: '#BE375A',   // Deep pink
+  textMain: '#0F172A',      // Slate 900
+  textMuted: '#64748B',     // Slate 500
+  border: '#E2E8F0',        // Slate 200
   cardBg: '#FFFFFF',
+
+  // Accents
+  successBg: '#DCFCE7',
+  successText: '#16A34A',
+  warningBg: '#FEF9C3',
+  warningIcon: '#EAB308',
+  infoBg: '#E0F2FE',
+  infoIcon: '#0EA5E9',
+  dangerBg: '#FEE2E2',
+  dangerText: '#EF4444',
 };
 
-const SETTINGS_MENU = [
+// Grouped Settings for a cleaner, organized UI
+const MENU_GROUPS = [
   {
-    id: '1',
-    icon: Home,
-    title: 'Property Profile',
-    subtitle: 'Manage resort details & images'
+    title: 'Property Management',
+    items: [
+      { id: 'profile', icon: Building, title: 'Property Profile', subtitle: 'Manage resort details & policies' },
+      { id: 'billing', icon: CreditCard, title: 'Billing Details', subtitle: 'Payout methods & tax info' },
+    ]
   },
   {
-    id: '2',
-    icon: Bell,
-    title: 'Notification Preferences',
-    subtitle: 'Configure alerts and messages'
+    title: 'Account & Preferences',
+    items: [
+      { id: 'notif', icon: Bell, title: 'Notifications', subtitle: 'Alerts, emails, and messages' },
+      { id: 'security', icon: Shield, title: 'Security', subtitle: 'Password, 2FA & active sessions' },
+    ]
   },
   {
-    id: '3',
-    icon: Shield,
-    title: 'Security',
-    subtitle: 'Password and authentication'
-  },
-  {
-    id: '4',
-    icon: HelpCircle,
-    title: 'Support',
-    subtitle: 'Get help and documentation'
-  },
+    title: 'Support & About',
+    items: [
+      { id: 'help', icon: HelpCircle, title: 'Help Center', subtitle: 'Guides and customer support' },
+      { id: 'about', icon: Info, title: 'About App', subtitle: 'Version 2.4.0' },
+    ]
+  }
 ];
 
 export default function ReineSettings({ navigation }) {
   const activeNav = 'Admin';
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const handleLogout = () => {
     // Reset navigation to Login screen
@@ -76,107 +90,170 @@ export default function ReineSettings({ navigation }) {
     }
   };
 
+  // Header collapses smoothly based on scroll position
+  const headerMaxHeight = scrollY.interpolate({
+    inputRange: [0, 60],
+    outputRange: [100, 0],
+    extrapolate: 'clamp'
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 40],
+    outputRange: [1, 0],
+    extrapolate: 'clamp'
+  });
+
   return (
-    <View style={styles.mainContainer}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} translucent={false} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        bounces={false}
-      >
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
 
-        {/* --- VIBRANT PINK HEADER --- */}
-        <SafeAreaView edges={['top']} style={styles.headerBackground}>
-          <View style={styles.headerContent}>
-
-            {/* Avatar Profile */}
-            <View style={styles.avatarWrapper}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop' }}
-                style={styles.avatarImage}
-              />
-              <View style={styles.verifiedBadge}>
-                <CheckCircle2 size={24} color={COLORS.primary} fill="#FFFFFF" strokeWidth={2} />
+        {/* --- MODERN HEADER (COLLAPSIBLE) --- */}
+        <Animated.View style={{ maxHeight: headerMaxHeight, opacity: headerOpacity, overflow: 'hidden' }}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View>
+                <Text style={styles.greetingText}>Configuration</Text>
+                <Text style={styles.headerTitle}>Settings</Text>
               </View>
             </View>
-
-            {/* Profile Info */}
-            <Text style={styles.headerTitle}>Reine's House Admin</Text>
-            <Text style={styles.headerSubtitle}>Resort Manager</Text>
-
           </View>
-        </SafeAreaView>
+        </Animated.View>
 
-        {/* --- OVERLAPPING SETTINGS CARD --- */}
-        <View style={styles.settingsCard}>
+        <Animated.ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
+        >
+          {/* --- IMMERSIVE PROFILE HERO CARD --- */}
+          <TouchableOpacity activeOpacity={0.9} style={styles.heroCardWrapper}>
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2070&auto=format&fit=crop' }}
+              style={styles.heroBackground}
+              imageStyle={{ borderRadius: 32 }}
+            >
+              {/* Dark Gradient/Overlay */}
+              <View style={styles.heroOverlay} />
 
-          {SETTINGS_MENU.map((item, index) => {
-            const Icon = item.icon;
-            const isLast = index === SETTINGS_MENU.length - 1;
-
-            return (
-              <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.7}
-                style={[styles.menuItem, isLast && styles.menuItemLast]}
-              >
-                <View style={styles.iconBox}>
-                  <Icon size={22} color={COLORS.primary} strokeWidth={2.5} />
+              <View style={styles.heroContent}>
+                <View style={styles.heroHeaderRow}>
+                  <View style={styles.statusBadge}>
+                    <CheckCircle2 size={14} color={COLORS.successText} strokeWidth={2.5} style={{ marginRight: 4 }} />
+                    <Text style={[styles.statusBadgeText, { color: COLORS.successText }]}>VERIFIED</Text>
+                  </View>
+                  <TouchableOpacity style={styles.editBadge}>
+                    <Text style={styles.editText}>Edit</Text>
+                  </TouchableOpacity>
                 </View>
 
-                <View style={styles.menuTextContainer}>
-                  <Text style={styles.menuTitle}>{item.title}</Text>
-                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                <View style={styles.heroMainContent}>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop' }}
+                    style={styles.profileAvatarLarge}
+                  />
+                  <View style={styles.heroSubRow}>
+                    <Text style={styles.heroGuestName}>Reine Admin</Text>
+                    <Text style={styles.heroSubText}>Resort Manager</Text>
+                  </View>
                 </View>
-
-                <ChevronRight size={20} color="#CBD5E1" strokeWidth={2.5} />
-              </TouchableOpacity>
-            )
-          })}
-
-        </View>
-
-        {/* --- LOGOUT BUTTON --- */}
-        <View style={styles.footerContainer}>
-          <TouchableOpacity activeOpacity={0.85} style={styles.logoutButton} onPress={handleLogout}>
-            <LogOut size={20} color={COLORS.primary} strokeWidth={2.5} style={styles.logoutIcon} />
-            <Text style={styles.logoutButtonText}>Logout</Text>
+              </View>
+            </ImageBackground>
           </TouchableOpacity>
 
-          <Text style={styles.versionText}>REINE'S BEACH HOUSE RESORT V2.4.0</Text>
-        </View>
+          {/* --- GROUPED SETTINGS MENU --- */}
+          {MENU_GROUPS.map((group, groupIndex) => (
+            <View key={groupIndex} style={styles.menuGroupWrapper}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>{group.title}</Text>
+              </View>
 
-        <View style={{ height: 120 }} />
-      </ScrollView>
+              <View style={styles.bentoCard}>
+                {group.items.map((item, itemIndex) => {
+                  const Icon = item.icon;
+                  const isLast = itemIndex === group.items.length - 1;
 
-      {/* --- BOTTOM NAVIGATION --- */}
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      activeOpacity={0.7}
+                      style={[styles.menuItem, !isLast && styles.menuItemBorder]}
+                    >
+                      <View style={styles.iconBox}>
+                        <Icon size={20} color={COLORS.primary} strokeWidth={2.5} />
+                      </View>
+
+                      <View style={styles.menuTextContainer}>
+                        <Text style={styles.menuItemTitle}>{item.title}</Text>
+                        <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                      </View>
+
+                      <ChevronRight size={20} color="#CBD5E1" strokeWidth={2.5} />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          ))}
+
+          {/* --- LOGOUT BUTTON --- */}
+          <View style={styles.footerContainer}>
+            <TouchableOpacity activeOpacity={0.85} style={styles.logoutButton} onPress={handleLogout}>
+              <LogOut size={20} color={COLORS.dangerText} strokeWidth={2.5} style={styles.logoutIcon} />
+              <Text style={styles.logoutButtonText}>Sign Out</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.versionText}>REINE'S BEACH HOUSE RESORT V2.4.0</Text>
+          </View>
+
+          {/* Spacer for Bottom Nav */}
+          <View style={styles.bottomSpacer} />
+        </Animated.ScrollView>
+      </SafeAreaView>
+
+      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-          <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem}>
-            <Home size={24} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
+
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
+              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
+            </View>
             <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('ReineBookings')} style={styles.navItem}>
-            <CalendarDays size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineBookings')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
+              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+            </View>
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('ReineGuestMgmt')} style={styles.navItem}>
-            <Users size={24} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineGuestMgmt')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
+              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
+            </View>
             <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('ReineFinance')} style={styles.navItem}>
-            <Wallet size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
+              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+            </View>
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')}>
-            <Settings size={24} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')} activeOpacity={0.7}>
+            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
+              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
+            </View>
             <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
+
         </View>
       </View>
 
@@ -185,134 +262,217 @@ export default function ReineSettings({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
+  container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  scrollContent: {
-    flexGrow: 1,
+  safeArea: {
+    flex: 1,
   },
 
-  /* --- VIBRANT PINK HEADER --- */
-  headerBackground: {
-    backgroundColor: COLORS.primary,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    paddingBottom: 80, // Extra padding to allow card to overlap
-  },
-  headerContent: {
+  /* --- HEADER --- */
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: Platform.OS === 'android' ? 20 : 12,
+    paddingBottom: 16,
   },
-  avatarWrapper: {
-    position: 'relative',
-    marginBottom: 20,
-  },
-  avatarImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 4,
-    borderColor: '#FFD1C1', // Light peach outline matching mockup
-    backgroundColor: '#FDECE6',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
+  headerLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  },
+  greetingText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.textMain,
     letterSpacing: -0.5,
-    marginBottom: 6,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.8)', // Muted white
   },
 
-  /* --- OVERLAPPING CARD --- */
-  settingsCard: {
-    backgroundColor: COLORS.cardBg,
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+  },
+
+  /* --- IMMERSIVE HERO CARD (PROFILE) --- */
+  heroCardWrapper: {
+    width: '100%',
+    height: 220,
     borderRadius: 32,
-    marginHorizontal: 24,
-    marginTop: -45, // Pulls the card up into the pink header
-    padding: 24,
-    paddingVertical: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
+    marginBottom: 32,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
     shadowRadius: 24,
-    elevation: 6,
+    elevation: 10,
+  },
+  heroBackground: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)', // Darken image for text legibility
+    borderRadius: 32,
+  },
+  heroContent: {
+    padding: 24,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'space-between',
+  },
+  heroHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF', // High contrast
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  editBadge: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 100,
+  },
+  editText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  heroMainContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  profileAvatarLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    marginRight: 16,
+  },
+  heroSubRow: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  heroGuestName: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: 2,
+  },
+  heroSubText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+
+  /* --- MENU BENTO BOXES --- */
+  menuGroupWrapper: {
+    marginBottom: 16,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+  },
+  bentoCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 28,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    marginBottom: 16,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    paddingVertical: 20,
   },
-  menuItemLast: {
-    marginBottom: 0,
+  menuItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   iconBox: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 14,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 16
   },
   menuTextContainer: {
     flex: 1,
-    paddingRight: 16,
+    paddingRight: 16
   },
-  menuTitle: {
-    fontSize: 16,
+  menuItemTitle: {
+    fontSize: 15,
     fontWeight: '800',
     color: COLORS.textMain,
     marginBottom: 4,
     letterSpacing: -0.2,
   },
-  menuSubtitle: {
-    fontSize: 13,
+  menuItemSubtitle: {
+    fontSize: 12,
     fontWeight: '500',
-    color: COLORS.textMuted,
+    color: COLORS.textMuted
   },
 
-  /* --- FOOTER & LOGOUT --- */
+  /* --- FOOTER & LOGOUT BUTTON --- */
   footerContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
   logoutButton: {
     flexDirection: 'row',
-    backgroundColor: COLORS.primaryLight, // Soft pink background
-    borderRadius: 16,
-    height: 60,
+    backgroundColor: COLORS.dangerBg,
+    borderRadius: 24,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   logoutIcon: {
-    marginRight: 10,
+    marginRight: 10
   },
   logoutButtonText: {
-    color: COLORS.primary, // Vibrant pink text
+    color: COLORS.dangerText,
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.5,
@@ -325,36 +485,55 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
 
-  /* --- BOTTOM NAV --- */
+  bottomSpacer: {
+    height: 110, // Generous padding to clear the modern nav bar
+  },
+
+  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
   bottomNavContainer: {
     position: 'absolute',
     bottom: 0,
     width: '100%',
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 15,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
   },
   bottomNav: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    height: 70,
+    paddingTop: 16,
     paddingHorizontal: 8,
   },
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    height: '100%',
+  },
+  navIconWrapper: {
+    width: 48,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  navIconWrapperActive: {
+    backgroundColor: COLORS.primaryLight,
   },
   navText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
     color: COLORS.textMuted,
-    marginTop: 6,
   },
   navTextActive: {
     color: COLORS.primary,
+    fontWeight: '800',
   },
 });

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
+import { BookingProvider } from './src/context/BookingContext';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -52,8 +53,10 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer onReady={onLayoutRootView}>
-      <AppNavigator />
-    </NavigationContainer>
+    <BookingProvider>
+      <NavigationContainer onReady={onLayoutRootView}>
+        <AppNavigator />
+      </NavigationContainer>
+    </BookingProvider>
   );
 }

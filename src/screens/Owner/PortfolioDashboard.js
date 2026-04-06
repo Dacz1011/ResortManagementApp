@@ -9,7 +9,8 @@ import {
   Image,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  ImageBackground
 } from 'react-native';
 import {
   Bell,
@@ -18,12 +19,12 @@ import {
   Users,
   BedDouble,
   ArrowRight,
-  Plus,
   TrendingUp,
   LayoutGrid,
   Calendar,
   BarChart2,
   BookOpen,
+  PieChart,
   Settings,
   MoreHorizontal,
   Home,
@@ -141,52 +142,103 @@ export default function PortfolioDashboard({ navigation }) {
 
   const activePropertyDetails = PROPERTY_DETAILS[activeTab];
 
+  // Dynamic Background Image
+  const getHeroImage = () => {
+    if (activeTab === 'All Properties') return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop';
+
+    if (activeTab === "Reine's Beach") return 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop';
+    if (activeTab === "Ryu's House") return 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop';
+    if (activeTab === "Casa M.O.") return 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop';
+
+    return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop';
+  };
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
-
-        {/* --- MODERN HEADER --- */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop' }}
-              style={styles.profileAvatar}
-            />
-            {activeTab === 'All Properties' ? (
-              <View>
-                <Text style={styles.greetingText}>PORTFOLIO OVERVIEW</Text>
-                <Text style={styles.headerTitle}>Resort Admin</Text>
-              </View>
-            ) : (
-              <View>
-                <Text style={styles.greetingText}>PROPERTY STATUS</Text>
-                <View style={styles.liveUpdateRow}>
-                  <View style={styles.liveDot} />
-                  <Text style={styles.liveText}>Live update • Just now</Text>
-                </View>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-              <Search size={20} color={COLORS.textMain} strokeWidth={2.5} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
-              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* --- SCROLLABLE CONTENT --- */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+      >
+        {/* --- FULL BLEED HERO IMAGE HEADER --- */}
+        <ImageBackground
+          source={{ uri: getHeroImage() }}
+          style={styles.heroHeader}
         >
-          {/* Modern Top Tabs */}
+          <View style={styles.heroOverlay} />
+
+          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
+            {/* Top Nav Row */}
+            <View style={styles.headerTopRow}>
+              <View style={styles.headerLeft}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop' }}
+                  style={styles.profileAvatar}
+                />
+                {activeTab === 'All Properties' ? (
+                  <View>
+                    <Text style={styles.greetingText}>PORTFOLIO OVERVIEW</Text>
+                    <Text style={styles.headerTitle}>Resort Admin</Text>
+                  </View>
+                ) : (
+                  <View>
+                    <Text style={styles.greetingText}>PROPERTY STATUS</Text>
+                    <View style={styles.liveUpdateRow}>
+                      <View style={styles.liveDot} />
+                      <Text style={styles.liveText}>Live update • Just now</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.headerRight}>
+                <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+                  <Search size={20} color={COLORS.textMain} strokeWidth={2.5} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
+                  <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
+                  <View style={styles.notificationDot} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Glassmorphism Status Card */}
+            <View style={styles.glassCard}>
+              {activeTab === 'All Properties' ? (
+                <>
+                  <View style={styles.glassHeader}>
+                    <View style={styles.statusPill}>
+                      <Wallet size={14} color={COLORS.textMain} strokeWidth={2.5} style={{ marginRight: 6 }} />
+                      <Text style={styles.statusText}>TOTAL MONTHLY REVENUE</Text>
+                    </View>
+                    <View style={styles.trendBadge}>
+                      <TrendingUp size={14} color={COLORS.successText} strokeWidth={3} style={{ marginRight: 2 }} />
+                      <Text style={styles.trendText}>+12.4%</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.heroMainStat}>₱54,230<Text style={styles.heroSubDecimals}>.00</Text></Text>
+                </>
+              ) : (
+                <>
+                  <View style={styles.glassHeader}>
+                    <View style={styles.statusPill}>
+                      <View style={[styles.statusDot, { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText }]} />
+                      <Text style={styles.statusText}>{propertyStatus}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.heroMainStat}>{activePropertyDetails.title}</Text>
+                </>
+              )}
+            </View>
+          </SafeAreaView>
+        </ImageBackground>
+
+        {/* --- OVERLAPPING MAIN SHEET --- */}
+        <View style={styles.mainSheet}>
+
+          {/* Tabs Container */}
           <View style={styles.tabsContainer}>
             <ScrollView
               horizontal
@@ -219,29 +271,8 @@ export default function PortfolioDashboard({ navigation }) {
                ALL PROPERTIES OVERVIEW (BENTO GRID)
                ========================================== */
             <>
-              {/* Hero Revenue Bento Card */}
-              <View style={styles.heroCard}>
-                <View style={styles.heroCircleTop} />
-                <View style={styles.heroCircleBottom} />
-
-                <View style={styles.heroHeader}>
-                  <View style={styles.walletIconWrapper}>
-                    <Wallet size={24} color={COLORS.accent} strokeWidth={2} />
-                  </View>
-                  <View style={styles.trendPill}>
-                    <TrendingUp size={16} color={COLORS.successText} strokeWidth={2.5} style={{ marginRight: 4 }} />
-                    <Text style={styles.trendText}>+12.4%</Text>
-                  </View>
-                </View>
-
-                <View style={styles.heroBody}>
-                  <Text style={styles.heroSubtitle}>TOTAL MONTHLY REVENUE</Text>
-                  <View style={styles.heroValueRow}>
-                    <Text style={styles.heroCurrency}>₱</Text>
-                    <Text style={styles.heroValue}>54,230</Text>
-                    <Text style={styles.heroDecimals}>.00</Text>
-                  </View>
-                </View>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Portfolio Logistics</Text>
               </View>
 
               {/* Stacked KPI Bento Row */}
@@ -355,7 +386,7 @@ export default function PortfolioDashboard({ navigation }) {
             </>
           ) : (
             /* ==========================================
-               SPECIFIC PROPERTY VIEW (MODERNIZED MOCKUP)
+               SPECIFIC PROPERTY VIEW
                ========================================== */
             <View style={styles.detailsContainer}>
 
@@ -439,42 +470,43 @@ export default function PortfolioDashboard({ navigation }) {
 
             </View>
           )}
+
           <View style={styles.bottomSpacer} />
-        </ScrollView>
-      </SafeAreaView>
+        </View>
+      </ScrollView>
 
-      {/* --- FLOATING BOTTOM NAVIGATION --- */}
-      <View style={styles.floatingNavWrapper}>
-        <View style={styles.floatingNav}>
+      {/* --- FULL-WIDTH EXPANDING PILL BOTTOM NAV --- */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNav}>
 
-          <TouchableOpacity onPress={() => setActiveNav('Property')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]}>
-            <LayoutGrid size={22} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Property' && <Text style={styles.navTextActive}>Props</Text>}
+          <TouchableOpacity onPress={() => setActiveNav('Property')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]} activeOpacity={0.7}>
+            <LayoutGrid size={22} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Property' ? 2.5 : 2} />
+            {activeNav === 'Property' && <Text style={styles.navTextActive}>Overview</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}>
-            <Calendar size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Book</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]} activeOpacity={0.7}>
+            <Calendar size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Bookings</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]}>
-            <BarChart2 size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Fin</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} activeOpacity={0.7}>
+            <BarChart2 size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Finance</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]}>
-            <BookOpen size={22} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Ledger' && <Text style={styles.navTextActive}>Ledg</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]} activeOpacity={0.7}>
+            <BookOpen size={22} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Ledger' ? 2.5 : 2} />
+            {activeNav === 'Ledger' && <Text style={styles.navTextActive}>Ledger</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]}>
-            <TrendingUp size={22} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Insights' && <Text style={styles.navTextActive}>Data</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]} activeOpacity={0.7}>
+            <PieChart size={22} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Insights' ? 2.5 : 2} />
+            {activeNav === 'Insights' && <Text style={styles.navTextActive}>Insights</Text>}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]}>
-            <Settings size={22} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Settings' && <Text style={styles.navTextActive}>Set</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]} activeOpacity={0.7}>
+            <Settings size={22} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Settings' ? 2.5 : 2} />
+            {activeNav === 'Settings' && <Text style={styles.navTextActive}>Settings</Text>}
           </TouchableOpacity>
 
         </View>
@@ -489,18 +521,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  safeArea: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
   },
 
-  /* --- MODERN HEADER --- */
-  header: {
+  /* --- FULL BLEED HERO --- */
+  heroHeader: {
+    width: '100%',
+    height: 380,
+    justifyContent: 'flex-start',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)', // Slate overlay for excellent contrast
+  },
+  heroSafeArea: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'space-between',
+    paddingBottom: 40,
+    paddingTop: Platform.OS === 'android' ? 32 : 16,
+  },
+
+  /* Top Nav in Hero */
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 48 : 20,
-    paddingBottom: 20,
+    marginTop: 8,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -517,14 +565,14 @@ const styles = StyleSheet.create({
   greetingText: {
     fontSize: 11,
     fontWeight: '800',
-    color: COLORS.textMuted,
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 2,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
-    color: COLORS.textMain,
+    color: '#FFFFFF',
     letterSpacing: -0.5,
   },
   liveUpdateRow: {
@@ -552,29 +600,22 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   bellButton: {
     width: 44,
     height: 44,
-    backgroundColor: '#FFFFFF',
     borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   notificationDot: {
     position: 'absolute',
@@ -582,13 +623,82 @@ const styles = StyleSheet.create({
     right: 12,
     width: 10,
     height: 10,
-    backgroundColor: COLORS.dangerBg,
     borderRadius: 5,
+    backgroundColor: COLORS.dangerText,
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
 
-  /* --- TABS --- */
+  /* Glassmorphism Status Card */
+  glassCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginBottom: 10,
+  },
+  glassHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: 0.5,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  trendBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.successBg,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  trendText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.successText,
+  },
+  heroMainStat: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1.5,
+  },
+  heroSubDecimals: {
+    fontSize: 24,
+    color: 'rgba(255,255,255,0.7)',
+  },
+
+
+  mainSheet: {
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    marginTop: -36, // Overlaps the image header
+    paddingTop: 32,
+    flex: 1,
+  },
+
+
   tabsContainer: {
     marginBottom: 24,
   },
@@ -622,100 +732,33 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  scrollContent: {
-    paddingBottom: 20,
-  },
-
-  /* --- HERO REVENUE BENTO --- */
-  heroCard: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 32,
-    padding: 24,
-    marginHorizontal: 24,
-    marginBottom: 20,
-    position: 'relative',
-    overflow: 'hidden',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  heroCircleTop: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    top: -80,
-    right: -40,
-  },
-  heroCircleBottom: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    bottom: -60,
-    left: -40,
-  },
-  heroHeader: {
+  /* --- SECTION HEADERS --- */
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 24,
+    marginBottom: 16,
   },
-  walletIconWrapper: {
-    width: 52,
-    height: 52,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
   },
-  trendPill: {
+  detailsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 100,
   },
-  trendText: {
-    color: COLORS.successText,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  heroBody: {
-    marginTop: 10,
-  },
-  heroSubtitle: {
-    color: 'rgba(255,255,255,0.7)',
+  detailsBtnText: {
     fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  heroValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  heroCurrency: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '700',
-    marginRight: 4,
-  },
-  heroValue: {
-    color: '#FFFFFF',
-    fontSize: 42,
-    fontWeight: '800',
-    letterSpacing: -1.5,
-  },
-  heroDecimals: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 20,
-    fontWeight: '700',
+    color: COLORS.primary,
+    marginRight: 6,
   },
 
   /* --- BENTO KPI GRID --- */
@@ -723,7 +766,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
     paddingHorizontal: 24,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   bentoCard: {
     backgroundColor: COLORS.cardBg,
@@ -775,35 +818,6 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 3,
-  },
-
-  /* --- SECTION HEADERS --- */
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-  detailsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 100,
-  },
-  detailsBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginRight: 6,
   },
 
   /* --- NOI CARD --- */
@@ -1135,55 +1149,47 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: 140, // Avoid overlap with floating nav
+    height: 120, // Enough to clear the modern bottom nav
   },
 
-  /* --- FLOATING BOTTOM NAV (Matched style + FAB) --- */
-  floatingNavWrapper: {
+  /* --- FULL-WIDTH EXPANDING PILL BOTTOM NAV --- */
+  bottomNavContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
-    left: 16,
-    right: 16,
-    alignItems: 'center', // helps center FAB
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 20,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
   },
-  floatingNav: {
+  bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    height: 72,
-    borderRadius: 36,
-    paddingHorizontal: 8,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 10,
   },
   navItem: {
-    flex: 1,
-    height: 56,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    flexDirection: 'column',
-    borderRadius: 28,
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 100,
   },
   navItemActive: {
     backgroundColor: COLORS.primaryLight,
-  },
-  navText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    marginTop: 4,
-    letterSpacing: -0.2,
+    paddingHorizontal: 16,
   },
   navTextActive: {
     color: COLORS.primary,
     fontSize: 13,
     fontWeight: '800',
     marginLeft: 6,
-    letterSpacing: -0.2,
-  }
+  },
 });
