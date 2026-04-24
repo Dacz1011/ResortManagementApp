@@ -31,6 +31,7 @@ import CasaHome from '../screens/Casa/CasaHome';
 import CasaBookings from '../screens/Casa/CasaBookings';
 import CasaGuestMgmt from '../screens/Casa/CasaGuestMgmt';
 import CasaAdmin from '../screens/Casa/CasaAdmin';
+import CasaGuestHistory from '../screens/Casa/CasaGuestHistory';
 
 // Generic Screens
 import PropertyFinanceScreen from '../screens/PropertyFinanceScreen';
@@ -77,6 +78,7 @@ const AppNavigator = () => {
       <Stack.Screen name="CasaGuestMgmt" component={CasaGuestMgmt} />
       <Stack.Screen name="CasaFinance" component={PropertyFinanceScreen} initialParams={{ propertyId: 'Casa' }} />
       <Stack.Screen name="CasaAdmin" component={CasaAdmin} />
+      <Stack.Screen name="CasaGuestHistory" component={CasaGuestHistory} />
       <Stack.Screen name="CasaNotifications" component={NotificationScreen} initialParams={{ propertyId: 'Casa' }} />
     </Stack.Navigator>
   );
