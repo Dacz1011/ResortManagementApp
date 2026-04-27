@@ -11,9 +11,9 @@ import {
   Animated,
   StatusBar,
   Alert,
-  ImageBackground,
   Easing,
-  Image
+  ScrollView,
+  BackHandler
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -22,51 +22,38 @@ import {
   UserRound,
   Lock,
   ArrowRight,
+  Sparkles,
   ShieldCheck,
-  Sparkles
+  ChevronLeft
 } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
-// Base Colors unified with the rest of the application
-const COLORS = {
-  background: '#F8FAFC',
-  cardBg: '#FFFFFF',
-  textMain: '#0F172A',
-  textMuted: '#64748B',
-  border: '#E2E8F0',
-  inputBg: '#F8FAFC',
-};
-
-// Smart Property Detection Configuration
+// Smart Property Detection Configuration (Adaptive Colors)
 const PROPERTIES = [
   {
     id: 'owner',
     match: '', // Default
-    color: '#0F172A', // Deep Slate for Owner
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
+    color: '#2962FF', // Vibrant Modern Blue (Matches Welcome Screen)
     name: 'Owner Portal'
   },
   {
     id: 'reine',
     match: 'reine',
     color: '#E64E76', // Vibrant Pink
-    image: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop',
     name: "Reine's Beach House"
   },
   {
     id: 'casa',
     match: 'casa',
     color: '#1B5E20', // Casa Deep Forest Green
-    image: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop',
     name: 'Casa M.O.'
   },
   {
     id: 'ryu',
     match: 'ryu',
     color: '#23324B', // Ryu Deep Navy
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
     name: "Ryu's Transient House"
   },
 ];
@@ -88,26 +75,50 @@ export default function LoginScreen() {
   const [prevProp, setPrevProp] = useState(PROPERTIES[0]);
 
   // Animations
-  const slideUpAnim = useRef(new Animated.Value(80)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const buttonScale = useRef(new Animated.Value(1)).current;
+  const floatAnim = useRef(new Animated.Value(0)).current;
   const crossfadeAnim = useRef(new Animated.Value(1)).current;
+  const buttonScale = useRef(new Animated.Value(1)).current;
 
-  // Initial Load Animation
+  // Handle Hardware Back Button
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        navigation.navigate('Welcome');
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription.remove();
+    }, [navigation])
+  );
+
+  // Initial Load & Floating Animation
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideUpAnim, {
-        toValue: 0,
-        duration: 800,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      })
-    ]).start();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+
+    // 3D Element Bobbing Animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -15,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   // Watch username to dynamically switch backgrounds and themes
@@ -127,18 +138,16 @@ export default function LoginScreen() {
         toValue: 1,
         duration: 600,
         easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     }
   }, [username]);
 
   const handleLogin = () => {
-    // Button press animation
     Animated.sequence([
-      Animated.timing(buttonScale, { toValue: 0.96, duration: 100, useNativeDriver: true }),
+      Animated.timing(buttonScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
       Animated.timing(buttonScale, { toValue: 1, duration: 150, useNativeDriver: true })
     ]).start(() => {
-      // Role based navigation logic based purely on credentials
       const user = username.trim();
 
       if (user === 'Admin123' && password === '123456') {
@@ -155,138 +164,133 @@ export default function LoginScreen() {
     });
   };
 
-  // Dynamically change accent color based on typed username for premium feedback
-  const activeAccentColor = activeProp.color;
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      {/* --- FULL BLEED IMMERSIVE BACKGROUND WITH CROSSFADE --- */}
-      <View style={styles.heroHeader}>
-        {/* Layer 1: Previous Image (For Crossfade) */}
-        <Image source={{ uri: prevProp.image }} style={styles.absoluteFill} resizeMode="cover" />
+      {/* --- DYNAMIC SOLID BACKGROUND CROSSFADE --- */}
+      <View style={[styles.absoluteFill, { backgroundColor: prevProp.color }]} />
+      <Animated.View style={[styles.absoluteFill, { backgroundColor: activeProp.color, opacity: crossfadeAnim }]} />
 
-        {/* Layer 2: Active Image */}
-        <Animated.Image
-          source={{ uri: activeProp.image }}
-          style={[styles.absoluteFill, { opacity: crossfadeAnim }]}
-          resizeMode="cover"
-        />
-
-        {/* Luxury Dark Gradient Overlay */}
-        <View style={styles.heroOverlay} />
-
-        <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
-          <Animated.View style={[styles.welcomeContainer, { opacity: fadeAnim, transform: [{ translateY: slideUpAnim }] }]}>
-            <View style={styles.brandRow}>
-              <ShieldCheck size={28} color="#FFFFFF" strokeWidth={2} style={{ marginRight: 12 }} />
-              <Text style={styles.brandSubtitle}>RESORT PORTFOLIO</Text>
-            </View>
-            <Text style={styles.welcomeTitle}>Secure Access.</Text>
-            <Text style={styles.welcomeDesc}>Log in with your assigned credentials to manage your designated property.</Text>
-          </Animated.View>
-        </SafeAreaView>
-      </View>
-
-      {/* --- BOTTOM SHEET FORM --- */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} // Fix for Android dark gap issue
-        style={styles.keyboardWrapper}
-      >
-        <Animated.View
-          style={[
-            styles.mainSheet,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideUpAnim }]
-            }
-          ]}
+      <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardWrapper}
         >
-          {/* Decorative Drag Handle */}
-          <View style={styles.dragHandle} />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
 
-          <View style={styles.formContainer}>
-            <View style={styles.formHeaderRow}>
-              <Text style={styles.sectionLabel}>AUTHENTICATION</Text>
+              {/* --- TOP BAR --- */}
+              <View style={styles.topBar}>
+                <TouchableOpacity
+                  style={styles.backButton}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('Welcome')}
+                >
+                  <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
 
-              {/* Dynamic Property Detection Indicator */}
-              {activeProp.id !== 'owner' && (
-                <View style={styles.detectedBadge}>
-                  <Sparkles size={12} color={activeProp.color} strokeWidth={2.5} style={{ marginRight: 4 }} />
-                  <Text style={[styles.detectedText, { color: activeProp.color }]}>
-                    {activeProp.name} Detected
-                  </Text>
+              {/* --- 3D ISOMETRIC SECURITY GRAPHIC --- */}
+              <View style={styles.graphicContainer}>
+                <View style={styles.pedestalShadow} />
+                <View style={styles.pedestalBody} />
+                <View style={styles.pedestalTop} />
+
+                <Animated.View style={[styles.floatingShield, { transform: [{ translateY: floatAnim }] }]}>
+                  <View style={styles.shieldInner}>
+                    <ShieldCheck size={42} color={activeProp.color} strokeWidth={2} />
+                  </View>
+                </Animated.View>
+              </View>
+
+              {/* --- TYPOGRAPHY --- */}
+              <View style={styles.textContainer}>
+                <Text style={styles.welcomeTitle}>Welcome Back</Text>
+                <Text style={styles.welcomeDesc}>Sign in to securely access your portfolio dashboard and properties.</Text>
+              </View>
+
+              {/* --- FORM SECTION --- */}
+              <View style={styles.formContainer}>
+
+                {/* Dynamic Property Detection Indicator */}
+                <View style={styles.badgeRow}>
+                  {activeProp.id !== 'owner' ? (
+                    <View style={styles.detectedBadge}>
+                      <Sparkles size={12} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 6 }} />
+                      <Text style={styles.detectedText}>
+                        {activeProp.name} Detected
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={{ height: 28 }} /> // Spacer to prevent layout jump
+                  )}
                 </View>
-              )}
-            </View>
 
-            {/* Username Input */}
-            <View style={[
-              styles.inputWrapper,
-              isUserFocused && { borderColor: activeProp.color, backgroundColor: '#FFFFFF' }
-            ]}>
-              <UserRound color={isUserFocused ? activeProp.color : COLORS.textMuted} size={20} style={styles.inputIcon} strokeWidth={2.5} />
-              <TextInput
-                style={styles.input}
-                placeholder="Admin Username"
-                placeholderTextColor={COLORS.textMuted}
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-                autoCorrect={false}
-                onFocus={() => setIsUserFocused(true)}
-                onBlur={() => setIsUserFocused(false)}
-              />
-            </View>
+                {/* Username Input (Pill Style) */}
+                <View style={[styles.inputWrapper, isUserFocused && styles.inputWrapperFocused]}>
+                  <UserRound color={isUserFocused ? activeProp.color : '#94A3B8'} size={20} style={styles.inputIcon} strokeWidth={2.5} />
+                  <TextInput
+                    style={[styles.input, { color: activeProp.color }]}
+                    placeholder="Admin Username"
+                    placeholderTextColor="#94A3B8"
+                    value={username}
+                    onChangeText={setUsername}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    onFocus={() => setIsUserFocused(true)}
+                    onBlur={() => setIsUserFocused(false)}
+                  />
+                </View>
 
-            {/* Password Input */}
-            <View style={[
-              styles.inputWrapper,
-              isPassFocused && { borderColor: activeProp.color, backgroundColor: '#FFFFFF' }
-            ]}>
-              <Lock color={isPassFocused ? activeProp.color : COLORS.textMuted} size={20} style={styles.inputIcon} strokeWidth={2.5} />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor={COLORS.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                onFocus={() => setIsPassFocused(true)}
-                onBlur={() => setIsPassFocused(false)}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                {showPassword ? (
-                  <EyeOff size={20} color={isPassFocused ? activeProp.color : COLORS.textMuted} strokeWidth={2.5} />
-                ) : (
-                  <Eye size={20} color={isPassFocused ? activeProp.color : COLORS.textMuted} strokeWidth={2.5} />
-                )}
-              </TouchableOpacity>
-            </View>
+                {/* Password Input (Pill Style) */}
+                <View style={[styles.inputWrapper, isPassFocused && styles.inputWrapperFocused]}>
+                  <Lock color={isPassFocused ? activeProp.color : '#94A3B8'} size={20} style={styles.inputIcon} strokeWidth={2.5} />
+                  <TextInput
+                    style={[styles.input, { color: activeProp.color }]}
+                    placeholder="Password"
+                    placeholderTextColor="#94A3B8"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    onFocus={() => setIsPassFocused(true)}
+                    onBlur={() => setIsPassFocused(false)}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn} activeOpacity={0.7}>
+                    {showPassword ? (
+                      <EyeOff size={20} color={isPassFocused ? activeProp.color : '#94A3B8'} strokeWidth={2.5} />
+                    ) : (
+                      <Eye size={20} color={isPassFocused ? activeProp.color : '#94A3B8'} strokeWidth={2.5} />
+                    )}
+                  </TouchableOpacity>
+                </View>
 
-            <TouchableOpacity style={styles.forgotBtn} activeOpacity={0.7}>
-              <Text style={[styles.forgotText, { color: activeProp.color }]}>Recover password?</Text>
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.forgotBtn} activeOpacity={0.7}>
+                  <Text style={styles.forgotText}>Recover password?</Text>
+                </TouchableOpacity>
 
-            {/* Dynamic Action Button */}
-            <Animated.View style={{ transform: [{ scale: buttonScale }], marginTop: 16 }}>
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={handleLogin}
-                style={[
-                  styles.loginBtn,
-                  { backgroundColor: activeProp.color, shadowColor: activeProp.color }
-                ]}
-              >
-                <Text style={styles.loginBtnText}>Secure Sign In</Text>
-                <ArrowRight size={20} color="#FFFFFF" strokeWidth={2.5} />
-              </TouchableOpacity>
+                {/* Dynamic Action Button (Pill Style) */}
+                <Animated.View style={{ transform: [{ scale: buttonScale }], marginTop: 8 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handleLogin}
+                    style={styles.loginBtn}
+                  >
+                    <Text style={[styles.loginBtnText, { color: activeProp.color }]}>Secure Sign In</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+
+              </View>
+
             </Animated.View>
-          </View>
-        </Animated.View>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </View>
   );
 }
@@ -294,121 +298,162 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
-  },
-  heroHeader: {
-    width: '100%',
-    height: height * 0.65, // Extends slightly lower to blend with the sheet smoothly
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    backgroundColor: '#2962FF', // Base fallback
   },
   absoluteFill: {
     ...StyleSheet.absoluteFillObject,
   },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.70)', // Dark luxury overlay
-  },
-  heroSafeArea: {
+  safeArea: {
     flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: Platform.OS === 'android' ? 60 : 40,
   },
-  welcomeContainer: {
-    marginTop: height * 0.1, // Positions text beautifully in the top third
+  keyboardWrapper: {
+    flex: 1,
   },
-  brandRow: {
-    flexDirection: 'row',
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
+    paddingBottom: 40,
+  },
+
+  /* --- TOP BAR --- */
+  topBar: {
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 20 : 10,
+    height: 60,
+    justifyContent: 'center',
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+
+  /* --- 3D ISOMETRIC GRAPHIC --- */
+  graphicContainer: {
+    width: '100%',
+    height: 180,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    position: 'relative',
+    marginTop: 10,
+    marginBottom: 20,
   },
-  brandSubtitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 2,
+  pedestalShadow: {
+    width: 160,
+    height: 48,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    borderRadius: 100,
+    position: 'absolute',
+    bottom: 10,
+    transform: [{ scaleY: 0.5 }],
+  },
+  pedestalBody: {
+    width: 140,
+    height: 70,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)', // Adapts to any bg color
+    borderBottomLeftRadius: 70,
+    borderBottomRightRadius: 70,
+    position: 'absolute',
+    bottom: 30,
+  },
+  pedestalTop: {
+    width: 140,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Semi-transparent white
+    borderRadius: 70,
+    position: 'absolute',
+    bottom: 80,
+  },
+  floatingShield: {
+    position: 'absolute',
+    bottom: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  shieldInner: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: [{ rotate: '12deg' }, { skewX: '5deg' }], // Matches the Neo-Brutalism vibe
+  },
+
+  /* --- TYPOGRAPHY --- */
+  textContainer: {
+    paddingHorizontal: 32,
+    alignItems: 'center',
+    marginBottom: 32,
   },
   welcomeTitle: {
-    fontSize: 42,
+    fontSize: 36,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -1,
     marginBottom: 12,
+    textAlign: 'center',
   },
   welcomeDesc: {
     fontSize: 16,
     color: 'rgba(255,255,255,0.85)',
     fontWeight: '500',
     lineHeight: 24,
-    paddingRight: 20,
-  },
-
-  /* --- OVERLAPPING MAIN SHEET --- */
-  keyboardWrapper: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  mainSheet: {
-    backgroundColor: COLORS.cardBg,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    paddingTop: 16,
-    paddingBottom: Platform.OS === 'ios' ? 50 : 40, // Keeps it comfortably off the bottom edge
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 24,
-  },
-  dragHandle: {
-    width: 48,
-    height: 6,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginBottom: 32,
+    textAlign: 'center',
+    paddingHorizontal: 10,
   },
 
   /* --- FORM CONTAINER --- */
   formContainer: {
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
   },
-  formHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 20,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#94A3B8',
-    letterSpacing: 1.5,
+  badgeRow: {
+    alignItems: 'center',
+    marginBottom: 16,
+    height: 28,
   },
   detectedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.inputBg,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   detectedText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
+
+  /* Inputs aligned to Welcome Screen "Continue" Button */
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32, // Pill shape
     height: 64,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  inputWrapperFocused: {
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
   },
   inputIcon: {
     marginRight: 12,
@@ -416,9 +461,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: '100%',
-    color: COLORS.textMain,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   eyeBtn: {
     padding: 8,
@@ -427,32 +471,33 @@ const styles = StyleSheet.create({
 
   /* --- FORGOT PASSWORD --- */
   forgotBtn: {
-    alignSelf: 'flex-end',
-    marginTop: 4,
+    alignSelf: 'center',
     marginBottom: 24,
-    paddingVertical: 4,
+    paddingVertical: 8,
   },
   forgotText: {
     fontSize: 14,
     fontWeight: '700',
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
 
   /* --- ACTION BUTTON --- */
   loginBtn: {
     flexDirection: 'row',
     height: 64,
-    borderRadius: 24,
+    borderRadius: 32, // Pill shape
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
   },
   loginBtnText: {
-    fontSize: 16,
-    color: '#FFFFFF',
+    fontSize: 18,
     fontWeight: '800',
     letterSpacing: 0.5,
   },

@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  Modal,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Defs, LinearGradient, Stop, Circle } from 'react-native-svg';
@@ -22,10 +24,13 @@ import {
   BarChart2,
   BookOpen,
   Settings,
-  PieChart
+  PieChart,
+  FileSpreadsheet,
+  X,
+  CheckCircle2
 } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 // Premium Color Palette (Modernized)
 const COLORS = {
@@ -67,7 +72,26 @@ const REPORTS_DATA = [
 
 export default function OwnerAnalytics({ navigation }) {
   const [activeTab, setActiveTab] = useState('All Properties');
+  const [isExportModalVisible, setExportModalVisible] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
   const activeNav = 'Insights';
+
+  const handleDownloadPress = (report) => {
+    setSelectedReport(report);
+    setExportModalVisible(true);
+  };
+
+  const handleExport = (type) => {
+    setExportModalVisible(false);
+    // Simulate export process
+    setTimeout(() => {
+      Alert.alert(
+        "Export Successful",
+        `${selectedReport.title} has been exported as ${type}.`,
+        [{ text: "OK" }]
+      );
+    }, 600);
+  };
 
   return (
     <View style={styles.container}>
@@ -211,7 +235,12 @@ export default function OwnerAnalytics({ navigation }) {
 
             <View style={styles.reportsList}>
               {REPORTS_DATA.map((report) => (
-                <TouchableOpacity key={report.id} activeOpacity={0.7} style={styles.reportCard}>
+                <TouchableOpacity
+                  key={report.id}
+                  activeOpacity={0.7}
+                  style={styles.reportCard}
+                  onPress={() => handleDownloadPress(report)}
+                >
                   <View style={styles.reportIconBg}>
                     <FileText size={22} color={COLORS.primary} strokeWidth={2} />
                     <View style={styles.pdfBadge}>
@@ -240,38 +269,99 @@ export default function OwnerAnalytics({ navigation }) {
         </ScrollView>
       </SafeAreaView>
 
-      {/* --- FLOATING BOTTOM NAVIGATION (NO FAB) --- */}
-      <View style={styles.floatingNavWrapper}>
-        <View style={styles.floatingNav}>
+      {/* --- EXPORT OPTIONS MODAL --- */}
+      <Modal
+        visible={isExportModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setExportModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setExportModalVisible(false)}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Export Format</Text>
+                <Text style={styles.modalSubtitle}>Select file type to download</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={() => setExportModalVisible(false)}
+              >
+                <X size={20} color={COLORS.textMuted} strokeWidth={2.5} />
+              </TouchableOpacity>
+            </View>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]}>
-            <LayoutGrid size={22} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Property' && <Text style={styles.navTextActive}>Props</Text>}
+            <View style={styles.exportOptionsList}>
+              <TouchableOpacity
+                style={styles.exportOptionItem}
+                activeOpacity={0.8}
+                onPress={() => handleExport('PDF')}
+              >
+                <View style={[styles.exportIconBox, { backgroundColor: '#FEE2E2' }]}>
+                  <FileText size={24} color="#EF4444" strokeWidth={2} />
+                </View>
+                <View style={styles.exportTextWrap}>
+                  <Text style={styles.exportOptionTitle}>Adobe PDF Document</Text>
+                  <Text style={styles.exportOptionDesc}>Formatted for printing and sharing</Text>
+                </View>
+                <Download size={18} color={COLORS.textMuted} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.exportOptionItem}
+                activeOpacity={0.8}
+                onPress={() => handleExport('Excel')}
+              >
+                <View style={[styles.exportIconBox, { backgroundColor: '#DCFCE7' }]}>
+                  <FileSpreadsheet size={24} color="#16A34A" strokeWidth={2} />
+                </View>
+                <View style={styles.exportTextWrap}>
+                  <Text style={styles.exportOptionTitle}>Excel Spreadsheet</Text>
+                  <Text style={styles.exportOptionDesc}>Raw data for processing (XLSX)</Text>
+                </View>
+                <Download size={18} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalInfoBox}>
+              <CheckCircle2 size={14} color={COLORS.primary} strokeWidth={2.5} style={{ marginRight: 8 }} />
+              <Text style={styles.modalInfoText}>Selected: {selectedReport?.title}</Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNav}>
+
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]} activeOpacity={0.7}>
+            <LayoutGrid size={24} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Property' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}>
-            <Calendar size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Book</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]} activeOpacity={0.7}>
+            <Calendar size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]}>
-            <BarChart2 size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Fin</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} activeOpacity={0.7}>
+            <BarChart2 size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]}>
-            <BookOpen size={22} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Ledger' && <Text style={styles.navTextActive}>Ledg</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]} activeOpacity={0.7}>
+            <BookOpen size={24} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Ledger' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]}>
-            <PieChart size={22} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Insights' && <Text style={styles.navTextActive}>Data</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]} activeOpacity={0.7}>
+            <PieChart size={24} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Insights' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]}>
-            <Settings size={22} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Settings' && <Text style={styles.navTextActive}>Set</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]} activeOpacity={0.7}>
+            <Settings size={24} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Settings' ? 2.5 : 2} />
           </TouchableOpacity>
 
         </View>
@@ -600,52 +690,137 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  bottomSpacer: {
-    height: 140, // Keeps content clear of the floating nav
+  /* --- EXPORT MODAL --- */
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
-
-  /* --- FLOATING BOTTOM NAV (Matched, NO FAB) --- */
-  floatingNavWrapper: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
-    left: 16,
-    right: 16,
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 44 : 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 25,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  floatingNav: {
+  exportOptionsList: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  exportOptionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    borderRadius: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  exportIconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  exportTextWrap: {
+    flex: 1,
+  },
+  exportOptionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    marginBottom: 2,
+  },
+  exportOptionDesc: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.textMuted,
+  },
+  modalInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  modalInfoText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+
+  bottomSpacer: {
+    height: 140, // Keeps it clear of the floating nav
+  },
+
+  /* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    alignSelf: 'center',
+    width: '90%', // Modern floating width
+    left: '5%',
+    right: '5%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 36, // Fully rounded pill shape
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    height: 72,
-    borderRadius: 36,
-    paddingHorizontal: 8,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 10,
   },
   navItem: {
-    flex: 1,
-    height: 56,
+    width: 48,
+    height: 48,
+    borderRadius: 24, // Perfect circle for icon
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column',
-    borderRadius: 28,
   },
   navItemActive: {
     backgroundColor: COLORS.primaryLight,
-  },
-  navText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    marginTop: 4,
-    letterSpacing: -0.2,
-  },
-  navTextActive: {
-    color: COLORS.primary,
   },
 });

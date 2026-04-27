@@ -18,7 +18,6 @@ import {
   Wallet,
   User,
   Info,
-  CheckCircle2,
   Clock,
   CheckCheck
 } from 'lucide-react-native';
@@ -121,19 +120,15 @@ export default function NotificationScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Translucent status bar for a full-bleed immersive image effect */}
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      {/* --- FULL BLEED HERO IMAGE HEADER --- */}
       <ImageBackground
         source={{ uri: theme.heroImage }}
         style={styles.heroHeader}
       >
-        {/* Dark gradient overlay for text readability */}
         <View style={styles.heroOverlay} />
 
         <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
-          {/* Top Nav Row */}
           <View style={styles.headerTopRow}>
             <TouchableOpacity
               style={styles.backBtnWrapper}
@@ -146,10 +141,9 @@ export default function NotificationScreen({ route, navigation }) {
               <Text style={styles.greetingText}>{propertyId} Resort</Text>
               <Text style={styles.adminTitle}>Notifications</Text>
             </View>
-            <View style={{ width: 44 }} /> {/* Spacer for alignment */}
+            <View style={{ width: 44 }} />
           </View>
 
-          {/* Glassmorphism Action Card */}
           <View style={styles.glassCard}>
             <View style={styles.glassContent}>
               <View style={styles.unreadBadge}>
@@ -167,7 +161,6 @@ export default function NotificationScreen({ route, navigation }) {
         </SafeAreaView>
       </ImageBackground>
 
-      {/* --- OVERLAPPING MAIN SHEET --- */}
       <View style={styles.mainSheet}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -206,7 +199,6 @@ export default function NotificationScreen({ route, navigation }) {
                       <Text style={styles.notifTime}>{item.time}</Text>
                     </View>
                   </View>
-
                 </View>
               </TouchableOpacity>
             ))}
@@ -224,25 +216,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COMMON_COLORS.background,
   },
-
-  /* --- FULL BLEED HERO --- */
   heroHeader: {
     width: '100%',
-    height: 280, // Slightly shorter than main dashboards
+    height: 280,
     justifyContent: 'flex-start',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)', // Dark slate overlay
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
   },
   heroSafeArea: {
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'space-between',
-    paddingBottom: 40, // Space before the overlapping sheet
+    paddingBottom: 40,
   },
-
-  /* Top Nav in Hero */
   headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -277,10 +265,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: -0.5,
   },
-
-  /* Glassmorphism Action Card */
   glassCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Translucent
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
@@ -318,21 +304,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-
-  /* --- OVERLAPPING MAIN SHEET --- */
   mainSheet: {
     backgroundColor: COMMON_COLORS.background,
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
-    marginTop: -36, // Overlaps the image header
+    marginTop: -36,
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 32,
   },
-
-  /* Section Header */
   sectionHeader: {
     marginBottom: 20,
   },
@@ -343,8 +325,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
-
-  /* Notification List & Cards */
   notificationList: {
     gap: 16,
   },
@@ -362,7 +342,7 @@ const styles = StyleSheet.create({
   },
   unreadCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#F1F5F9', // Subtle highlight border
+    borderColor: '#F1F5F9',
     shadowOpacity: 0.05,
     shadowRadius: 12,
     elevation: 3,
@@ -419,7 +399,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COMMON_COLORS.textMuted,
   },
-
   bottomSpacer: {
     height: 60,
   },

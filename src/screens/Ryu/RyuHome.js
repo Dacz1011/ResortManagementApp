@@ -34,7 +34,7 @@ import {
   SunMedium
 } from 'lucide-react-native';
 
-// Ryu-specific Palette Adapted to Reine's Design System
+// Ryu-specific Palette Adapted to the modern Floating Nav System
 const COLORS = {
   background: '#F8FAFC',    // Cool off-white for depth
   primary: '#23324B',       // Ryu Deep Navy
@@ -54,7 +54,6 @@ const COLORS = {
   infoIcon: '#0EA5E9',
 };
 
-// Quick Actions integrated from Reine's design principle
 const QUICK_ACTIONS = [
   { id: '1', icon: CalendarPlus, label: 'Book', route: 'RyuBookings', params: { mode: 'manual' } },
   { id: '2', icon: ReceiptText, label: 'Expense', route: 'RyuFinance' },
@@ -95,7 +94,7 @@ export default function RyuHome({ navigation }) {
             <TouchableOpacity
               style={styles.bellButton}
               activeOpacity={0.7}
-              // onPress={() => navigation.navigate('RyuNotifications')}
+              onPress={() => navigation.navigate('RyuNotifications')}
             >
               <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
               <View style={styles.notificationDot} />
@@ -182,7 +181,7 @@ export default function RyuHome({ navigation }) {
         </View>
 
         <View style={styles.bentoGrid}>
-          {/* Tall Revenue Card (Inverted Primary Style like Reine) */}
+          {/* Tall Revenue Card */}
           <TouchableOpacity
             style={[styles.bentoCard, styles.revenueCard]}
             activeOpacity={0.7}
@@ -201,7 +200,7 @@ export default function RyuHome({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          {/* Stacked Logistics Cards (Tinted Backgrounds like Reine) */}
+          {/* Stacked Logistics Cards */}
           <View style={styles.bentoCol}>
             <TouchableOpacity
               style={[styles.bentoCard, styles.smallBento, { backgroundColor: '#F0F9FF', borderColor: '#E0F2FE' }]}
@@ -286,43 +285,28 @@ export default function RyuHome({ navigation }) {
         <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
 
-      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
+      {/* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuHome')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
-              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={[styles.navItem, activeNav === 'Home' && styles.navItemActive]} activeOpacity={0.7}>
+            <Home size={24} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuBookings')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
-              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]} activeOpacity={0.7}>
+            <CalendarDays size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuGuestMgmt')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
-              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={[styles.navItem, activeNav === 'Guest' && styles.navItemActive]} activeOpacity={0.7}>
+            <Users size={24} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuFinance')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
-              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} activeOpacity={0.7}>
+            <Wallet size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuAdmin')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
-              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={[styles.navItem, activeNav === 'Admin' && styles.navItemActive]} activeOpacity={0.7}>
+            <Settings size={24} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
           </TouchableOpacity>
 
         </View>
@@ -416,7 +400,7 @@ const styles = StyleSheet.create({
   /* --- IMMERSIVE HERO CARD --- */
   heroCardWrapper: {
     width: '100%',
-    height: 260, // Adjusted to fit the action button gracefully
+    height: 260,
     borderRadius: 32,
     marginBottom: 24,
     shadowColor: COLORS.primary,
@@ -432,7 +416,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(26, 37, 55, 0.55)', // Navy overlay for Ryu theme
+    backgroundColor: 'rgba(26, 37, 55, 0.55)',
     borderRadius: 32,
   },
   heroContent: {
@@ -602,7 +586,7 @@ const styles = StyleSheet.create({
   },
   revenueCard: {
     flex: 1,
-    backgroundColor: COLORS.primary, // Inverted Primary Background
+    backgroundColor: COLORS.primary,
     shadowColor: COLORS.primary,
     shadowOpacity: 0.2,
     borderColor: COLORS.primaryDark,
@@ -739,54 +723,40 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: 90, // Adjusted to clear bottom nav perfectly
+    height: 120, // Enough clearance for floating bottom nav
   },
 
-  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
+  /* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    alignSelf: 'center',
+    width: '90%', // Modern floating width
+    left: '5%',
+    right: '5%',
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderRadius: 36, // Fully rounded pill shape
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 15,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   bottomNav: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
-    paddingHorizontal: 8,
   },
   navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  navIconWrapper: {
     width: 48,
-    height: 32,
-    borderRadius: 16,
+    height: 48,
+    borderRadius: 24, // Perfect circle for icon
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
   },
-  navIconWrapperActive: {
+  navItemActive: {
     backgroundColor: COLORS.primaryLight,
-  },
-  navText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-  },
-  navTextActive: {
-    color: COLORS.primary,
-    fontWeight: '800',
   },
 });

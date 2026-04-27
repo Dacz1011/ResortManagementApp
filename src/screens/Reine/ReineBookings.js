@@ -1,62 +1,78 @@
-import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
-  StatusBar,
-  Image,
-  Linking,
-  ImageBackground,
-  Dimensions
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  SlidersHorizontal,
+  CalendarDays,
+  CalendarPlus,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  User,
-  Phone,
-  Mail,
-  Bell,
-  CalendarPlus,
+  Clock,
   Home,
-  CalendarDays,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  Settings,
+  SlidersHorizontal,
   Users,
   Wallet,
-  Settings,
-  MessageSquare,
-  X,
-  Calendar as CalendarIcon,
-  CheckCircle2
+  X
 } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { REINE_DATA } from '../../datas/mockData';
 
 const { width } = Dimensions.get('window');
 
-// High-End Boutique Palette (Matches ReineHome)
+// Matched strictly to ReineHome palette
 const COLORS = {
-  background: '#F4F7FA',    // Deep, crisp off-white for the main sheet
-  primary: '#E64E76',       // Signature Reine Pink
-  primaryLight: '#FDF0F4',  // Soft pink background for accents
-  primaryDark: '#BE375A',
-  textMain: '#0F172A',      // Slate 900
-  textMuted: '#64748B',     // Slate 500
-  border: '#E2E8F0',        // Slate 200
-  cardBg: '#FFFFFF',
+  background: '#F7F7F9',
+  surface: '#FFFFFF',
+  surfaceDark: '#18181B',
+  surfaceDarkActive: '#27272A',
+
+  primary: '#E64E76',
+  primaryLight: '#FFF0F3',
+
+  textMain: '#18181B',
+  textMuted: '#71717A',
+  border: '#E4E4E7',
+
   success: '#10B981',
   successBg: '#DCFCE7',
   successText: '#16A34A',
 };
 
+// Quick filter pills — mirrors ReineHome's horizontal quick actions pattern
+const BOOKING_FILTERS = [
+  { id: 'all', label: 'All Bookings' },
+  { id: 'confirmed', label: '✓ Confirmed' },
+  { id: 'available', label: 'Available' },
+  { id: 'manual', label: '+ Manual Entry' },
+];
+
 export default function ReineBookings({ route, navigation }) {
   const activeNav = 'Bookings';
   const [activeView, setActiveView] = useState('calendar');
   const [bookings, setBookings] = useState(REINE_DATA.bookings);
+  const [activeFilter, setActiveFilter] = useState('all');
+
+  // Fade-in animation — matches ReineHome's Animated.ScrollView entrance
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -66,9 +82,17 @@ export default function ReineBookings({ route, navigation }) {
   const [guestName, setGuestName] = useState('');
   const [contact, setContact] = useState('');
   const [numDays, setNumDays] = useState('1');
-  const [checkInTime, setCheckInTime] = useState('2:00 PM');
-  const [checkOutTime, setCheckOutTime] = useState('12:00 PM');
+  const [checkInTime] = useState('2:00 PM');
+  const [checkOutTime] = useState('12:00 PM');
   const [departureDate, setDepartureDate] = useState('');
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   useEffect(() => {
     if (route.params?.mode === 'manual') {
@@ -83,7 +107,6 @@ export default function ReineBookings({ route, navigation }) {
       const checkInDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const checkout = new Date(checkInDate);
       checkout.setDate(checkInDate.getDate() + days);
-
       const formattedDeparture = `${checkout.getMonth() + 1}/${checkout.getDate() < 10 ? '0' + checkout.getDate() : checkout.getDate()}/${checkout.getFullYear()}`;
       setDepartureDate(formattedDeparture);
     }
@@ -104,9 +127,10 @@ export default function ReineBookings({ route, navigation }) {
     for (let i = 0; i < days; i++) {
       const currentDay = new Date(checkInDate);
       currentDay.setDate(checkInDate.getDate() + i);
-
-      if (currentDay.getMonth() === currentMonth.getMonth() &&
-          currentDay.getFullYear() === currentMonth.getFullYear()) {
+      if (
+        currentDay.getMonth() === currentMonth.getMonth() &&
+        currentDay.getFullYear() === currentMonth.getFullYear()
+      ) {
         newBookings[currentDay.getDate()] = {
           guestName,
           contact,
@@ -114,7 +138,7 @@ export default function ReineBookings({ route, navigation }) {
           checkIn: `${currentDay.getMonth() + 1}/${currentDay.getDate()}`,
           checkOut: departureDate,
           status: 'CONFIRMED',
-          amount: `₱${(12000 * days).toLocaleString()}.00`
+          amount: `₱${(12000 * days).toLocaleString()}.00`,
         };
       }
     }
@@ -126,7 +150,9 @@ export default function ReineBookings({ route, navigation }) {
     setNumDays('1');
   };
 
-  const isSameMonthAsToday = currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear();
+  const isSameMonthAsToday =
+    currentMonth.getMonth() === today.getMonth() &&
+    currentMonth.getFullYear() === today.getFullYear();
   const occupiedDates = Object.keys(bookings).map(Number);
   const currentBooking = bookings[selectedDate];
 
@@ -138,13 +164,17 @@ export default function ReineBookings({ route, navigation }) {
     }
   };
 
-  const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  const handlePrevMonth = () =>
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const handleNextMonth = () =>
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   const formatMonth = (date) => date.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   const handleDialGuest = () => {
     if (currentBooking) {
-      Linking.openURL(`tel:${currentBooking.contact}`).catch(err => console.error("Couldn't load page", err));
+      Linking.openURL(`tel:${currentBooking.contact}`).catch((err) =>
+        console.error("Couldn't load page", err)
+      );
     }
   };
 
@@ -152,7 +182,6 @@ export default function ReineBookings({ route, navigation }) {
   const renderCalendarView = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
@@ -165,44 +194,95 @@ export default function ReineBookings({ route, navigation }) {
       days.push({ day: i, isCurrentMonth: true });
     }
 
-    const upcomingCount = Object.keys(bookings).length; // Mock count
+    const upcomingCount = Object.keys(bookings).length;
 
     return (
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
-        {/* HERO IMAGE HEADER */}
-        <ImageBackground
-          source={require('../../assets/images/REINE BEACH HOUSE 4.png')}
-          style={styles.heroHeader}
-        >
-          <View style={styles.heroOverlay} />
-          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
-            <View style={styles.headerTopRow}>
-              <View>
-                <Text style={styles.greetingText}>Manage Stays</Text>
-                <Text style={styles.adminName}>Reservations</Text>
-              </View>
-              <View style={styles.headerRight}>
-                <TouchableOpacity style={styles.iconBtn} activeOpacity={0.8}>
-                  <SlidersHorizontal size={20} color="#FFFFFF" strokeWidth={2.5} />
+      <Animated.ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+        style={{ opacity: fadeAnim }}
+      >
+        {/* ── FULL-BLEED HERO (mirrors ReineHome exactly) ── */}
+        <View style={styles.heroContainer}>
+          <ImageBackground
+            source={{ uri: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop' }}
+            style={styles.heroImage}
+            imageStyle={styles.heroImageStyle}
+          >
+            <View style={styles.heroOverlay} />
+
+            <SafeAreaView edges={['top']} style={styles.safeArea}>
+              {/* Top bar — location pill + filter icon */}
+              <View style={styles.topBar}>
+                <View style={styles.locationPill}>
+                  <MapPin size={14} color="#FFFFFF" style={styles.locationIcon} />
+                  <Text style={styles.locationText}>Reservations</Text>
+                </View>
+                <TouchableOpacity style={styles.iconBtnDark} activeOpacity={0.8}>
+                  <SlidersHorizontal size={18} color="#FFFFFF" strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
-            </View>
 
-            <View style={styles.glassCard}>
-              <View style={styles.glassHeader}>
-                <View style={styles.statusPill}>
-                  <CalendarDays size={14} color={COLORS.textMain} strokeWidth={2.5} style={{ marginRight: 6 }} />
-                  <Text style={styles.statusText}>{formatMonth(currentMonth).toUpperCase()}</Text>
-                </View>
+              {/* Hero stat — mirrors "Hey, Admin!" greeting block */}
+              <View style={styles.heroBottomContent}>
+                <Text style={styles.heroMainStat}>{upcomingCount} Upcoming</Text>
+                <Text style={styles.heroSubStat}>
+                  Bookings scheduled for {formatMonth(currentMonth)}
+                </Text>
               </View>
-              <Text style={styles.heroMainStat}>{upcomingCount} Upcoming</Text>
-              <Text style={styles.heroSubStat}>Bookings scheduled for this month</Text>
-            </View>
-          </SafeAreaView>
-        </ImageBackground>
+            </SafeAreaView>
+          </ImageBackground>
+        </View>
 
-        {/* MAIN OVERLAPPING SHEET */}
-        <View style={styles.mainSheet}>
+        {/* ── HORIZONTAL QUICK FILTER PILLS (mirrors ReineHome quick actions) ── */}
+        <View style={styles.quickActionsWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.quickActionsScroll}
+          >
+            {BOOKING_FILTERS.map((filter, index) => {
+              const isActive = activeFilter === filter.id;
+              return (
+                <TouchableOpacity
+                  key={filter.id}
+                  style={[
+                    index === 0 ? styles.actionPillDark : styles.actionPillLight,
+                    isActive && index !== 0 && styles.actionPillLightActive,
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setActiveFilter(filter.id);
+                    if (filter.id === 'manual') {
+                      setActiveView('manual');
+                      updateDepartureDate(selectedDate, numDays);
+                    }
+                  }}
+                >
+                  <Text
+                    style={[
+                      index === 0 ? styles.actionPillDarkText : styles.actionPillLightText,
+                      isActive && index !== 0 && styles.actionPillLightTextActive,
+                    ]}
+                  >
+                    {filter.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* ── MAIN CONTENT ── */}
+        <View style={styles.mainContent}>
+
+          {/* Calendar grid section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Monthly Calendar</Text>
+          </View>
+
+          {/* Calendar Card — styled like ReineHome largeCard */}
           <View style={styles.calendarCard}>
             <View style={styles.monthSelector}>
               <TouchableOpacity style={styles.monthBtn} onPress={handlePrevMonth}>
@@ -212,6 +292,22 @@ export default function ReineBookings({ route, navigation }) {
               <TouchableOpacity style={styles.monthBtn} onPress={handleNextMonth}>
                 <ChevronRight size={24} color={COLORS.textMain} strokeWidth={2.5} />
               </TouchableOpacity>
+            </View>
+
+            {/* Legend pills */}
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: COLORS.surfaceDark }]} />
+                <Text style={styles.legendText}>Selected</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: COLORS.primary }]} />
+                <Text style={styles.legendText}>Occupied</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: COLORS.border }]} />
+                <Text style={styles.legendText}>Available</Text>
+              </View>
             </View>
 
             <View style={styles.weekDaysRow}>
@@ -242,8 +338,8 @@ export default function ReineBookings({ route, navigation }) {
                   cellStyle.push(styles.dayCellSelected);
                   textStyle.push(styles.dayTextSelected);
                 } else if (isOccupied) {
-                  cellStyle.push(styles.dayCellPink);
-                  textStyle.push(styles.dayTextPink);
+                  cellStyle.push(styles.dayCellOccupied);
+                  textStyle.push(styles.dayTextOccupied);
                 }
 
                 return (
@@ -263,70 +359,170 @@ export default function ReineBookings({ route, navigation }) {
             </View>
           </View>
 
+          {/* Stay Details section header */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Stay Details</Text>
           </View>
 
           {currentBooking ? (
+            /* ── BOOKING DETAIL: styled like ReineHome's largeCard ── */
             <View style={styles.detailsCard}>
-              <View style={styles.detailsHeader}>
-                <View>
+              {/* Image top — mirrors largeCard image section */}
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.detailsCardImage}
+                imageStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+              >
+                <View style={styles.detailsCardImageOverlay} />
+                <View style={styles.detailsCardImageContent}>
                   <View style={styles.confirmedBadge}>
                     <CheckCircle2 size={12} color={COLORS.successText} strokeWidth={3} style={{ marginRight: 4 }} />
                     <Text style={styles.confirmedBadgeText}>{currentBooking.status}</Text>
                   </View>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=150&auto=format&fit=crop' }}
+                    style={styles.guestAvatarLarge}
+                  />
+                </View>
+              </ImageBackground>
+
+              {/* Card body — mirrors largeCard body */}
+              <View style={styles.detailsCardBody}>
+                <View style={styles.cardBodyHeader}>
                   <Text style={styles.detailsTitle}>{currentBooking.guestName}</Text>
-                  <Text style={styles.detailsSubtitle}>{currentBooking.checkIn} — {currentBooking.checkOut}</Text>
+                  <Text style={styles.detailsSubtitle}>
+                    {currentBooking.checkIn} — {currentBooking.checkOut}
+                  </Text>
                 </View>
-                <Image source={{ uri: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=150&auto=format&fit=crop' }} style={styles.guestAvatarLarge} />
-              </View>
 
-              <View style={styles.infoList}>
-                <View style={styles.infoRow}>
-                  <View style={styles.infoIconBox}>
-                    <Phone size={18} color={COLORS.primary} strokeWidth={2} />
+                <View style={styles.infoList}>
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconBox}>
+                      <Phone size={18} color={COLORS.textMain} strokeWidth={2} />
+                    </View>
+                    <View style={styles.infoTextWrap}>
+                      <Text style={styles.infoLabel}>CONTACT</Text>
+                      <Text style={styles.infoValue}>{currentBooking.contact}</Text>
+                    </View>
                   </View>
-                  <View style={styles.infoTextWrap}>
-                    <Text style={styles.infoLabel}>CONTACT</Text>
-                    <Text style={styles.infoValue}>{currentBooking.contact}</Text>
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconBox}>
+                      <Mail size={18} color={COLORS.textMain} strokeWidth={2} />
+                    </View>
+                    <View style={styles.infoTextWrap}>
+                      <Text style={styles.infoLabel}>EMAIL</Text>
+                      <Text style={styles.infoValue}>{currentBooking.email}</Text>
+                    </View>
                   </View>
                 </View>
-                <View style={styles.infoRow}>
-                  <View style={styles.infoIconBox}>
-                    <Mail size={18} color={COLORS.primary} strokeWidth={2} />
-                  </View>
-                  <View style={styles.infoTextWrap}>
-                    <Text style={styles.infoLabel}>EMAIL</Text>
-                    <Text style={styles.infoValue}>{currentBooking.email}</Text>
-                  </View>
-                </View>
-              </View>
 
-              <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.cancelBtn} activeOpacity={0.7}>
-                  <X size={20} color={COLORS.textMain} strokeWidth={2.5} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.messageBtn} activeOpacity={0.8} onPress={handleDialGuest}>
-                  <MessageSquare size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 8 }}/>
-                  <Text style={styles.messageBtnText}>Message Guest</Text>
-                </TouchableOpacity>
+                {/* Divider — mirrors ReineHome largeCard divider */}
+                <View style={styles.divider} />
+
+                <View style={styles.cardFooter}>
+                  <Text style={styles.priceAmount}>
+                    {currentBooking.amount}{' '}
+                    <Text style={styles.priceSubtitle}>total</Text>
+                  </Text>
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity style={styles.cancelBtn} activeOpacity={0.7}>
+                      <X size={20} color={COLORS.textMain} strokeWidth={2.5} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.blackButton} activeOpacity={0.8} onPress={handleDialGuest}>
+                      <MessageSquare size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 8 }} />
+                      <Text style={styles.blackButtonText}>Message Guest</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </View>
           ) : (
+            /* ── EMPTY STATE ── */
             <View style={styles.emptyCard}>
               <View style={styles.emptyIconBox}>
-                <CalendarPlus size={32} color={COLORS.textMuted} strokeWidth={1.5} />
+                <CalendarPlus size={32} color={COLORS.textMain} strokeWidth={1.5} />
               </View>
               <Text style={styles.emptyTitle}>Available Date</Text>
-              <Text style={styles.emptySub}>Select an occupied date to see details, or tap here to manually book this date.</Text>
-              <TouchableOpacity style={styles.bookNowBtn} onPress={() => handleDatePress(selectedDate)}>
-                <Text style={styles.bookNowBtnText}>Book {formatMonth(currentMonth).split(' ')[0]} {selectedDate}</Text>
+              <Text style={styles.emptySub}>
+                Select an occupied date to see details, or tap below to manually book this date.
+              </Text>
+              <TouchableOpacity
+                style={styles.blackButton}
+                onPress={() => handleDatePress(selectedDate)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.blackButtonText}>
+                  Book {formatMonth(currentMonth).split(' ')[0]} {selectedDate}
+                </Text>
               </TouchableOpacity>
             </View>
           )}
 
+          {/* ── SNAPSHOT STRIP — mirrors ReineHome's horizontal snapshot cards ── */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Month Snapshot</Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.snapshotScroll}
+          >
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <CalendarDays size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>{upcomingCount} Stays</Text>
+                    <Text style={styles.snapshotLabel}>Confirmed</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <Clock size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>Check-in</Text>
+                    <Text style={styles.snapshotLabel}>2:00 PM</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <Wallet size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>₱{(12000 * upcomingCount).toLocaleString()}</Text>
+                    <Text style={styles.snapshotLabel}>Expected Revenue</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+          </ScrollView>
+
         </View>
-      </ScrollView>
+        <View style={styles.bottomSpacer} />
+      </Animated.ScrollView>
     );
   };
 
@@ -336,33 +532,54 @@ export default function ReineBookings({ route, navigation }) {
 
     return (
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} bounces={false}>
-          {/* HERO IMAGE HEADER */}
-          <ImageBackground
-            source={require('../../assets/images/REINE BEACH HOUSE 4.png')}
-            style={styles.heroHeaderForm}
-          >
-            <View style={styles.heroOverlay} />
-            <SafeAreaView edges={['top']} style={styles.heroSafeAreaForm}>
-              <View style={styles.headerTopRow}>
-                <TouchableOpacity onPress={() => setActiveView('calendar')} style={styles.backBtnWrapper}>
-                  <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2.5} />
-                </TouchableOpacity>
-                <View style={{ flex: 1, paddingLeft: 16 }}>
-                  <Text style={styles.greetingText}>Manual Entry</Text>
-                  <Text style={styles.adminName}>New Booking</Text>
+        <Animated.ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+          style={{ opacity: fadeAnim }}
+        >
+          {/* ── FORM HERO (same full-bleed pattern, shorter height) ── */}
+          <View style={[styles.heroContainer, { height: 230 }]}>
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2070&auto=format&fit=crop' }}
+              style={styles.heroImage}
+              imageStyle={styles.heroImageStyle}
+            >
+              <View style={styles.heroOverlay} />
+              <SafeAreaView edges={['top']} style={styles.safeArea}>
+                <View style={styles.topBar}>
+                  <TouchableOpacity
+                    onPress={() => setActiveView('calendar')}
+                    style={styles.iconBtnDark}
+                    activeOpacity={0.8}
+                  >
+                    <ChevronLeft size={24} color="#FFFFFF" strokeWidth={2.5} />
+                  </TouchableOpacity>
+                  <View style={styles.locationPill}>
+                    <CalendarPlus size={14} color="#FFFFFF" style={styles.locationIcon} />
+                    <Text style={styles.locationText}>New Booking</Text>
+                  </View>
+                  <View style={{ width: 44 }} />
                 </View>
-              </View>
-            </SafeAreaView>
-          </ImageBackground>
 
-          {/* MAIN OVERLAPPING SHEET */}
-          <View style={styles.mainSheet}>
+                <View style={styles.heroBottomContent}>
+                  <Text style={styles.heroMainStat}>
+                    {formatMonth(currentMonth).split(' ')[0]} {selectedDate}
+                  </Text>
+                  <Text style={styles.heroSubStat}>Fill in guest details below</Text>
+                </View>
+              </SafeAreaView>
+            </ImageBackground>
+          </View>
+
+          {/* ── FORM CONTENT ── */}
+          <View style={styles.mainContent}>
 
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Guest Information</Text>
             </View>
 
+            {/* Form card — styled like largeCard body */}
             <View style={styles.formCard}>
               <Text style={styles.formLabel}>FULL NAME</Text>
               <TextInput
@@ -374,7 +591,7 @@ export default function ReineBookings({ route, navigation }) {
               />
 
               <View style={styles.formRow}>
-                <View style={{ flex: 1.5 }}>
+                <View style={{ flex: 1.5, marginRight: 12 }}>
                   <Text style={styles.formLabel}>CONTACT NUMBER</Text>
                   <TextInput
                     style={styles.input}
@@ -398,7 +615,10 @@ export default function ReineBookings({ route, navigation }) {
                 </View>
               </View>
 
-              <Text style={styles.formLabel}>EMAIL ADDRESS <Text style={{fontWeight: '400', textTransform: 'none'}}>(Optional)</Text></Text>
+              <Text style={styles.formLabel}>
+                EMAIL ADDRESS{' '}
+                <Text style={{ fontWeight: '400', textTransform: 'none' }}>(Optional)</Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="guest@example.com"
@@ -414,7 +634,7 @@ export default function ReineBookings({ route, navigation }) {
 
             <View style={styles.scheduleCard}>
               <View style={styles.formRow}>
-                <View style={styles.halfInput}>
+                <View style={[styles.halfInput, { marginRight: 12 }]}>
                   <Text style={styles.formLabel}>CHECK-IN</Text>
                   <View style={styles.readOnlyBox}>
                     <Text style={styles.readOnlySub}>Arrival</Text>
@@ -433,6 +653,7 @@ export default function ReineBookings({ route, navigation }) {
               </View>
             </View>
 
+            {/* Financial card — mirrors ReineHome's priceAmount + divider pattern */}
             <View style={styles.financialCard}>
               <View style={styles.financialHeader}>
                 <Text style={styles.financialLabel}>TOTAL AMOUNT DUE</Text>
@@ -440,19 +661,28 @@ export default function ReineBookings({ route, navigation }) {
                   <Text style={styles.rateText}>FIXED RATE</Text>
                 </View>
               </View>
+              <View style={styles.divider} />
               <View style={styles.financialValueRow}>
-                <Text style={styles.financialCurrency}>₱{(12000 * parseInt(numDays || 1)).toLocaleString()}</Text>
+                <Text style={styles.financialCurrency}>
+                  ₱{(12000 * parseInt(numDays || 1)).toLocaleString()}
+                </Text>
                 <Text style={styles.financialNight}>.00 / {numDays} night(s)</Text>
               </View>
             </View>
 
-            <TouchableOpacity style={styles.submitBtn} activeOpacity={0.85} onPress={handleConfirmBooking}>
+            {/* Submit — full-width black pill, same as ReineHome's blackButton */}
+            <TouchableOpacity
+              style={styles.blackSubmitBtn}
+              activeOpacity={0.85}
+              onPress={handleConfirmBooking}
+            >
               <CalendarPlus size={20} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 10 }} />
-              <Text style={styles.submitBtnText}>Confirm Booking</Text>
+              <Text style={styles.blackSubmitBtnText}>Confirm Booking</Text>
             </TouchableOpacity>
 
           </View>
-        </ScrollView>
+          <View style={styles.bottomSpacer} />
+        </Animated.ScrollView>
       </KeyboardAvoidingView>
     );
   };
@@ -460,48 +690,51 @@ export default function ReineBookings({ route, navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-
       {activeView === 'calendar' ? renderCalendarView() : renderManualBookingView()}
 
-      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
+      {/* ── BLACK PILL BOTTOM NAV — exact match to ReineHome ── */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
-              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ReineHome')}
+            style={styles.navItem}
+            activeOpacity={0.8}
+          >
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineBookings')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
-              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ReineBookings')}
+            style={styles.navItem}
+            activeOpacity={0.8}
+          >
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineGuestMgmt')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
-              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ReineGuestMgmt')}
+            style={styles.navItem}
+            activeOpacity={0.8}
+          >
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
-              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ReineFinance')}
+            style={styles.navItem}
+            activeOpacity={0.8}
+          >
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
-              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ReineAdmin')}
+            style={styles.navItem}
+            activeOpacity={0.8}
+          >
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Menu</Text>
           </TouchableOpacity>
-
         </View>
       </View>
     </View>
@@ -515,154 +748,153 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 160, // Increased padding bottom to clear the modern nav bar and provide extra breathing room
   },
 
-  /* --- FULL BLEED HERO --- */
-  heroHeader: {
+  /* ── HERO (full-bleed, no bottom radius clipping — matches ReineHome) ── */
+  heroContainer: {
     width: '100%',
-    height: 380, // Generous height for calendar view
-    justifyContent: 'flex-start',
+    height: 240,
   },
-  heroHeaderForm: {
+  heroImage: {
     width: '100%',
-    height: 280, // Shorter height for form view
-    justifyContent: 'flex-start',
+    height: '100%',
+  },
+  heroImageStyle: {
+    // No border radius — ReineHome hero bleeds edge to edge
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)', // Dark slate overlay for deep contrast
+    backgroundColor: 'rgba(0,0,0,0.48)',
   },
-  heroSafeArea: {
+  safeArea: {
     flex: 1,
     paddingHorizontal: 24,
-    justifyContent: 'space-between',
-    paddingBottom: 40,
+    paddingTop: Platform.OS === 'ios' ? 0 : 8,
+    paddingBottom: 20,
   },
-  heroSafeAreaForm: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 32 : 16,
-  },
-
-  /* Top Nav in Hero */
-  headerTopRow: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? 16 : 8,
   },
-  greetingText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+  locationPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  adminName: {
-    fontSize: 28,
-    fontWeight: '800',
+  locationIcon: {
+    marginRight: 6,
+  },
+  locationText: {
+    fontSize: 16,
+    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: -0.5,
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconBtn: {
+  iconBtnDark: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  backBtnWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(30,30,30,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
   },
 
-  /* Glassmorphism Status Card */
-  glassCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 28,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginBottom: 10,
-  },
-  glassHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 100,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: 0.5,
+  /* Hero text — matches ReineHome greetingText + searchPill area */
+  heroBottomContent: {
+    marginTop: 20,
   },
   heroMainStat: {
     fontSize: 36,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -1,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   heroSubStat: {
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.9)',
+    color: 'rgba(255,255,255,0.8)',
   },
 
-  /* --- OVERLAPPING MAIN SHEET --- */
-  mainSheet: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    marginTop: -36, // Overlaps the image header
+  /* ── QUICK ACTION PILLS (mirrors ReineHome quickActionsWrapper) ── */
+  quickActionsWrapper: {
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  quickActionsScroll: {
     paddingHorizontal: 24,
-    paddingTop: 32,
-    flex: 1,
-    paddingBottom: 40, // Added padding bottom to main sheet
+    gap: 10,
+    alignItems: 'center',
+  },
+  actionPillDark: {
+    backgroundColor: COLORS.surfaceDark,
+    paddingHorizontal: 20,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 100,
+  },
+  actionPillDarkText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  actionPillLight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 16,
+    height: 44,
+    justifyContent: 'center',
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  actionPillLightActive: {
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
+  },
+  actionPillLightText: {
+    color: COLORS.textMain,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  actionPillLightTextActive: {
+    color: COLORS.primary,
+    fontWeight: '700',
   },
 
-  /* --- CALENDAR GRID --- */
+  /* ── MAIN CONTENT ── */
+  mainContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  sectionHeader: {
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+  },
+
+  /* ── CALENDAR CARD (styled like largeCard) ── */
   calendarCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 32,
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
     padding: 24,
-    marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.03,
-    shadowRadius: 16,
-    elevation: 2,
+    marginBottom: 28,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.border,
   },
   monthSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   monthBtn: { padding: 4 },
   monthText: {
@@ -670,6 +902,26 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textMain,
     letterSpacing: -0.5,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 20,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
   },
   weekDaysRow: {
     flexDirection: 'row',
@@ -679,8 +931,8 @@ const styles = StyleSheet.create({
   weekDayText: {
     width: '14.28%',
     textAlign: 'center',
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '700',
     color: COLORS.textMuted,
     letterSpacing: 1,
   },
@@ -702,18 +954,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
-  dayCellPink: {
+  dayCellOccupied: {
     backgroundColor: COLORS.primaryLight,
   },
   dayCellSelected: {
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: COLORS.surfaceDark,
     transform: [{ scale: 1.1 }],
   },
   dayText: {
@@ -724,9 +971,9 @@ const styles = StyleSheet.create({
   dayTextMuted: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#CBD5E1',
+    color: COLORS.border,
   },
-  dayTextPink: {
+  dayTextOccupied: {
     color: COLORS.primary,
   },
   dayTextSelected: {
@@ -738,38 +985,35 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.surfaceDark,
   },
 
-  /* Section Headers */
-  sectionHeader: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-
-  /* --- BOOKING DETAILS CARD --- */
+  /* ── BOOKING DETAILS CARD (mirrors largeCard with image top) ── */
   detailsCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 32,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.03,
-    shadowRadius: 16,
-    elevation: 2,
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
+    marginBottom: 28,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.border,
   },
-  detailsHeader: {
+  detailsCardImage: {
+    width: '100%',
+    height: 160,
+    justifyContent: 'space-between',
+  },
+  detailsCardImageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  detailsCardImageContent: {
+    flex: 1,
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 24,
   },
   confirmedBadge: {
     flexDirection: 'row',
@@ -778,17 +1022,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
-    marginBottom: 12,
     alignSelf: 'flex-start',
   },
   confirmedBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     color: COLORS.successText,
-    letterSpacing: 0.5,
+  },
+  guestAvatarLarge: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
+  detailsCardBody: {
+    padding: 20,
+  },
+  cardBodyHeader: {
+    marginBottom: 16,
   },
   detailsTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: COLORS.textMain,
     marginBottom: 4,
@@ -799,104 +1054,116 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontWeight: '500',
   },
-  guestAvatarLarge: {
-    width: 56,
-    height: 56,
-    borderRadius: 20,
-    backgroundColor: COLORS.primaryLight,
-  },
   infoList: {
-    gap: 16,
-    marginBottom: 24,
+    gap: 12,
+    marginBottom: 20,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.background,
-    padding: 16,
-    borderRadius: 20,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   infoIconBox: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   infoTextWrap: { flex: 1 },
   infoLabel: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '700',
     color: COLORS.textMuted,
-    marginBottom: 4,
+    marginBottom: 2,
     letterSpacing: 0.5,
   },
   infoValue: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.textMain,
+  },
+
+  /* Divider — mirrors ReineHome's largeCard divider */
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginBottom: 16,
+  },
+
+  /* Card footer — price + action row side by side */
+  cardFooter: {
+    gap: 12,
+  },
+  priceAmount: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    marginBottom: 12,
+  },
+  priceSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textMuted,
   },
   actionRow: {
     flexDirection: 'row',
     gap: 12,
   },
   cancelBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  messageBtn: {
+  blackButton: {
     flex: 1,
     flexDirection: 'row',
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    height: 56,
+    borderRadius: 100,
+    backgroundColor: COLORS.surfaceDark,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 6,
+    paddingHorizontal: 24,
   },
-  messageBtnText: {
-    fontSize: 16,
-    fontWeight: '800',
+  blackButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
 
-  /* Empty State Card */
+  /* ── EMPTY STATE ── */
   emptyCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 32,
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
     padding: 32,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.03,
-    shadowRadius: 16,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.border,
+    marginBottom: 28,
   },
   emptyIconBox: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   emptyTitle: {
     fontSize: 18,
@@ -911,43 +1178,69 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     lineHeight: 20,
   },
-  bookNowBtn: {
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 16,
+
+  /* ── SNAPSHOT STRIP (exact match to ReineHome snapshotCard) ── */
+  snapshotScroll: {
+    gap: 16,
+    paddingBottom: 24,
   },
-  bookNowBtnText: {
-    fontSize: 14,
+  snapshotCard: {
+    width: 160,
+    height: 180,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  snapshotImage: {
+    width: '100%',
+    height: '100%',
+  },
+  snapshotOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.32)',
+    borderRadius: 24,
+  },
+  snapshotContent: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  snapshotIcon: {
+    marginBottom: 'auto',
+  },
+  snapshotValue: {
+    fontSize: 16,
     fontWeight: '800',
-    color: COLORS.primary,
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  snapshotLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.8)',
   },
 
-  /* --- FORM STYLES --- */
+  /* ── FORM STYLES ── */
   formCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 32,
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.03,
-    shadowRadius: 16,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   formLabel: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 11,
+    fontWeight: '700',
     color: COLORS.textMuted,
     marginBottom: 8,
-    letterSpacing: 1,
+    letterSpacing: 0.5,
     marginLeft: 4,
   },
   input: {
     backgroundColor: COLORS.background,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    height: 60,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
     fontSize: 15,
     color: COLORS.textMain,
     fontWeight: '600',
@@ -957,57 +1250,47 @@ const styles = StyleSheet.create({
   },
   formRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 4,
   },
   halfInput: { flex: 1 },
   scheduleCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 32,
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
     padding: 24,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.03,
-    shadowRadius: 16,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   readOnlyBox: {
     backgroundColor: COLORS.background,
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   readOnlySub: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
     color: COLORS.textMuted,
     marginBottom: 4,
   },
   readOnlyValueMain: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
     color: COLORS.textMain,
     marginBottom: 2,
   },
   readOnlySubTime: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: COLORS.textMuted,
   },
-
-  /* Financial Card */
   financialCard: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 32,
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
     padding: 24,
     marginBottom: 32,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   financialHeader: {
     flexDirection: 'row',
@@ -1017,20 +1300,22 @@ const styles = StyleSheet.create({
   },
   financialLabel: {
     fontSize: 11,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
   },
   rateBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: COLORS.background,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   rateText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textMain,
   },
   financialValueRow: {
     flexDirection: 'row',
@@ -1039,79 +1324,68 @@ const styles = StyleSheet.create({
   financialCurrency: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.textMain,
     letterSpacing: -1,
   },
   financialNight: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.7)',
+    color: COLORS.textMuted,
     marginLeft: 6,
   },
-  submitBtn: {
+  blackSubmitBtn: {
     flexDirection: 'row',
-    height: 64,
-    borderRadius: 24,
-    backgroundColor: COLORS.textMain, // Dark contrast button
+    height: 60,
+    borderRadius: 100,
+    backgroundColor: COLORS.surfaceDark,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 6,
   },
-  submitBtnText: {
+  blackSubmitBtnText: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#FFFFFF',
   },
 
-  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
+  bottomSpacer: {
+    height: 160,
+  },
+
+  /* ── BLACK PILL BOTTOM NAV (exact match to ReineHome) ── */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 15,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    alignSelf: 'center',
+    width: '90%',
+    zIndex: 100,
   },
   bottomNav: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
-    paddingHorizontal: 8,
+    backgroundColor: COLORS.surfaceDark,
+    borderRadius: 100,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 20,
   },
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
   },
-  navIconWrapper: {
-    width: 48,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  navIconWrapperActive: {
-    backgroundColor: COLORS.primaryLight,
-  },
   navText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
+    marginTop: 4,
   },
   navTextActive: {
-    color: COLORS.primary,
-    fontWeight: '800',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

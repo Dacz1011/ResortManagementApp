@@ -25,7 +25,7 @@ import {
   Calendar,
   BarChart2,
   BookOpen,
-  TrendingUp,
+  PieChart,
   Settings,
   Plus,
   ListFilter,
@@ -452,38 +452,32 @@ export default function OwnerLedger({ navigation }) {
         {activeFilter === 'Refunds' && renderRefundsLedger()}
       </SafeAreaView>
 
-      {/* --- FLOATING BOTTOM NAVIGATION (NO FAB) --- */}
-      <View style={styles.floatingNavWrapper}>
-        <View style={styles.floatingNav}>
+      {/* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNav}>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]}>
-            <LayoutGrid size={22} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Property' && <Text style={styles.navTextActive}>Props</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]} activeOpacity={0.7}>
+            <LayoutGrid size={24} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Property' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}>
-            <Calendar size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Book</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]} activeOpacity={0.7}>
+            <Calendar size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]}>
-            <BarChart2 size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Fin</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} activeOpacity={0.7}>
+            <BarChart2 size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]}>
-            <BookOpen size={22} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Ledger' && <Text style={styles.navTextActive}>Ledg</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]} activeOpacity={0.7}>
+            <BookOpen size={24} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Ledger' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]}>
-            <TrendingUp size={22} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Insights' && <Text style={styles.navTextActive}>Data</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]} activeOpacity={0.7}>
+            <PieChart size={24} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Insights' ? 2.5 : 2} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]}>
-            <Settings size={22} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Settings' && <Text style={styles.navTextActive}>Set</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]} activeOpacity={0.7}>
+            <Settings size={24} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Settings' ? 2.5 : 2} />
           </TouchableOpacity>
 
         </View>
@@ -899,48 +893,37 @@ const styles = StyleSheet.create({
     height: 140, // Keeps it clear of the floating nav
   },
 
-  /* --- FLOATING BOTTOM NAV (Matched, NO FAB) --- */
-  floatingNavWrapper: {
+  /* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */
+  bottomNavContainer: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 32 : 24,
-    left: 16,
-    right: 16,
-    alignItems: 'center',
+    alignSelf: 'center',
+    width: '90%', // Modern floating width
+    left: '5%',
+    right: '5%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 36, // Fully rounded pill shape
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
-  floatingNav: {
+  bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    height: 72,
-    borderRadius: 36,
-    paddingHorizontal: 8,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 10,
   },
   navItem: {
-    flex: 1,
-    height: 56,
+    width: 48,
+    height: 48,
+    borderRadius: 24, // Perfect circle for icon
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column',
-    borderRadius: 28,
   },
   navItemActive: {
     backgroundColor: COLORS.primaryLight,
-  },
-  navText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    marginTop: 4,
-    letterSpacing: -0.2,
-  },
-  navTextActive: {
-    color: COLORS.primary,
   },
 });

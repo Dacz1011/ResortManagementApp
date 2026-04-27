@@ -1,56 +1,49 @@
-import React, { useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  StatusBar,
-  Image,
-  ImageBackground,
-  Animated
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Bell,
-  LogOut,
-  LogIn,
-  Banknote,
-  Zap,
-  Droplet,
-  ChevronRight,
-  Home,
   CalendarDays,
+  CalendarPlus,
+  CheckCircle2,
+  DollarSign,
+  FileBarChart,
+  Home,
+  LogIn,
+  MapPin,
+  ReceiptText,
+  Search,
+  Settings,
+  Star,
   Users,
   Wallet,
-  Settings,
-  ArrowUpRight,
-  SunMedium,
-  CalendarPlus,
-  ReceiptText,
-  Wrench,
-  FileBarChart
+  Wrench
 } from 'lucide-react-native';
+import { useEffect, useRef } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Image,
+  ImageBackground,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
-// Modernized Luxury Beach House Palette
+const { width } = Dimensions.get('window');
+
+// Modern Minimalist Palette (Matched strictly to reference image)
 const COLORS = {
-  background: '#F4F7FA',    // Slightly cooler, deeper off-white for contrast
+  background: '#F7F7F9',    // Light gray background
+  surface: '#FFFFFF',       // Pure white cards
+  surfaceDark: '#18181B',   // Stark black for nav and dark pills
+  
+  // Reine Brand Accent
   primary: '#E64E76',       // Vibrant Reine Pink
-  primaryLight: '#FDF0F4',  // Very soft pink
-  primaryDark: '#BE375A',   // Deep pink
-  textMain: '#0F172A',      // Slate 900
-  textMuted: '#64748B',     // Slate 500
-  border: '#E2E8F0',        // Slate 200
-  cardBg: '#FFFFFF',
 
-  // Accents
-  successBg: '#DCFCE7',
-  successText: '#16A34A',
-  warningBg: '#FEF9C3',
-  warningIcon: '#EAB308',
-  infoBg: '#E0F2FE',
-  infoIcon: '#0EA5E9',
+  textMain: '#18181B',      // Dark slate/black
+  textMuted: '#71717A',     // Medium gray
+  border: '#E4E4E7',        // Subtle border
 };
 
 const QUICK_ACTIONS = [
@@ -62,264 +55,219 @@ const QUICK_ACTIONS = [
 
 export default function ReineHome({ navigation }) {
   const activeNav = 'Home';
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Header fades smoothly to transparent based on scroll position
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [1, 0],
-    extrapolate: 'clamp'
-  });
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
-
-      {/* --- MODERN HEADER (FIXED TOP, FADES ON SCROLL) --- */}
-      <Animated.View style={[styles.headerWrapper, { opacity: headerOpacity }]}>
-        <SafeAreaView edges={['top']}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop' }}
-                style={styles.profileAvatar}
-              />
-              <View>
-                <Text style={styles.greetingText}>Good Morning,</Text>
-                <Text style={styles.headerTitle}>Reine Admin 👋</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.bellButton}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('ReineNotifications')}
-            >
-              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Animated.View>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
+        bounces={false}
+        style={{ opacity: fadeAnim }}
       >
-        {/* Spacer to push content down so it doesn't overlap the pinned header */}
-        <View style={{ height: Platform.OS === 'ios' ? 70 : 115 }} />
-
-        {/* --- IMMERSIVE HERO CARD --- */}
-        <TouchableOpacity activeOpacity={0.9} style={styles.heroCardWrapper}>
+        {/* --- HERO BANNER (Matched precisely to Reference Middle Screen) --- */}
+        <View style={styles.heroContainer}>
           <ImageBackground
-            source={require('../../assets/images/Reine Beach House.png')}
-            style={styles.heroBackground}
-            imageStyle={{ borderRadius: 32 }}
+            source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2070&auto=format&fit=crop' }}
+            style={styles.heroImage}
+            imageStyle={styles.heroImageStyle}
           >
-            {/* Dark Gradient/Overlay Simulation */}
+            {/* Elegant dark overlay */}
             <View style={styles.heroOverlay} />
-
+            
             <View style={styles.heroContent}>
-              <View style={styles.heroHeaderRow}>
-                <View style={styles.statusBadge}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusBadgeText}>OCCUPIED</Text>
+              {/* Top Bar */}
+              <View style={styles.topBar}>
+                <View style={styles.locationPill}>
+                  <MapPin size={14} color="#FFFFFF" style={styles.locationIcon} />
+                  <Text style={styles.locationText}>Reine's Beach House</Text>
                 </View>
-                <View style={styles.weatherBadge}>
-                  <SunMedium size={14} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 4 }} />
-                  <Text style={styles.weatherText}>28°C</Text>
-                </View>
+                <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('ReineAdmin')} style={styles.profileAvatarWrap}>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop' }}
+                    style={styles.profileAvatar}
+                  />
+                  <View style={styles.notificationDot} />
+                </TouchableOpacity>
               </View>
 
-              <View style={styles.heroMainContent}>
-                <Text style={styles.heroLabel}>CURRENT GUEST</Text>
-                <Text style={styles.heroGuestName}>Ronald Cute Dacanay</Text>
-                <View style={styles.heroSubRow}>
-                  <LogIn size={14} color="rgba(255,255,255,0.7)" style={{ marginRight: 4 }} />
-                  <Text style={styles.heroSubText}>Checking out tomorrow • 12:00 PM</Text>
+              {/* Grouping Text and Pill to sit closely together at the bottom */}
+              <View style={styles.heroBottomContent}>
+                {/* Greeting */}
+                <View style={styles.greetingContainer}>
+                  <Text style={styles.greetingText}>Hey, Admin! Ready to Manage?</Text>
                 </View>
+
+                {/* Dark Search Pill Overlay */}
+                <TouchableOpacity style={styles.searchPill} activeOpacity={0.9} onPress={() => navigation.navigate('ReineGuestMgmt')}>
+                  <Search size={20} color="rgba(255,255,255,0.8)" />
+                  <View style={styles.searchPillTextWrap}>
+                    <Text style={styles.searchPillTitle}>Search guests</Text>
+                    <Text style={styles.searchPillSubtitle}>Names • Bookings • Dates</Text>
+                  </View>
+                </TouchableOpacity>
               </View>
+
             </View>
           </ImageBackground>
-        </TouchableOpacity>
-
-        {/* --- QUICK ACTIONS ROW --- */}
-        <View style={styles.quickActionsContainer}>
-          {QUICK_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            return (
-              <TouchableOpacity
-                key={action.id}
-                style={styles.actionItem}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate(action.route, action.params)}
-              >
-                <View style={styles.actionIconBox}>
-                  <Icon size={24} color={COLORS.primary} strokeWidth={2} />
-                </View>
-                <Text style={styles.actionLabel}>{action.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
         </View>
 
-        {/* --- BENTO BOX GRID --- */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Today's Snapshot</Text>
-        </View>
-
-        <View style={styles.bentoGrid}>
-          {/* Tall Revenue Card */}
-          <TouchableOpacity
-            style={[styles.bentoCard, styles.revenueCard]}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('ReineFinance')}
+        {/* --- HORIZONTAL QUICK ACTIONS PILLS --- */}
+        <View style={styles.quickActionsWrapper}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.quickActionsScroll}
           >
-            <View style={styles.bentoIconWrapper}>
-              <Banknote size={24} color={COLORS.primary} strokeWidth={2.5} />
-            </View>
-            <View style={styles.bentoTextWrap}>
-              <Text style={styles.bentoLabel}>TOTAL REVENUE</Text>
-              <Text style={styles.revenueValue}>₱12.4K</Text>
-              <View style={styles.trendRow}>
-                <ArrowUpRight size={14} color={COLORS.successText} strokeWidth={3} />
-                <Text style={styles.trendText}>+15% vs yesterday</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Stacked Logistics Cards */}
-          <View style={styles.bentoCol}>
-            <TouchableOpacity
-              style={[styles.bentoCard, styles.smallBento, { backgroundColor: '#F0F9FF', borderColor: '#E0F2FE' }]}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('ReineBookings')}
-            >
-              <View style={styles.bentoHeader}>
-                <Text style={styles.bentoLabelDark}>ARRIVALS</Text>
-                <LogIn size={18} color="#0284C7" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.smallBentoValue, { color: '#0284C7' }]}>2 <Text style={styles.smallBentoSub}>Guests</Text></Text>
-              <Text style={styles.smallBentoDesc}>Expected 2:00 PM</Text>
+            <TouchableOpacity style={styles.actionPillDark} activeOpacity={0.8} onPress={() => navigation.navigate('ReineBookings', { mode: 'manual' })}>
+              <Text style={styles.actionPillDarkText}>Quick Actions</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.bentoCard, styles.smallBento, { backgroundColor: '#FFF7ED', borderColor: '#FFEDD5' }]}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('ReineBookings')}
-            >
-              <View style={styles.bentoHeader}>
-                <Text style={styles.bentoLabelDark}>DEPARTURES</Text>
-                <LogOut size={18} color="#EA580C" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.smallBentoValue, { color: '#EA580C' }]}>1 <Text style={styles.smallBentoSub}>Room</Text></Text>
-              <Text style={styles.smallBentoDesc}>Check-out 12:00 PM</Text>
-            </TouchableOpacity>
+            {QUICK_ACTIONS.map((action) => {
+              const Icon = action.icon;
+              return (
+                <TouchableOpacity
+                  key={action.id}
+                  style={styles.actionPillLight}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate(action.route, action.params)}
+                >
+                  <Icon size={16} color={COLORS.textMain} style={{ marginRight: 6 }} />
+                  <Text style={styles.actionPillLightText}>{action.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        <View style={styles.mainContent}>
+
+          {/* --- CURRENTLY HOSTING (Matched Reference Image Card) --- */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Currently Hosting</Text>
           </View>
-        </View>
 
-        {/* --- ACTIVE TASKS SECTION --- */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Priority Tasks</Text>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('ReineFinance')}
+          <View style={styles.largeCard}>
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop' }}
+              style={styles.cardImageTop}
+            >
+              <View style={styles.cardImageOverlay}>
+                <View style={styles.cardFavoriteBtn}>
+                  <CheckCircle2 size={18} color="#FFFFFF" />
+                </View>
+              </View>
+            </ImageBackground>
+
+            <View style={styles.cardBody}>
+              <View style={styles.cardBodyHeader}>
+                <Text style={styles.cardTitle}>Ronald Cute Dacanay</Text>
+                <View style={styles.ratingRow}>
+                  <Star size={14} color={COLORS.textMain} fill={COLORS.textMain} />
+                  <Text style={styles.ratingText}>VIP</Text>
+                </View>
+              </View>
+
+              <Text style={styles.cardSubtitle}>Checking out tomorrow • 12:00 PM</Text>
+              <Text style={styles.cardTags}>Fully Paid • No Pending Requests • Standard Room</Text>
+              
+              {/* Divider matching reference elegance */}
+              <View style={styles.divider} />
+
+              <View style={styles.cardFooter}>
+                <Text style={styles.priceAmount}>₱36,000 <Text style={styles.priceSubtitle}>total</Text></Text>
+                <TouchableOpacity style={styles.blackButton} activeOpacity={0.8}>
+                  <Text style={styles.blackButtonText}>Mark Cleaned</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* --- TODAY'S SNAPSHOT (Discover new places style) --- */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Snapshot</Text>
+          </View>
+
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.snapshotScroll}
           >
-            <Text style={styles.viewAllText}>See All</Text>
-          </TouchableOpacity>
+            {/* Revenue Metric */}
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.7} onPress={() => navigation.navigate('ReineFinance')}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <DollarSign size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>₱12.4K</Text>
+                    <Text style={styles.snapshotLabel}>Total Revenue</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+
+            {/* Arrivals Metric */}
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.7} onPress={() => navigation.navigate('ReineBookings')}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <LogIn size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>2 Guests</Text>
+                    <Text style={styles.snapshotLabel}>Expected Arrivals</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+          </ScrollView>
+
         </View>
-
-        <View style={styles.tasksList}>
-          {/* Task 1 */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.taskCard}
-            onPress={() => navigation.navigate('ReineFinance')}
-          >
-            <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.warningBg }]}>
-              <Zap size={22} color={COLORS.warningIcon} strokeWidth={2.5} />
-            </View>
-            <View style={styles.taskInfo}>
-              <Text style={styles.taskTitle}>Meralco Bill</Text>
-              <Text style={styles.taskSubtitle}>Due in 2 days • ₱8,240</Text>
-            </View>
-            <View style={styles.taskAction}>
-              <Text style={styles.payNowText}>Pay</Text>
-              <ChevronRight size={18} color={COLORS.textMuted} />
-            </View>
-          </TouchableOpacity>
-
-          {/* Task 2 */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.taskCard}
-            onPress={() => navigation.navigate('ReineFinance')}
-          >
-            <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.infoBg }]}>
-              <Droplet size={22} color={COLORS.infoIcon} strokeWidth={2.5} />
-            </View>
-            <View style={styles.taskInfo}>
-              <Text style={styles.taskTitle}>Water Bill</Text>
-              <Text style={styles.taskSubtitle}>Past due • ₱1,150</Text>
-            </View>
-            <View style={styles.taskAction}>
-              <Text style={styles.payNowText}>Pay</Text>
-              <ChevronRight size={18} color={COLORS.textMuted} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Spacer for Bottom Nav */}
-        <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
 
-      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
+      {/* --- SLEEK BLACK PILL BOTTOM NAV (Matched perfectly to Reference) --- */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
-              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem} activeOpacity={0.8}>
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineBookings')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
-              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineGuestMgmt')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
-              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
-              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineAdmin')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
-              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ReineAdmin')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Menu</Text>
           </TouchableOpacity>
-
         </View>
       </View>
-
     </View>
   );
 }
@@ -329,70 +277,71 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
-  /* --- HEADER (ABSOLUTE TO PIN IT AT TOP) --- */
-  headerWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    backgroundColor: COLORS.background,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 110, // Optimized clearance for floating bottom nav
   },
-  header: {
+
+  /* --- HERO HEADER --- */
+  heroContainer: {
+    width: '100%',
+    height: 280, // Compressed overall height to remove dead space
+    backgroundColor: COLORS.surfaceDark,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroImageStyle: {
+    // Border radius removed for square full-bleed look
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)', // Classic dark overlay for legibility
+  },
+  heroContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 10, // Slightly less top padding
+    paddingBottom: 20, // Tighter bottom padding
+    justifyContent: 'space-between',
+  },
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 8,
-    paddingTop: 4,
   },
-  headerLeft: {
+  locationPill: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  profileAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginRight: 14,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  locationIcon: {
+    marginRight: 6,
   },
-  greetingText: {
-    fontSize: 13,
+  locationText: {
+    fontSize: 15,
     fontWeight: '700',
-    color: COLORS.textMuted,
-    marginBottom: 2,
+    color: '#FFFFFF',
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-  bellButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+  profileAvatarWrap: {
     position: 'relative',
+  },
+  profileAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
   notificationDot: {
     position: 'absolute',
-    top: 12,
-    right: 14,
+    top: 0,
+    right: 0,
     width: 10,
     height: 10,
     backgroundColor: COLORS.primary,
@@ -400,147 +349,94 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
-
-  scrollContent: {
-    paddingHorizontal: 24,
+  heroBottomContent: {
+    marginTop: 'auto', // Pushes this entire block to the bottom of the hero card
   },
-
-  /* --- IMMERSIVE HERO CARD --- */
-  heroCardWrapper: {
-    width: '100%',
-    height: 220,
-    borderRadius: 32,
-    marginBottom: 24,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 10,
+  greetingContainer: {
+    marginBottom: 12, // Snug spacing right above the search pill
   },
-  heroBackground: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)', // Darken image for text legibility
-    borderRadius: 32,
-  },
-  heroContent: {
-    padding: 24,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'space-between',
-  },
-  heroHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 100,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#4ADE80', // Bright green for occupied
-    borderRadius: 4,
-    marginRight: 6,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  statusBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
+  greetingText: {
+    fontSize: 26,
     fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  weatherBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 100,
-  },
-  weatherText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroMainContent: {
-    marginBottom: 4,
-  },
-  heroLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-  heroGuestName: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '800',
     letterSpacing: -0.5,
-    marginBottom: 6,
+    lineHeight: 34, // Slightly tighter line height
   },
-  heroSubRow: {
+  
+  /* --- DARK OVERLAY SEARCH PILL --- */
+  searchPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(30,30,30,0.6)', // Deep translucent look
+    borderRadius: 100, // Pill shape
+    paddingHorizontal: 20,
+    paddingVertical: 16, // Made the pill slightly taller
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  heroSubText: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 13,
+  searchPillTextWrap: {
+    marginLeft: 12,
+  },
+  searchPillTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  searchPillSubtitle: {
+    fontSize: 12,
     fontWeight: '500',
+    color: 'rgba(255,255,255,0.7)',
   },
 
-  /* --- QUICK ACTIONS ROW --- */
-  quickActionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 32,
-    paddingHorizontal: 4,
+  /* --- QUICK ACTIONS PILLS --- */
+  quickActionsWrapper: {
+    marginTop: 20,
+    marginBottom: 12,
   },
-  actionItem: {
+  quickActionsScroll: {
+    paddingHorizontal: 24,
+    gap: 10,
     alignItems: 'center',
-    width: '22%',
   },
-  actionIconBox: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+  actionPillDark: {
+    backgroundColor: COLORS.surfaceDark,
+    paddingHorizontal: 20,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F8FAFC',
+    borderRadius: 100,
   },
-  actionLabel: {
-    fontSize: 11,
+  actionPillDarkText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '700',
-    color: COLORS.textMuted,
+  },
+  actionPillLight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 16,
+    height: 44,
+    justifyContent: 'center',
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  actionPillLightText: {
+    color: COLORS.textMain,
+    fontSize: 14,
+    fontWeight: '600',
   },
 
-  /* --- SECTION HEADERS --- */
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 16,
-    paddingHorizontal: 4,
+  /* --- MAIN CONTENT --- */
+  mainContent: {
+    paddingHorizontal: 24,
+  },
+  sectionHeader: {
+    marginTop: 12,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 20,
@@ -548,217 +444,177 @@ const styles = StyleSheet.create({
     color: COLORS.textMain,
     letterSpacing: -0.5,
   },
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginBottom: 2,
-  },
 
-  /* --- BENTO BOX GRID --- */
-  bentoGrid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  bentoCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 28,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 3,
+  /* --- LARGE IMAGE CARD (Currently Hosting) --- */
+  largeCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
+    marginBottom: 16,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.border,
   },
-  revenueCard: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.2,
-    borderColor: COLORS.primaryDark,
-    justifyContent: 'space-between',
+  cardImageTop: {
+    width: '100%',
+    height: 240,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
   },
-  bentoCol: {
-    flex: 1,
-    gap: 16,
-  },
-  smallBento: {
-    flex: 1,
-    justifyContent: 'center',
+  cardImageOverlay: {
     padding: 16,
   },
-  bentoIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  cardFavoriteBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  bentoTextWrap: {
-    marginTop: 'auto',
+  cardBody: {
+    padding: 20,
   },
-  bentoLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1,
+  cardBodyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 6,
   },
-  bentoLabelDark: {
-    fontSize: 10,    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-  },
-  revenueValue: {
-    fontSize: 32,
+  cardTitle: {
+    fontSize: 18,
     fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -1.5,
-    marginBottom: 12,
+    color: COLORS.textMain,
+    flex: 1,
   },
-  trendRow: {
+  ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
   },
-  trendText: {
-    fontSize: 11,
+  ratingText: {
+    fontSize: 14,
     fontWeight: '800',
-    color: '#FFFFFF',
-    marginLeft: 4,
+    color: COLORS.textMain,
+    marginLeft: 6,
   },
-  bentoHeader: {
+  cardSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
+  cardTags: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#A1A1AA',
+    marginBottom: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginBottom: 16,
+  },
+  cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
   },
-  smallBentoValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  smallBentoSub: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  smallBentoDesc: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-  },
-
-  /* --- ACTIVE TASKS --- */
-  tasksList: {
-    gap: 16,
-  },
-  taskCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  taskIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  taskInfo: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 16,
+  priceAmount: {
+    fontSize: 18,
     fontWeight: '800',
     color: COLORS.textMain,
-    marginBottom: 4,
-    letterSpacing: -0.2,
   },
-  taskSubtitle: {
-    fontSize: 13,
+  priceSubtitle: {
+    fontSize: 14,
     fontWeight: '500',
     color: COLORS.textMuted,
   },
-  taskAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  blackButton: {
+    backgroundColor: COLORS.surfaceDark,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 100,
   },
-  payNowText: {
-    fontSize: 13,
+  blackButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+
+  /* --- SNAPSHOT CARDS --- */
+  snapshotScroll: {
+    gap: 16,
+    paddingBottom: 20,
+  },
+  snapshotCard: {
+    width: 150,
+    height: 180,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  snapshotImage: {
+    width: '100%',
+    height: '100%',
+  },
+  snapshotOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 24,
+  },
+  snapshotContent: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  snapshotIcon: {
+    marginBottom: 'auto',
+  },
+  snapshotValue: {
+    fontSize: 18,
     fontWeight: '800',
-    color: COLORS.primary,
-    marginRight: 4,
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  snapshotLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.8)',
   },
 
-  bottomSpacer: {
-    height: 90, // Adjusted to clear bottom nav perfectly
-  },
-
-  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
+  /* --- BLACK FLOATING PILL BOTTOM NAV (Matched perfectly to Reference) --- */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 15,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    bottom: Platform.OS === 'ios' ? 32 : 24,
+    alignSelf: 'center',
+    width: '90%', 
+    zIndex: 100,
   },
   bottomNav: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
-    paddingHorizontal: 8,
+    backgroundColor: COLORS.surfaceDark, // Solid black
+    borderRadius: 100, // Perfect pill
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 20,
   },
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
   },
-  navIconWrapper: {
-    width: 48,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  navIconWrapperActive: {
-    backgroundColor: COLORS.primaryLight,
-  },
   navText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
+    marginTop: 4,
   },
   navTextActive: {
-    color: COLORS.primary,
-    fontWeight: '800',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });
