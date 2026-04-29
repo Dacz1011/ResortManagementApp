@@ -27,7 +27,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -58,6 +58,8 @@ const GUEST_HISTORY = [
 export default function ReineGuestHistory({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const activeNav = 'Guest';
+
+  const insets = useSafeAreaInsets(); // iOS compatibility hook
 
   // Fade-in entrance — matches ReineHome
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -102,7 +104,8 @@ export default function ReineGuestHistory({ navigation }) {
             >
               <View style={styles.heroOverlay} />
 
-              <SafeAreaView edges={['top']} style={styles.safeArea}>
+              {/* iOS Fix: Dynamic padding applied manually to replace SafeAreaView */}
+              <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
                 {/* Top bar */}
                 <View style={styles.topBar}>
                   <View style={styles.locationPill}>
@@ -131,7 +134,7 @@ export default function ReineGuestHistory({ navigation }) {
                     />
                   </View>
                 </View>
-              </SafeAreaView>
+              </View>
             </ImageBackground>
           </View>
 
@@ -294,7 +297,8 @@ export default function ReineGuestHistory({ navigation }) {
       </TouchableOpacity>
 
       {/* ── BLACK PILL BOTTOM NAV — exact match to ReineHome ── */}
-      <View style={styles.bottomNavContainer}>
+      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem} activeOpacity={0.8}>
             <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
@@ -346,7 +350,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 0 : 8,
+    // paddingTop dynamically handled
     paddingBottom: 28,
     justifyContent: 'space-between',
   },
@@ -664,7 +668,7 @@ const styles = StyleSheet.create({
   /* ── BLACK PILL BOTTOM NAV (exact match to ReineHome) ── */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
+    // bottom dynamically handled
     alignSelf: 'center',
     width: '90%',
     zIndex: 100,

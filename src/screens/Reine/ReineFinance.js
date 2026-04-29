@@ -45,7 +45,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -84,6 +84,7 @@ const TRANSACTIONS = [
 export default function ReineFinance({ navigation }) {
   const activeNav = 'Finance';
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   // Fade-in entrance — matches ReineHome
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -149,7 +150,8 @@ export default function ReineFinance({ navigation }) {
         >
           <View style={styles.heroOverlay} />
 
-          <SafeAreaView edges={['top']} style={styles.safeArea}>
+          {/* iOS Fix: Dynamic padding to prevent clipping into the notch/Dynamic Island */}
+          <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
             {/* Top bar — location pill + bell icon */}
             <View style={styles.topBar}>
               <View style={styles.locationPill}>
@@ -184,7 +186,7 @@ export default function ReineFinance({ navigation }) {
                 </View>
               </View>
             </View>
-          </SafeAreaView>
+          </View>
         </ImageBackground>
       </View>
 
@@ -346,7 +348,8 @@ export default function ReineFinance({ navigation }) {
             imageStyle={styles.heroImageStyle}
           >
             <View style={styles.heroOverlay} />
-            <SafeAreaView edges={['top']} style={styles.safeArea}>
+            {/* iOS Fix: Dynamic padding applied manually */}
+            <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
               <View style={styles.topBar}>
                 <TouchableOpacity
                   onPress={() => setShowExpenseForm(false)}
@@ -366,7 +369,7 @@ export default function ReineFinance({ navigation }) {
                 <Text style={styles.heroMainStat}>Record Entry</Text>
                 <Text style={styles.heroSubStat}>Log utilities, petty cash & issues</Text>
               </View>
-            </SafeAreaView>
+            </View>
           </ImageBackground>
         </View>
 
@@ -676,7 +679,8 @@ export default function ReineFinance({ navigation }) {
       )}
 
       {/* ── BLACK PILL BOTTOM NAV ── */}
-      <View style={styles.bottomNavContainer}>
+      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem} activeOpacity={0.8}>
             <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
@@ -716,7 +720,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 0 : 8,
+    // paddingTop dynamically handled in component
     paddingBottom: 28,
     justifyContent: 'space-between',
   },
@@ -982,7 +986,8 @@ const styles = StyleSheet.create({
 
   /* ── BLACK PILL BOTTOM NAV ── */
   bottomNavContainer: {
-    position: 'absolute', bottom: Platform.OS === 'ios' ? 32 : 24,
+    position: 'absolute',
+    // bottom dynamically handled
     alignSelf: 'center', width: '90%', zIndex: 100,
   },
   bottomNav: {

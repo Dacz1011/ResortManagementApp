@@ -18,6 +18,7 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
   Image,
@@ -31,10 +32,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Alert
+  View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { REINE_DATA } from '../../datas/mockData';
 
 const { width } = Dimensions.get('window');
@@ -71,6 +71,8 @@ export default function ReineBookings({ route, navigation }) {
   const [activeView, setActiveView] = useState('calendar');
   const [bookings, setBookings] = useState(REINE_DATA.bookings);
   const [activeFilter, setActiveFilter] = useState('all');
+
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   // Fade-in animation — matches ReineHome's Animated.ScrollView entrance
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -234,7 +236,8 @@ export default function ReineBookings({ route, navigation }) {
           >
             <View style={styles.heroOverlay} />
 
-            <SafeAreaView edges={['top']} style={styles.safeArea}>
+            {/* iOS Fix: Dynamic padding to prevent clipping into the notch/Dynamic Island */}
+            <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
               {/* Top bar — location pill + filter icon */}
               <View style={styles.topBar}>
                 <View style={styles.locationPill}>
@@ -253,7 +256,7 @@ export default function ReineBookings({ route, navigation }) {
                   Bookings scheduled for {formatMonth(currentMonth)}
                 </Text>
               </View>
-            </SafeAreaView>
+            </View>
           </ImageBackground>
         </View>
 
@@ -580,7 +583,9 @@ export default function ReineBookings({ route, navigation }) {
               imageStyle={styles.heroImageStyle}
             >
               <View style={styles.heroOverlay} />
-              <SafeAreaView edges={['top']} style={styles.safeArea}>
+
+              {/* iOS Fix: Dynamic padding applied manually to replace SafeAreaView */}
+              <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
                 <View style={styles.topBar}>
                   <TouchableOpacity
                     onPress={() => setActiveView('calendar')}
@@ -602,7 +607,7 @@ export default function ReineBookings({ route, navigation }) {
                   </Text>
                   <Text style={styles.heroSubStat}>Fill in guest details below</Text>
                 </View>
-              </SafeAreaView>
+              </View>
             </ImageBackground>
           </View>
 
@@ -727,7 +732,8 @@ export default function ReineBookings({ route, navigation }) {
       {activeView === 'calendar' ? renderCalendarView() : renderManualBookingView()}
 
       {/* ── BLACK PILL BOTTOM NAV — exact match to ReineHome ── */}
-      <View style={styles.bottomNavContainer}>
+      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity
             onPress={() => navigation.navigate('ReineHome')}
@@ -803,7 +809,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 0 : 8,
+    // paddingTop dynamically handled
     paddingBottom: 20,
   },
   topBar: {
@@ -1392,7 +1398,7 @@ const styles = StyleSheet.create({
   /* ── BLACK PILL BOTTOM NAV (exact match to ReineHome) ── */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
+    // bottom is dynamically handled
     alignSelf: 'center',
     width: '90%',
     zIndex: 100,

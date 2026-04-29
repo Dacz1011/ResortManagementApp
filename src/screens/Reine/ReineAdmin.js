@@ -15,20 +15,20 @@ import {
   Users,
   Wallet
 } from 'lucide-react-native';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Animated,
   Dimensions,
   Image,
   ImageBackground,
   Platform,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -77,6 +77,7 @@ const MENU_GROUPS = [
 export default function ReineAdmin({ navigation }) {
   const activeNav = 'Admin';
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets(); // iOS compatibility hook
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -116,7 +117,8 @@ export default function ReineAdmin({ navigation }) {
             {/* Elegant dark overlay */}
             <View style={styles.heroOverlay} />
 
-            <View style={styles.heroContent}>
+            {/* iOS Fix: Dynamic padding to prevent clipping into the notch/Dynamic Island */}
+            <View style={[styles.heroContent, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 10 }]}>
               {/* Top Bar */}
               <View style={styles.topBar}>
                 <View style={styles.locationPill}>
@@ -207,7 +209,8 @@ export default function ReineAdmin({ navigation }) {
       </Animated.ScrollView>
 
       {/* --- SLEEK BLACK PILL BOTTOM NAV (Matched perfectly to ReineHome) --- */}
-      <View style={styles.bottomNavContainer}>
+      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem} activeOpacity={0.8}>
             <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
@@ -236,261 +239,27 @@ export default function ReineAdmin({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-
-  /* --- HERO HEADER --- */
-  heroContainer: {
-    width: '100%',
-    height: 280,
-    backgroundColor: COLORS.surfaceDark,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroImageStyle: {
-    // Border radius removed
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  heroContent: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 10,
-    paddingBottom: 20,
-    justifyContent: 'space-between',
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  locationPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationIcon: {
-    marginRight: 6,
-  },
-  locationText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  profileAvatarWrap: {
-    position: 'relative',
-  },
-  profileAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 10,
-    height: 10,
-    backgroundColor: COLORS.primary,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  heroBottomContent: {
-    marginTop: 'auto',
-  },
-  greetingContainer: {
-    marginBottom: 12,
-  },
-  greetingText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-    lineHeight: 34,
-  },
-
-  /* --- DARK OVERLAY PILL --- */
-  searchPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(30,30,30,0.6)',
-    borderRadius: 100,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  searchPillIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchPillTextWrap: {
-    marginLeft: 12,
-  },
-  searchPillTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  searchPillSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.7)',
-  },
-
-  /* --- MAIN CONTENT --- */
-  mainContent: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  menuGroup: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-  menuCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  menuTextContainer: {
-    flex: 1,
-    paddingRight: 16
-  },
-  menuItemTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    marginBottom: 4,
-    letterSpacing: -0.2,
-  },
-  menuItemSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.textMuted
-  },
-
-  /* --- FOOTER & LOGOUT --- */
-  footerContainer: {
-    paddingTop: 8,
-    paddingBottom: 24,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.dangerBg,
-    borderRadius: 24,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoutIcon: {
-    marginRight: 10
-  },
-  logoutButtonText: {
-    color: COLORS.dangerText,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  versionText: {
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-  },
-
-  bottomSpacer: {
-    height: 160,
-  },
-
-  /* --- BLACK PILL BOTTOM NAV (Matched perfectly to ReineHome) --- */
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
-    alignSelf: 'center',
-    width: '90%',
-    zIndex: 100,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.surfaceDark,
-    borderRadius: 100,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-    marginTop: 4,
-  },
-  navTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { flexGrow: 1 },
+  heroContainer: { width: '100%', height: 280, backgroundColor: COLORS.surfaceDark, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 15, elevation: 8 },
+  heroImage: { width: '100%', height: '100%' }, heroImageStyle: {},
+  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  heroContent: { flex: 1, paddingHorizontal: 24, paddingBottom: 20, justifyContent: 'space-between' },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  locationPill: { flexDirection: 'row', alignItems: 'center' }, locationIcon: { marginRight: 6 }, locationText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  profileAvatarWrap: { position: 'relative' }, profileAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 1.5, borderColor: '#FFFFFF' },
+  notificationDot: { position: 'absolute', top: 0, right: 0, width: 10, height: 10, backgroundColor: COLORS.primary, borderRadius: 5, borderWidth: 2, borderColor: '#FFFFFF' },
+  heroBottomContent: { marginTop: 'auto' }, greetingContainer: { marginBottom: 12 }, greetingText: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5, lineHeight: 34 },
+  searchPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30,30,30,0.6)', borderRadius: 100, paddingHorizontal: 20, paddingVertical: 16, width: '100%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  searchPillIconBox: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }, searchPillTextWrap: { marginLeft: 12 },
+  searchPillTitle: { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 }, searchPillSubtitle: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },
+  mainContent: { paddingHorizontal: 24, paddingTop: 24 }, menuGroup: { marginBottom: 24 }, sectionHeader: { marginBottom: 12 }, sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
+  menuCard: { backgroundColor: COLORS.surface, borderRadius: 24, paddingHorizontal: 20, borderWidth: 1, borderColor: COLORS.border }, menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20 },
+  menuItemBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.border }, iconBox: { width: 44, height: 44, borderRadius: 14, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: COLORS.border },
+  menuTextContainer: { flex: 1, paddingRight: 16 }, menuItemTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.2 }, menuItemSubtitle: { fontSize: 12, fontWeight: '500', color: COLORS.textMuted },
+  footerContainer: { paddingTop: 8, paddingBottom: 24 }, logoutButton: { flexDirection: 'row', backgroundColor: COLORS.dangerBg, borderRadius: 24, height: 64, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  logoutIcon: { marginRight: 10 }, logoutButtonText: { color: COLORS.dangerText, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 }, versionText: { textAlign: 'center', fontSize: 10, fontWeight: '700', color: COLORS.textMuted, letterSpacing: 1.5 },
+  bottomSpacer: { height: 160 }, bottomNavContainer: { position: 'absolute', alignSelf: 'center', width: '90%', zIndex: 100 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.surfaceDark, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 20 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 }, navText: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 4 }, navTextActive: { color: '#FFFFFF', fontWeight: '700' },
 });

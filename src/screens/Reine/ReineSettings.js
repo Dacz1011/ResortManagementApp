@@ -1,33 +1,32 @@
-import React, { useState, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
+  Bell,
+  Building,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  CreditCard,
+  HelpCircle,
+  Home,
+  Info,
+  LogOut,
+  Settings,
+  Shield,
+  Users,
+  Wallet
+} from 'lucide-react-native';
+import { useRef } from 'react';
+import {
+  Animated,
   Image,
+  ImageBackground,
   Platform,
   StatusBar,
-  ImageBackground,
-  Animated
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Home,
-  Bell,
-  Shield,
-  HelpCircle,
-  ChevronRight,
-  LogOut,
-  CalendarDays,
-  Users,
-  Wallet,
-  Settings,
-  CheckCircle2,
-  Building,
-  CreditCard,
-  Info
-} from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Modernized Luxury Beach House Palette (Matched with ReineHome)
 const COLORS = {
@@ -79,6 +78,7 @@ const MENU_GROUPS = [
 export default function ReineSettings({ navigation }) {
   const activeNav = 'Admin';
   const scrollY = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   const handleLogout = () => {
     // Reset navigation to Login screen
@@ -105,9 +105,10 @@ export default function ReineSettings({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} translucent={false} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} translucent={true} />
 
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
+      {/* iOS Fix: Dynamic padding applied directly to the container */}
+      <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
 
         {/* --- MODERN HEADER (COLLAPSIBLE) --- */}
         <Animated.View style={{ maxHeight: headerMaxHeight, opacity: headerOpacity, overflow: 'hidden' }}>
@@ -210,13 +211,14 @@ export default function ReineSettings({ navigation }) {
             <Text style={styles.versionText}>REINE'S BEACH HOUSE RESORT V2.4.0</Text>
           </View>
 
-          {/* Spacer for Bottom Nav */}
-          <View style={styles.bottomSpacer} />
+          {/* Spacer for Bottom Nav — dynamic based on insets */}
+          <View style={[styles.bottomSpacer, { height: 110 + insets.bottom }]} />
         </Animated.ScrollView>
-      </SafeAreaView>
+      </View>
 
       {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
-      <View style={styles.bottomNavContainer}>
+      {/* iOS Fix: Guarantee the bar has enough padding to clear the home indicator */}
+      <View style={[styles.bottomNavContainer, { paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 8, 24) : 12 }]}>
         <View style={styles.bottomNav}>
 
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')} activeOpacity={0.7}>
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 20 : 12,
+    paddingTop: 12,
     paddingBottom: 16,
   },
   headerLeft: {
@@ -486,7 +488,7 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: 110, // Generous padding to clear the modern nav bar
+    // Height is handled dynamically via inline style
   },
 
   /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
@@ -502,7 +504,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 20,
     elevation: 15,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    // paddingBottom dynamically handled in component
   },
   bottomNav: {
     flexDirection: 'row',

@@ -1,31 +1,31 @@
 import * as ImagePicker from 'expo-image-picker';
 import {
-    Calendar,
-    Camera,
-    CheckCircle2,
-    ChevronLeft,
-    Image as ImageIcon,
-    Mail,
-    Phone,
-    User,
-    Wallet,
-    X
+  Calendar,
+  Camera,
+  CheckCircle2,
+  ChevronLeft,
+  Image as ImageIcon,
+  Mail,
+  Phone,
+  User,
+  Wallet,
+  X
 } from 'lucide-react-native';
 import { useState } from 'react';
 import {
-    Alert,
-    Image,
-    Modal,
-    Platform,
-    Pressable,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const COLORS = {
   background: '#F7F7F9',
@@ -46,6 +46,7 @@ export default function ReineGuestDetails({ route, navigation }) {
 
   const [checkoutPhoto, setCheckoutPhoto] = useState(null);
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   // Fallback if no guest data is found
   if (!guest) {
@@ -97,7 +98,8 @@ export default function ReineGuestDetails({ route, navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
+      {/* iOS Fix: Dynamic padding instead of SafeAreaView for precise notch handling */}
+      <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconBtnBack} onPress={() => navigation.goBack()} activeOpacity={0.7}>
@@ -109,7 +111,10 @@ export default function ReineGuestDetails({ route, navigation }) {
           </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 20, 40) }]}
+        >
           
           {/* PROFILE SUMMARY CARD */}
           <View style={styles.profileCard}>
@@ -197,7 +202,7 @@ export default function ReineGuestDetails({ route, navigation }) {
               </TouchableOpacity>
             )}
 
-            {/* Save Button (Mock Action) */}
+            {/* Save Button */}
             <TouchableOpacity 
               style={[styles.saveBtn, !checkoutPhoto && styles.saveBtnDisabled]} 
               activeOpacity={0.8}
@@ -212,7 +217,7 @@ export default function ReineGuestDetails({ route, navigation }) {
           </View>
 
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
       {/* IMAGE PICKER MODAL */}
       <Modal
@@ -222,7 +227,7 @@ export default function ReineGuestDetails({ route, navigation }) {
         onRequestClose={() => setShowImagePicker(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowImagePicker(false)}>
-          <View style={styles.bottomSheet}>
+          <View style={[styles.bottomSheet, { paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 24) : 24 }]}>
             <View style={styles.bottomSheetIndicator} />
             <Text style={styles.bottomSheetTitle}>Select Source</Text>
             <View style={styles.pickerOptionsRow}>
@@ -278,7 +283,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 20 : 10,
+    paddingTop: 10,
     paddingBottom: 20,
   },
   iconBtnBack: {
@@ -316,7 +321,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    // paddingBottom is handled dynamically
   },
 
   /* PROFILE CARD */
@@ -541,7 +546,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    // paddingBottom is handled dynamically in component
   },
   bottomSheetIndicator: {
     width: 40,
