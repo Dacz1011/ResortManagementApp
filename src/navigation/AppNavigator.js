@@ -1,41 +1,41 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import WelcomeScreen from '../screens/Auth/WelcomeScreen';
 import LoginScreen from '../screens/Auth/LoginScreen';
+import WelcomeScreen from '../screens/Auth/WelcomeScreen';
 
 // Owner Screens
-import PortfolioDashboard from '../screens/Owner/PortfolioDashboard';
 import OwnerBookings from '../screens/Owner/OwnerBookings';
 import OwnerFinance from '../screens/Owner/OwnerFinance';
-import OwnerLedger from '../screens/Owner/OwnerLedger';
 import OwnerInsights from '../screens/Owner/OwnerInsights';
+import OwnerLedger from '../screens/Owner/OwnerLedger';
 import OwnerSettings from '../screens/Owner/OwnerSettings';
+import PortfolioDashboard from '../screens/Owner/PortfolioDashboard';
 
 // Ryu Screens
-import RyuHome from '../screens/Ryu/RyuHome';
-import RyuBookings from '../screens/Ryu/RyuBookings';
-import RyuGuestMgmt from '../screens/Ryu/RyuGuestMgmt';
 import RyuAdmin from '../screens/Ryu/RyuAdmin';
+import RyuBookings from '../screens/Ryu/RyuBookings';
 import RyuGuestHistory from '../screens/Ryu/RyuGuestHistory';
+import RyuGuestMgmt from '../screens/Ryu/RyuGuestMgmt';
+import RyuHome from '../screens/Ryu/RyuHome';
 import RyuSettings from '../screens/Ryu/RyuSettings';
 
 // Reine Screens
-import ReineHome from '../screens/Reine/ReineHome';
-import ReineBookings from '../screens/Reine/ReineBookings';
-import ReineGuestMgmt from '../screens/Reine/ReineGuestMgmt';
 import ReineAdmin from '../screens/Reine/ReineAdmin';
+import ReineBookings from '../screens/Reine/ReineBookings';
+import ReineGuestDetails from '../screens/Reine/ReineGuestDetails';
 import ReineGuestHistory from '../screens/Reine/ReineGuestHistory';
+import ReineGuestMgmt from '../screens/Reine/ReineGuestMgmt';
+import ReineHome from '../screens/Reine/ReineHome';
 
 // Casa Screens
-import CasaHome from '../screens/Casa/CasaHome';
-import CasaBookings from '../screens/Casa/CasaBookings';
-import CasaGuestMgmt from '../screens/Casa/CasaGuestMgmt';
 import CasaAdmin from '../screens/Casa/CasaAdmin';
+import CasaBookings from '../screens/Casa/CasaBookings';
 import CasaGuestHistory from '../screens/Casa/CasaGuestHistory';
+import CasaGuestMgmt from '../screens/Casa/CasaGuestMgmt';
+import CasaHome from '../screens/Casa/CasaHome';
 
 // Generic Screens
-import PropertyFinanceScreen from '../screens/PropertyFinanceScreen';
 import NotificationScreen from '../screens/NotificationScreen';
+import PropertyFinanceScreen from '../screens/PropertyFinanceScreen';
 
 const Stack = createStackNavigator();
 
@@ -70,6 +70,7 @@ const AppNavigator = () => {
       <Stack.Screen name="ReineFinance" component={PropertyFinanceScreen} initialParams={{ propertyId: 'Reine' }} />
       <Stack.Screen name="ReineAdmin" component={ReineAdmin} />
       <Stack.Screen name="ReineGuestHistory" component={ReineGuestHistory} />
+      <Stack.Screen name="ReineGuestDetails" component={ReineGuestDetails} />
       <Stack.Screen name="ReineNotifications" component={NotificationScreen} initialParams={{ propertyId: 'Reine' }} />
 
       {/* Casa Property Stack */}

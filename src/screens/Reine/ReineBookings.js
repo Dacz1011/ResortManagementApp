@@ -31,7 +31,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { REINE_DATA } from '../../datas/mockData';
@@ -75,8 +76,11 @@ export default function ReineBookings({ route, navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize today to start of day for accurate comparison
+
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
-  const [selectedDate, setSelectedDate] = useState(today.getDate());
+  const [selectedDate, setSelectedDate] = useState(new Date().getDate());
+  const [highlightedRange, setHighlightedRange] = useState([]); // Tracks newly booked dates
 
   // Manual Booking States
   const [guestName, setGuestName] = useState('');
@@ -96,6 +100,12 @@ export default function ReineBookings({ route, navigation }) {
 
   useEffect(() => {
     if (route.params?.mode === 'manual') {
+      // Check if selected date is in the past before switching to manual mode
+      const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate);
+      if (checkDate < today) {
+        Alert.alert('Invalid Date', 'You cannot book dates that have already passed.');
+        return;
+      }
       setActiveView('manual');
       updateDepartureDate(selectedDate, '1');
     }
@@ -123,6 +133,7 @@ export default function ReineBookings({ route, navigation }) {
 
     const newBookings = { ...bookings };
     const checkInDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate);
+    const newlyBookedDates = []; // Track the dates we are booking
 
     for (let i = 0; i < days; i++) {
       const currentDay = new Date(checkInDate);
@@ -140,10 +151,12 @@ export default function ReineBookings({ route, navigation }) {
           status: 'CONFIRMED',
           amount: `₱${(12000 * days).toLocaleString()}.00`,
         };
+        newlyBookedDates.push(currentDay.getDate()); // Add to tracking
       }
     }
 
     setBookings(newBookings);
+    setHighlightedRange(newlyBookedDates); // Highlight these exact dates
     setActiveView('calendar');
     setGuestName('');
     setContact('');
@@ -157,6 +170,15 @@ export default function ReineBookings({ route, navigation }) {
   const currentBooking = bookings[selectedDate];
 
   const handleDatePress = (day) => {
+    const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+
+    // Restriction: Cannot book or select past dates
+    if (checkDate < today) {
+      Alert.alert('Past Date', 'Selected date is in the past and cannot be booked.');
+      return;
+    }
+
+    setHighlightedRange([]); // Clear highlighted range when tapping elsewhere
     setSelectedDate(day);
     if (!occupiedDates.includes(day)) {
       setActiveView('manual');
@@ -255,6 +277,12 @@ export default function ReineBookings({ route, navigation }) {
                   onPress={() => {
                     setActiveFilter(filter.id);
                     if (filter.id === 'manual') {
+                      // Check if current selectedDate is valid before opening manual entry
+                      const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate);
+                      if (checkDate < today) {
+                        Alert.alert('Past Date', 'You cannot book a date in the past.');
+                        return;
+                      }
                       setActiveView('manual');
                       updateDepartureDate(selectedDate, numDays);
                     }
@@ -298,7 +326,7 @@ export default function ReineBookings({ route, navigation }) {
             <View style={styles.legendRow}>
               <View style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: COLORS.surfaceDark }]} />
-                <Text style={styles.legendText}>Selected</Text>
+                <Text style={styles.legendText}>Selected/Booked</Text>
               </View>
               <View style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: COLORS.primary }]} />
@@ -329,29 +357,35 @@ export default function ReineBookings({ route, navigation }) {
                 const day = item.day;
                 const isOccupied = occupiedDates.includes(day);
                 const isSelected = selectedDate === day;
+                const isJustBooked = highlightedRange.includes(day);
                 const isToday = isSameMonthAsToday && today.getDate() === day;
+
+                const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                const isPast = checkDate < today;
 
                 let cellStyle = [styles.dayCell];
                 let textStyle = [styles.dayText];
 
-                if (isSelected) {
+                if (isJustBooked || isSelected) {
                   cellStyle.push(styles.dayCellSelected);
                   textStyle.push(styles.dayTextSelected);
                 } else if (isOccupied) {
                   cellStyle.push(styles.dayCellOccupied);
                   textStyle.push(styles.dayTextOccupied);
+                } else if (isPast) {
+                  textStyle.push(styles.dayTextDisabled);
                 }
 
                 return (
                   <TouchableOpacity
                     key={day}
-                    activeOpacity={0.8}
+                    activeOpacity={isPast ? 1 : 0.8}
                     onPress={() => handleDatePress(day)}
                     style={styles.dayCellContainer}
                   >
                     <View style={cellStyle}>
                       <Text style={textStyle}>{day}</Text>
-                      {isToday && !isSelected && <View style={styles.todayDot} />}
+                      {isToday && !isSelected && !isJustBooked && <View style={styles.todayDot} />}
                     </View>
                   </TouchableOpacity>
                 );
@@ -978,6 +1012,10 @@ const styles = StyleSheet.create({
   },
   dayTextSelected: {
     color: '#FFFFFF',
+  },
+  dayTextDisabled: {
+    color: '#E4E4E7', // Lighter color for disabled dates
+    fontWeight: '400',
   },
   todayDot: {
     position: 'absolute',

@@ -1,58 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Platform,
+  Alert,
+  Animated,
+  Dimensions,
+  ImageBackground,
   KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StatusBar,
-  Alert
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
-  User,
-  Smartphone,
-  Calendar,
-  CalendarPlus,
-  LayoutGrid,
   BarChart2,
   BookOpen,
+  Calendar,
+  CalendarDays,
+  CalendarPlus,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
   PieChart,
   Settings,
-  Phone,
-  Mail,
-  MessageSquare
+  Smartphone,
+  TrendingUp,
+  User,
+  Wallet
 } from 'lucide-react-native';
 
-// Modern Premium Palette (Owner Portal)
+const { width } = Dimensions.get('window');
+
+// ── OWNER PORTAL PALETTE (green brand, matches PortfolioDashboard) ──
 const COLORS = {
-  background: '#F8FAFC',    // slate-50
-  primary: '#1A3626',       // Deep Forest Green
-  primaryLight: '#E8F0EA',  // Soft Green background
-  primaryDark: '#0D1E14',   // Darker green
-  accent: '#A3E635',        // Lime green accent
-  textMain: '#0F172A',      // slate-900
-  textMuted: '#64748B',     // slate-500
-  border: '#E2E8F0',        // slate-200
-  cardBg: '#FFFFFF',
-  inputBg: '#F8FAFC',       // slate-50
-  successBg: '#DCFCE7',
-  successText: '#16A34A',
+  background: '#F7F8F6',
+  surface:    '#FFFFFF',
+  surfaceDark:'#1A3626',     // deep forest green
+
+  primary:     '#1A3626',
+  primaryLight:'#E8F0EA',
+  accent:      '#2DD4BF',    // teal — owner-only highlight
+  accentLight: '#CCFBF1',
+
+  textMain:  '#0F172A',
+  textMuted: '#64748B',
+  border:    '#E2E8F0',
+
+  successBg:  '#DCFCE7',
+  successText:'#16A34A',
+  warningBg:  '#FEF9C3',
+  warningText:'#CA8A04',
 };
 
 const PROPERTIES = [
-  { id: 'reine', name: "Reine's Beach House", subtitle: 'Luxury Oceanfront Suites', rate: 12000 },
-  { id: 'ryu', name: "Ryu's Transient House", subtitle: 'Urban Comfort & Convenience', rate: 8000 },
-  { id: 'casa', name: "Casa M.O.", subtitle: 'Traditional Heritage Villa', rate: 15000 },
+  { id: 'reine', name: "Reine's Beach House", short: "Reine's", rate: 12000,
+    image: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop' },
+  { id: 'ryu',   name: "Ryu's Transient House", short: "Ryu's",  rate: 8000,
+    image: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop' },
+  { id: 'casa',  name: "Casa M.O.",             short: "Casa",   rate: 15000,
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop' },
 ];
 
-// Mock Bookings Database for Calendar visualization
 const MOCK_BOOKINGS = {
   reine: {
     15: { guestName: 'Jonathan Rivera', contact: '+63 912 345 6789', email: 'jonathan@example.com', checkIn: 'Oct 15', checkOut: 'Oct 18', status: 'CONFIRMED' },
@@ -63,196 +79,219 @@ const MOCK_BOOKINGS = {
     22: { guestName: 'Sarah Jenkins', contact: '+63 998 765 4321', email: 'sarah.j@example.com', checkIn: 'Oct 22', checkOut: 'Oct 24', status: 'PENDING' },
     23: { guestName: 'Sarah Jenkins', contact: '+63 998 765 4321', email: 'sarah.j@example.com', checkIn: 'Oct 22', checkOut: 'Oct 24', status: 'PENDING' },
   },
-  casa: {}
+  casa: {},
 };
 
 export default function OwnerBookings({ navigation }) {
   const activeNav = 'Bookings';
 
-  // Unified Property State
   const [selectedPropertyId, setSelectedPropertyId] = useState('reine');
   const selectedProperty = PROPERTIES.find(p => p.id === selectedPropertyId);
 
-  // Calendar States
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
-  const [selectedDate, setSelectedDate] = useState(today.getDate());
+  const [selectedDate, setSelectedDate]   = useState(today.getDate());
 
-  // Form States
-  const [fullName, setFullName] = useState('');
-  const [contact, setContact] = useState('');
-  const [email, setEmail] = useState('');
-  const [checkInDate, setCheckInDate] = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
+  const [fullName,     setFullName]     = useState('');
+  const [contact,      setContact]      = useState('');
+  const [email,        setEmail]        = useState('');
+  const [checkInDate,  setCheckInDate]  = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
   const [checkOutDate, setCheckOutDate] = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
-  const [nights, setNights] = useState(1);
-  const [totalAmount, setTotalAmount] = useState(0);
+  const [nights,       setNights]       = useState(1);
+  const [totalAmount,  setTotalAmount]  = useState(0);
 
-  // Derive occupied dates and current booking for the selected property
+  // Fade-in — matches ReineHome
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+  }, []);
+
   const currentPropertyBookings = MOCK_BOOKINGS[selectedPropertyId] || {};
   const occupiedDates = Object.keys(currentPropertyBookings).map(Number);
-  const isOccupied = occupiedDates.includes(selectedDate);
+  const isOccupied    = occupiedDates.includes(selectedDate);
   const currentBooking = currentPropertyBookings[selectedDate];
 
-  // --- USE EFFECTS ---
-  // Auto-calculate financial totals based on selected dates and property rates
   useEffect(() => {
     if (checkInDate && checkOutDate) {
-      const diffTime = Math.abs(checkOutDate - checkInDate);
-      const diffNights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffNights = Math.ceil(Math.abs(checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
       setNights(diffNights > 0 ? diffNights : 0);
-
-      if (diffNights > 0) {
-        setTotalAmount(diffNights * selectedProperty.rate);
-      } else {
-        setTotalAmount(0);
-      }
+      setTotalAmount(diffNights > 0 ? diffNights * selectedProperty.rate : 0);
     } else {
-      setNights(0);
-      setTotalAmount(0);
+      setNights(0); setTotalAmount(0);
     }
   }, [checkInDate, checkOutDate, selectedPropertyId]);
 
-  // --- CALENDAR HELPERS ---
   const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  const formatMonth = (date) => date.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const formatMonth     = (d) => d.toLocaleString('default', { month: 'long', year: 'numeric' });
   const isSameMonthAsToday = currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear();
 
-  // Handle interacting with the calendar grid
   const handleDatePress = (day) => {
     setSelectedDate(day);
-
     if (!occupiedDates.includes(day)) {
-      // Auto-prefill the manual form dates when an empty slot is clicked
-      const autoCheckIn = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      setCheckInDate(autoCheckIn);
-
-      const autoCheckOut = new Date(autoCheckIn);
-      autoCheckOut.setDate(autoCheckIn.getDate() + 1);
-      setCheckOutDate(autoCheckOut);
+      const auto = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      setCheckInDate(auto);
+      const autoOut = new Date(auto); autoOut.setDate(auto.getDate() + 1);
+      setCheckOutDate(autoOut);
     }
   };
 
-  // --- FORM HELPERS ---
   const handleNumDaysChange = (text) => {
-    const parsedNights = parseInt(text) || 0;
-    setNights(parsedNights);
-
-    if (checkInDate && parsedNights > 0) {
-      const newCheckOut = new Date(checkInDate);
-      newCheckOut.setDate(checkInDate.getDate() + parsedNights);
-      setCheckOutDate(newCheckOut);
+    const n = parseInt(text) || 0;
+    setNights(n);
+    if (checkInDate && n > 0) {
+      const out = new Date(checkInDate); out.setDate(checkInDate.getDate() + n);
+      setCheckOutDate(out);
     }
   };
 
   const handleConfirmBooking = () => {
-    if (!fullName || !contact || !checkInDate || !checkOutDate) {
-      Alert.alert('Missing Information', 'Please fill in all guest and stay details.');
+    if (!fullName || !contact || nights <= 0) {
+      Alert.alert('Missing Information', 'Please fill in guest details and valid dates.');
       return;
     }
-
-    if (nights <= 0) {
-      Alert.alert('Invalid Dates', 'Check-out date must be after check-in date.');
-      return;
-    }
-
     Alert.alert(
       'Booking Confirmed',
-      `Success! ${fullName} has been booked for ${selectedProperty.name} for ${nights} nights.\n\nTotal: ₱${totalAmount.toLocaleString()}`,
-      [{ text: 'OK', onPress: () => {
-        setFullName('');
-        setContact('');
-        setEmail('');
-        // We simulate refreshing the data here in a real app
-      }}]
+      `${fullName} booked at ${selectedProperty.name} for ${nights} nights.\nTotal: ₱${totalAmount.toLocaleString()}`,
+      [{ text: 'OK', onPress: () => { setFullName(''); setContact(''); setEmail(''); } }]
     );
   };
 
-  const formatDate = (date) => {
-    if (!date) return 'mm/dd/yyyy';
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    const d = date.getDate().toString().padStart(2, '0');
-    return `${m}/${d}/${date.getFullYear()}`;
+  const formatDate = (d) => {
+    if (!d) return 'mm/dd/yyyy';
+    return `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}/${d.getFullYear()}`;
   };
 
-  const isDetailsComplete = fullName.length > 0 && contact.length > 0;
-  const isPaymentComplete = nights > 0;
-
-  // Render Calendar Helper
   const getCalendarDays = () => {
-    const year = currentMonth.getFullYear();
+    const year  = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const first = new Date(year, month, 1).getDay();
+    const daysInMonth    = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
-
     const days = [];
-    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-      days.push({ day: daysInPrevMonth - i, isCurrentMonth: false });
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push({ day: i, isCurrentMonth: true });
-    }
+    for (let i = first - 1; i >= 0; i--) days.push({ day: daysInPrevMonth - i, isCurrentMonth: false });
+    for (let i = 1; i <= daysInMonth; i++) days.push({ day: i, isCurrentMonth: true });
     return days;
   };
 
+  const isFormReady = fullName.length > 0 && contact.length > 0 && nights > 0;
+  const totalBookings = Object.values(MOCK_BOOKINGS).reduce((sum, prop) => sum + Object.keys(prop).length, 0);
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} translucent={true} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
-
-        {/* --- MODERN HEADER --- */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            activeOpacity={0.7}
-            onPress={() => navigation.goBack()}
-          >
-            <ChevronLeft size={24} color={COLORS.textMain} strokeWidth={2.5} />
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.headerSubtitle}>Manage Stays</Text>
-            <Text style={styles.headerTitle}>Reservations</Text>
-          </View>
-        </View>
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.keyboardView}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <Animated.ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+          style={{ opacity: fadeAnim }}
         >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            bounces={true}
-          >
-            {/* --- PROPERTY TABS --- */}
-            <View style={styles.tabsContainer}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-                {PROPERTIES.map((prop) => {
-                  const isActive = selectedPropertyId === prop.id;
-                  return (
-                    <TouchableOpacity
-                      key={prop.id}
-                      activeOpacity={0.8}
-                      onPress={() => {
-                        setSelectedPropertyId(prop.id);
-                        setSelectedDate(today.getDate()); // Reset date on property switch
-                      }}
-                      style={[styles.tab, isActive && styles.tabActive]}
-                    >
-                      <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                        {prop.name.split(' ')[0]} {/* Short name */}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+
+          {/* ══════════════════════════════════════════
+              FULL-BLEED HERO
+              ══════════════════════════════════════════ */}
+          <View style={styles.heroContainer}>
+            <ImageBackground
+              source={{ uri: selectedProperty.image }}
+              style={styles.heroImage}
+            >
+              <View style={styles.heroOverlay} />
+
+              <SafeAreaView edges={['top']} style={styles.safeArea}>
+                {/* Top bar */}
+                <View style={styles.topBar}>
+                  <View style={styles.locationPill}>
+                    <MapPin size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.locationText}>Reservations</Text>
+                  </View>
+                  <TouchableOpacity style={styles.iconBtnDark} activeOpacity={0.8} onPress={() => navigation.goBack()}>
+                    <ChevronLeft size={22} color="#FFFFFF" strokeWidth={2.5} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Hero bottom */}
+                <View style={styles.heroBottomContent}>
+                  <Text style={styles.heroMainStat}>{occupiedDates.length} Bookings</Text>
+                  <Text style={styles.heroSubStat}>
+                    Across {PROPERTIES.length} properties this month
+                  </Text>
+
+                  {/* Portfolio summary pill — mirrors ReineHome statPill / trendPill */}
+                  <View style={styles.statPill}>
+                    <View style={styles.statPillIconBox}>
+                      <TrendingUp size={18} color={COLORS.successText} strokeWidth={2.5} />
+                    </View>
+                    <View>
+                      <Text style={styles.statPillTitle}>{totalBookings} active stays across all properties</Text>
+                      <Text style={styles.statPillSub}>Tap a property tab to filter the calendar</Text>
+                    </View>
+                  </View>
+                </View>
+              </SafeAreaView>
+            </ImageBackground>
+          </View>
+
+          {/* ══════════════════════════════════════════
+              PROPERTY SELECTOR PILLS
+              ══════════════════════════════════════════ */}
+          <View style={styles.quickActionsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.quickActionsScroll}
+            >
+              {PROPERTIES.map((prop) => {
+                const isActive = selectedPropertyId === prop.id;
+                return (
+                  <TouchableOpacity
+                    key={prop.id}
+                    style={[
+                      isActive ? styles.actionPillDark : styles.actionPillLight,
+                    ]}
+                    activeOpacity={0.8}
+                    onPress={() => { setSelectedPropertyId(prop.id); setSelectedDate(today.getDate()); }}
+                  >
+                    <Text style={isActive ? styles.actionPillDarkText : styles.actionPillLightText}>
+                      {prop.short}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+              {/* Quick jump pill */}
+              <TouchableOpacity style={styles.actionPillLight} activeOpacity={0.7}>
+                <Text style={styles.actionPillLightText}>All Properties</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionPillLight} activeOpacity={0.7}>
+                <Text style={styles.actionPillLightText}>Occupied Only</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+
+          {/* ══════════════════════════════════════════
+              MAIN CONTENT
+              ══════════════════════════════════════════ */}
+          <View style={styles.mainContent}>
+
+            {/* Current property context banner */}
+            <View style={styles.propertyBanner}>
+              <View style={styles.propertyBannerLeft}>
+                <Text style={styles.propertyBannerLabel}>VIEWING CALENDAR FOR</Text>
+                <Text style={styles.propertyBannerName}>{selectedProperty.name}</Text>
+              </View>
+              <View style={styles.rateBadge}>
+                <Text style={styles.rateText}>₱{selectedProperty.rate.toLocaleString()}/night</Text>
+              </View>
             </View>
 
-            {/* --- CALENDAR BENTO CARD --- */}
+            {/* ── CALENDAR CARD ── */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Monthly Calendar</Text>
+            </View>
+
             <View style={styles.calendarCard}>
+              {/* Month nav */}
               <View style={styles.monthSelector}>
                 <TouchableOpacity style={styles.monthBtn} onPress={handlePrevMonth}>
                   <ChevronLeft size={24} color={COLORS.textMain} strokeWidth={2.5} />
@@ -263,37 +302,43 @@ export default function OwnerBookings({ navigation }) {
                 </TouchableOpacity>
               </View>
 
+              {/* Legend */}
+              <View style={styles.legendRow}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: COLORS.surfaceDark }]} />
+                  <Text style={styles.legendText}>Selected</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: COLORS.primary }]} />
+                  <Text style={styles.legendText}>Booked</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: COLORS.border }]} />
+                  <Text style={styles.legendText}>Available</Text>
+                </View>
+              </View>
+
+              {/* Weekdays */}
               <View style={styles.weekDaysRow}>
-                {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day, idx) => (
-                  <Text key={idx} style={styles.weekDayText}>{day}</Text>
+                {['SUN','MON','TUE','WED','THU','FRI','SAT'].map((d, i) => (
+                  <Text key={i} style={styles.weekDayText}>{d}</Text>
                 ))}
               </View>
 
+              {/* Days grid */}
               <View style={styles.daysGrid}>
                 {getCalendarDays().map((item, index) => {
                   if (!item.isCurrentMonth) {
                     return (
-                      <View key={`prev-${index}`} style={styles.dayCellContainer}>
+                      <View key={`p-${index}`} style={styles.dayCellContainer}>
                         <Text style={styles.dayTextMuted}>{item.day}</Text>
                       </View>
                     );
                   }
-
                   const day = item.day;
                   const isDayOccupied = occupiedDates.includes(day);
                   const isDaySelected = selectedDate === day;
-                  const isDayToday = isSameMonthAsToday && today.getDate() === day;
-
-                  let cellStyle = [styles.dayCell];
-                  let textStyle = [styles.dayText];
-
-                  if (isDaySelected) {
-                    cellStyle.push(styles.dayCellSelected);
-                    textStyle.push(styles.dayTextSelected);
-                  } else if (isDayOccupied) {
-                    cellStyle.push(styles.dayCellOccupied);
-                    textStyle.push(styles.dayTextOccupied);
-                  }
+                  const isDayToday    = isSameMonthAsToday && today.getDate() === day;
 
                   return (
                     <TouchableOpacity
@@ -302,8 +347,18 @@ export default function OwnerBookings({ navigation }) {
                       onPress={() => handleDatePress(day)}
                       style={styles.dayCellContainer}
                     >
-                      <View style={cellStyle}>
-                        <Text style={textStyle}>{day}</Text>
+                      <View style={[
+                        styles.dayCell,
+                        isDaySelected  && styles.dayCellSelected,
+                        !isDaySelected && isDayOccupied && styles.dayCellOccupied,
+                      ]}>
+                        <Text style={[
+                          styles.dayText,
+                          isDaySelected  && styles.dayTextSelected,
+                          !isDaySelected && isDayOccupied && styles.dayTextOccupied,
+                        ]}>
+                          {day}
+                        </Text>
                         {isDayToday && !isDaySelected && <View style={styles.todayDot} />}
                       </View>
                     </TouchableOpacity>
@@ -312,138 +367,142 @@ export default function OwnerBookings({ navigation }) {
               </View>
             </View>
 
-            {/* --- DYNAMIC CONTEXT AREA --- */}
-            <View style={styles.dynamicHeaderRow}>
+            {/* ── DYNAMIC SECTION: BOOKING DETAILS or FORM ── */}
+            <View style={styles.dynamicHeader}>
               <Text style={styles.sectionTitle}>
                 {isOccupied ? 'Stay Details' : 'Create Reservation'}
               </Text>
-              <Text style={styles.sectionContextDate}>
+              <Text style={styles.dynamicDate}>
                 {formatMonth(currentMonth).split(' ')[0]} {selectedDate}
               </Text>
             </View>
 
             {isOccupied ? (
-              /* ==========================================
-                 OCCUPIED: DETAILS VIEW
-                 ========================================== */
+              /* ── OCCUPIED: DETAILS CARD (image-top, mirrors ReineBookings detailsCard) ── */
               <View style={styles.detailsCard}>
-                <View style={styles.detailsHeader}>
-                  <View>
-                    <View style={styles.statusBadge}>
-                      <CheckCircle2 size={12} color={COLORS.successText} strokeWidth={3} style={{ marginRight: 4 }} />
-                      <Text style={styles.statusBadgeText}>{currentBooking.status}</Text>
+                <ImageBackground
+                  source={{ uri: selectedProperty.image }}
+                  style={styles.detailsCardImage}
+                  imageStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+                >
+                  <View style={styles.detailsCardImageOverlay} />
+                  <View style={styles.detailsCardImageContent}>
+                    <View style={[
+                      styles.confirmedBadge,
+                      { backgroundColor: currentBooking.status === 'CONFIRMED' ? COLORS.successBg : COLORS.warningBg },
+                    ]}>
+                      <CheckCircle2
+                        size={11}
+                        color={currentBooking.status === 'CONFIRMED' ? COLORS.successText : COLORS.warningText}
+                        strokeWidth={3}
+                        style={{ marginRight: 3 }}
+                      />
+                      <Text style={[
+                        styles.confirmedBadgeText,
+                        { color: currentBooking.status === 'CONFIRMED' ? COLORS.successText : COLORS.warningText },
+                      ]}>
+                        {currentBooking.status}
+                      </Text>
                     </View>
-                    <Text style={styles.detailsTitle}>{currentBooking.guestName}</Text>
-                    <Text style={styles.detailsSubtitle}>{currentBooking.checkIn} — {currentBooking.checkOut}</Text>
+                    <View style={styles.guestAvatarBox}>
+                      <User size={24} color={COLORS.primary} strokeWidth={2} />
+                    </View>
                   </View>
-                  <View style={styles.guestAvatarLarge}>
-                    <User size={28} color={COLORS.primary} strokeWidth={2} />
-                  </View>
-                </View>
+                </ImageBackground>
 
-                <View style={styles.infoList}>
-                  <View style={styles.infoRow}>
-                    <View style={styles.infoIconBox}>
-                      <Phone size={18} color={COLORS.primary} strokeWidth={2} />
-                    </View>
-                    <View style={styles.infoTextWrap}>
-                      <Text style={styles.infoLabel}>CONTACT</Text>
-                      <Text style={styles.infoValue}>{currentBooking.contact}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <View style={styles.infoIconBox}>
-                      <Mail size={18} color={COLORS.primary} strokeWidth={2} />
-                    </View>
-                    <View style={styles.infoTextWrap}>
-                      <Text style={styles.infoLabel}>EMAIL</Text>
-                      <Text style={styles.infoValue}>{currentBooking.email}</Text>
-                    </View>
-                  </View>
-                </View>
+                <View style={styles.detailsCardBody}>
+                  <Text style={styles.detailsTitle}>{currentBooking.guestName}</Text>
+                  <Text style={styles.detailsSubtitle}>{currentBooking.checkIn} — {currentBooking.checkOut}</Text>
 
-                <View style={styles.actionRow}>
-                  <TouchableOpacity style={styles.messageBtn} activeOpacity={0.8}>
-                    <MessageSquare size={18} color={COLORS.primaryDark} strokeWidth={2.5} style={{ marginRight: 8 }}/>
-                    <Text style={styles.messageBtnText}>Message Guest</Text>
+                  <View style={styles.infoList}>
+                    <View style={styles.infoRow}>
+                      <View style={styles.infoIconBox}>
+                        <Phone size={18} color={COLORS.primary} strokeWidth={2} />
+                      </View>
+                      <View style={styles.infoTextWrap}>
+                        <Text style={styles.infoLabel}>CONTACT</Text>
+                        <Text style={styles.infoValue}>{currentBooking.contact}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <View style={styles.infoIconBox}>
+                        <Mail size={18} color={COLORS.primary} strokeWidth={2} />
+                      </View>
+                      <View style={styles.infoTextWrap}>
+                        <Text style={styles.infoLabel}>EMAIL</Text>
+                        <Text style={styles.infoValue}>{currentBooking.email}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Divider + action */}
+                  <View style={styles.divider} />
+                  <TouchableOpacity style={styles.greenPillBtn} activeOpacity={0.85}>
+                    <MessageSquare size={18} color={COLORS.surface} strokeWidth={2.5} style={{ marginRight: 8 }} />
+                    <Text style={styles.greenPillBtnText}>Message Guest</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ) : (
-              /* ==========================================
-                 AVAILABLE: MANUAL BOOKING FORM
-                 ========================================== */
-              <View>
-                {/* Guest Details Bento */}
-                <View style={styles.bentoCard}>
-                  <Text style={styles.bentoLabel}>GUEST INFORMATION</Text>
-                  <View style={styles.listContainer}>
-                    <View style={styles.inputWrapper}>
-                      <User size={20} color={COLORS.textMuted} strokeWidth={2} style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Full Name"
-                        placeholderTextColor={COLORS.textMuted}
-                        value={fullName}
-                        onChangeText={setFullName}
-                      />
-                    </View>
-
-                    <View style={styles.inputWrapper}>
-                      <Smartphone size={20} color={COLORS.textMuted} strokeWidth={2} style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Contact Number"
-                        placeholderTextColor={COLORS.textMuted}
-                        keyboardType="phone-pad"
-                        value={contact}
-                        onChangeText={setContact}
-                      />
-                    </View>
-
-                    <View style={styles.inputWrapper}>
-                      <Mail size={20} color={COLORS.textMuted} strokeWidth={2} style={styles.inputIcon} />
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Email Address (Optional)"
-                        placeholderTextColor={COLORS.textMuted}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        value={email}
-                        onChangeText={setEmail}
-                      />
-                    </View>
+              /* ── AVAILABLE: BOOKING FORM ── */
+              <>
+                {/* Guest info card */}
+                <View style={styles.formCard}>
+                  <Text style={styles.formLabel}>GUEST INFORMATION</Text>
+                  <View style={styles.inputWrapper}>
+                    <User size={20} color={COLORS.textMuted} strokeWidth={2} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input} placeholder="Full Name"
+                      placeholderTextColor={COLORS.textMuted}
+                      value={fullName} onChangeText={setFullName}
+                    />
+                  </View>
+                  <View style={styles.inputWrapper}>
+                    <Smartphone size={20} color={COLORS.textMuted} strokeWidth={2} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input} placeholder="Contact Number"
+                      placeholderTextColor={COLORS.textMuted}
+                      keyboardType="phone-pad"
+                      value={contact} onChangeText={setContact}
+                    />
+                  </View>
+                  <View style={[styles.inputWrapper, { marginBottom: 0 }]}>
+                    <Mail size={20} color={COLORS.textMuted} strokeWidth={2} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input} placeholder="Email Address (Optional)"
+                      placeholderTextColor={COLORS.textMuted}
+                      keyboardType="email-address" autoCapitalize="none"
+                      value={email} onChangeText={setEmail}
+                    />
                   </View>
                 </View>
 
-                {/* Dates Bento */}
-                <View style={styles.bentoCard}>
-                  <Text style={styles.bentoLabel}>STAY DURATION</Text>
-
-                  <View style={styles.durationRow}>
-                    <View style={styles.datePickerBox}>
-                      <Text style={styles.dateLabel}>CHECK-IN</Text>
-                      <View style={styles.dateValueRow}>
-                        <Calendar size={18} color={checkInDate ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-                        <Text style={[styles.dateValue, checkInDate && styles.dateValueActive]}>
+                {/* Stay dates card */}
+                <View style={styles.formCard}>
+                  <Text style={styles.formLabel}>STAY DURATION</Text>
+                  <View style={styles.dateRow}>
+                    <View style={styles.dateBox}>
+                      <Text style={styles.dateBoxLabel}>CHECK-IN</Text>
+                      <View style={styles.dateBoxValue}>
+                        <Calendar size={16} color={checkInDate ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+                        <Text style={[styles.dateText, checkInDate && styles.dateTextActive]}>
                           {formatDate(checkInDate)}
                         </Text>
                       </View>
                     </View>
-
-                    <View style={styles.datePickerBox}>
-                      <Text style={styles.dateLabel}>CHECK-OUT</Text>
-                      <View style={styles.dateValueRow}>
-                        <Calendar size={18} color={checkOutDate ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-                        <Text style={[styles.dateValue, checkOutDate && styles.dateValueActive]}>
+                    <View style={styles.dateBox}>
+                      <Text style={styles.dateBoxLabel}>CHECK-OUT</Text>
+                      <View style={styles.dateBoxValue}>
+                        <Calendar size={16} color={checkOutDate ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
+                        <Text style={[styles.dateText, checkOutDate && styles.dateTextActive]}>
                           {formatDate(checkOutDate)}
                         </Text>
                       </View>
                     </View>
                   </View>
 
-                  <View style={styles.calculatedStayBox}>
-                    <Text style={styles.calcStayLabel}>Total Nights:</Text>
+                  <View style={styles.nightsBadge}>
+                    <Text style={styles.nightsBadgeLabel}>Total Nights</Text>
                     <TextInput
                       style={styles.nightsInput}
                       keyboardType="numeric"
@@ -453,72 +512,73 @@ export default function OwnerBookings({ navigation }) {
                   </View>
                 </View>
 
-                {/* Financials Bento */}
-                <View style={styles.financialsBento}>
+                {/* Financials — dark green card, premium owner feel */}
+                <View style={styles.financialsCard}>
                   <View style={styles.financialsHeaderRow}>
                     <Text style={styles.financialsLabel}>TOTAL AMOUNT DUE</Text>
-                    <View style={styles.rateBadge}>
-                      <Text style={styles.rateText}>
-                        ₱{selectedProperty.rate.toLocaleString()}/night
-                      </Text>
+                    <View style={styles.accentBadge}>
+                      <Text style={styles.accentBadgeText}>₱{selectedProperty.rate.toLocaleString()}/night</Text>
                     </View>
                   </View>
+                  <View style={styles.dividerWhite} />
                   <Text style={[styles.financialsValue, totalAmount > 0 && styles.financialsValueActive]}>
                     ₱ {totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                   </Text>
                 </View>
 
-                {/* Confirm Button */}
+                {/* Confirm — green pill button, owner-tier accent */}
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  style={[styles.confirmBtn, (!isDetailsComplete || !isPaymentComplete) && styles.confirmBtnDisabled]}
+                  style={[styles.confirmBtn, !isFormReady && styles.confirmBtnDisabled]}
                   onPress={handleConfirmBooking}
                 >
                   <CalendarPlus
                     size={22}
-                    color={(!isDetailsComplete || !isPaymentComplete) ? '#94A3B8' : COLORS.primaryDark}
+                    color={isFormReady ? COLORS.surface : '#94A3B8'}
                     strokeWidth={2.5}
-                    style={{ marginRight: 8 }}
+                    style={{ marginRight: 10 }}
                   />
-                  <Text style={[styles.confirmBtnText, (!isDetailsComplete || !isPaymentComplete) && styles.confirmBtnTextDisabled]}>
+                  <Text style={[styles.confirmBtnText, !isFormReady && styles.confirmBtnTextDisabled]}>
                     Confirm Booking
                   </Text>
                 </TouchableOpacity>
-              </View>
+              </>
             )}
 
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+          </View>
+          <View style={styles.bottomSpacer} />
+        </Animated.ScrollView>
+      </KeyboardAvoidingView>
 
-      {/* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */}
+      {/* ══════════════════════════════════════════
+          DARK GREEN PILL BOTTOM NAV (owner portal)
+          ══════════════════════════════════════════ */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]} activeOpacity={0.7}>
-            <LayoutGrid size={24} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Property' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem} activeOpacity={0.8}>
+            <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
+            <Text style={[styles.navText, activeNav === 'Property' && styles.navTextActive]}>Portfolio</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]} activeOpacity={0.7}>
-            <Calendar size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+          <TouchableOpacity style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} activeOpacity={0.7}>
-            <BarChart2 size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <BarChart2 size={22} color={activeNav === 'Finance' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]} activeOpacity={0.7}>
-            <BookOpen size={24} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Ledger' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={styles.navItem} activeOpacity={0.8}>
+            <BookOpen size={22} color={activeNav === 'Ledger' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
+            <Text style={[styles.navText, activeNav === 'Ledger' && styles.navTextActive]}>Ledger</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]} activeOpacity={0.7}>
-            <PieChart size={24} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Insights' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={styles.navItem} activeOpacity={0.8}>
+            <PieChart size={22} color={activeNav === 'Insights' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
+            <Text style={[styles.navText, activeNav === 'Insights' && styles.navTextActive]}>Insights</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]} activeOpacity={0.7}>
-            <Settings size={24} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Settings' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Settings' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
+            <Text style={[styles.navText, activeNav === 'Settings' && styles.navTextActive]}>Settings</Text>
           </TouchableOpacity>
-
         </View>
       </View>
     </View>
@@ -526,551 +586,262 @@ export default function OwnerBookings({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
+  container:    { flex: 1, backgroundColor: COLORS.background },
+  scrollContent:{ flexGrow: 1 },
 
-  /* --- MODERN HEADER --- */
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 16,
+  /* ── HERO ── */
+  heroContainer:{ width: '100%', height: 340 },
+  heroImage:    { width: '100%', height: '100%' },
+  heroOverlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(10,25,15,0.58)' },
+  safeArea:{
+    flex: 1, paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'ios' ? 0 : 8,
+    paddingBottom: 28, justifyContent: 'space-between',
   },
-  backBtn: {
-    marginRight: 16,
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#F1F5F9', // slate-100
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+  topBar:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  locationPill:{ flexDirection: 'row', alignItems: 'center' },
+  locationText:{ fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  iconBtnDark:{
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(30,60,30,0.6)',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
-  headerSubtitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
+  heroBottomContent:{ marginTop: 'auto', gap: 10 },
+  heroMainStat:{ fontSize: 42, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
+  heroSubStat: { fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
 
-  /* --- SCROLL CONTENT --- */
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 140, // Clear the bottom nav securely
+  /* Stat pill in hero */
+  statPill:{
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: 'rgba(10,25,15,0.7)',
+    borderRadius: 100, paddingHorizontal: 16, paddingVertical: 14,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
+  statPillIconBox:{
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: COLORS.successBg,
+    justifyContent: 'center', alignItems: 'center', marginRight: 12,
+  },
+  statPillTitle:{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
+  statPillSub:  { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },
 
-  /* --- TABS (CALENDAR FILTER) --- */
-  tabsContainer: {
-    marginBottom: 20,
-    marginHorizontal: -20, // Negative margin to allow full-bleed scroll
+  /* ── PROPERTY PILLS ── */
+  quickActionsWrapper:{ marginTop: 20, marginBottom: 12 },
+  quickActionsScroll: { paddingHorizontal: 24, gap: 10, alignItems: 'center' },
+  actionPillDark:{
+    backgroundColor: COLORS.surfaceDark, paddingHorizontal: 20,
+    height: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 100,
   },
-  tabsScroll: {
-    paddingHorizontal: 20,
-    gap: 12,
+  actionPillDarkText:{ color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  actionPillLight:{
+    backgroundColor: COLORS.surface, paddingHorizontal: 16,
+    height: 44, justifyContent: 'center', borderRadius: 100,
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  tab: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 100,
-    backgroundColor: COLORS.cardBg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  tabActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-  },
-  tabTextActive: {
-    color: '#FFFFFF',
-  },
+  actionPillLightText:{ color: COLORS.textMain, fontSize: 14, fontWeight: '600' },
 
-  /* --- CALENDAR GRID --- */
-  calendarCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
+  /* ── MAIN CONTENT ── */
+  mainContent:{ paddingHorizontal: 24, paddingTop: 8 },
+
+  /* Property context banner — owner-tier differentiator */
+  propertyBanner:{
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: COLORS.primaryLight, borderRadius: 20,
+    paddingHorizontal: 20, paddingVertical: 14, marginBottom: 24,
+    borderWidth: 1, borderColor: '#C8DAC8',
   },
-  monthSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
+  propertyBannerLeft:{},
+  propertyBannerLabel:{ fontSize: 9, fontWeight: '800', color: COLORS.primary, letterSpacing: 1, marginBottom: 2 },
+  propertyBannerName: { fontSize: 16, fontWeight: '800', color: COLORS.primary, letterSpacing: -0.3 },
+  rateBadge:{
+    backgroundColor: COLORS.surfaceDark, paddingHorizontal: 12,
+    paddingVertical: 6, borderRadius: 100,
   },
-  monthBtn: { padding: 4 },
-  monthText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
+  rateText:{ fontSize: 12, fontWeight: '800', color: COLORS.accent },
+
+  sectionHeader:{ marginBottom: 16, marginTop: 4 },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
+
+  /* ── CALENDAR ── */
+  calendarCard:{
+    backgroundColor: COLORS.surface, borderRadius: 24, padding: 24,
+    marginBottom: 28, borderWidth: 1, borderColor: COLORS.border,
   },
-  weekDaysRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
+  monthSelector:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  monthBtn:{ padding: 4 },
+  monthText:{ fontSize: 18, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
+
+  legendRow:{ flexDirection: 'row', gap: 20, marginBottom: 20 },
+  legendItem:{ flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText:{ fontSize: 11, fontWeight: '600', color: COLORS.textMuted },
+
+  weekDaysRow:{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 },
+  weekDayText:{
+    width: '14.28%', textAlign: 'center',
+    fontSize: 10, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 1,
   },
-  weekDayText: {
-    width: '14.28%',
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1,
+  daysGrid:{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start' },
+  dayCellContainer:{
+    width: '14.28%', aspectRatio: 1,
+    justifyContent: 'center', alignItems: 'center', marginBottom: 8,
   },
-  daysGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+  dayCell:{
+    width: 36, height: 36, justifyContent: 'center',
+    alignItems: 'center', borderRadius: 12,
   },
-  dayCellContainer: {
-    width: '14.28%',
-    aspectRatio: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  dayCell: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  dayCellOccupied: {
-    backgroundColor: COLORS.primaryLight,
-  },
-  dayCellSelected: {
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+  dayCellOccupied:{ backgroundColor: COLORS.primaryLight },
+  dayCellSelected:{
+    backgroundColor: COLORS.surfaceDark,
     transform: [{ scale: 1.1 }],
   },
-  dayText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.textMain,
-  },
-  dayTextMuted: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#CBD5E1',
-  },
-  dayTextOccupied: {
-    color: COLORS.primary,
-  },
-  dayTextSelected: {
-    color: '#FFFFFF',
-  },
-  todayDot: {
-    position: 'absolute',
-    bottom: 4,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+  dayText:        { fontSize: 15, fontWeight: '700', color: COLORS.textMain },
+  dayTextMuted:   { fontSize: 15, fontWeight: '600', color: COLORS.border },
+  dayTextOccupied:{ color: COLORS.primary },
+  dayTextSelected:{ color: '#FFFFFF' },
+  todayDot:{
+    position: 'absolute', bottom: 4,
+    width: 4, height: 4, borderRadius: 2,
     backgroundColor: COLORS.primary,
   },
 
-  /* --- DYNAMIC SECTION HEADERS --- */
-  dynamicHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 16,
-    paddingHorizontal: 4,
+  /* ── DYNAMIC HEADER ── */
+  dynamicHeader:{
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'baseline', marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-  sectionContextDate: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+  dynamicDate:{ fontSize: 13, fontWeight: '700', color: COLORS.primary, letterSpacing: 0.5 },
 
-  /* --- BOOKING DETAILS CARD (Occupied) --- */
-  detailsCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
+  /* ── BOOKING DETAILS CARD (image-top) ── */
+  detailsCard:{
+    backgroundColor: COLORS.surface, borderRadius: 24,
+    marginBottom: 24, overflow: 'hidden',
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  detailsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 24,
+  detailsCardImage:{ width: '100%', height: 140 },
+  detailsCardImageOverlay:{
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10,25,15,0.4)',
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
   },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.successBg,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignSelf: 'flex-start',
+  detailsCardImageContent:{
+    flex: 1, flexDirection: 'row',
+    justifyContent: 'space-between', alignItems: 'flex-start', padding: 16,
   },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.successText,
-    letterSpacing: 0.5,
+  confirmedBadge:{
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, alignSelf: 'flex-start',
   },
-  detailsTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  detailsSubtitle: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    fontWeight: '500',
-  },
-  guestAvatarLarge: {
-    width: 56,
-    height: 56,
-    borderRadius: 20,
+  confirmedBadgeText:{ fontSize: 10, fontWeight: '800' },
+  guestAvatarBox:{
+    width: 48, height: 48, borderRadius: 24,
     backgroundColor: COLORS.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)',
   },
-  infoList: {
-    gap: 16,
-    marginBottom: 24,
+  detailsCardBody:{ padding: 20 },
+  detailsTitle:   { fontSize: 20, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.5 },
+  detailsSubtitle:{ fontSize: 13, fontWeight: '500', color: COLORS.textMuted, marginBottom: 16 },
+  infoList:{ gap: 12, marginBottom: 16 },
+  infoRow:{
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: COLORS.background, padding: 14,
+    borderRadius: 16, borderWidth: 1, borderColor: COLORS.border,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    padding: 16,
-    borderRadius: 20,
+  infoIconBox:{
+    width: 36, height: 36, borderRadius: 12,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center', alignItems: 'center', marginRight: 14,
+    borderWidth: 1, borderColor: COLORS.border,
   },
-  infoIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  infoTextWrap: { flex: 1 },
-  infoLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    marginBottom: 4,
-    letterSpacing: 0.5,
-  },
-  infoValue: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.textMain,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  messageBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: COLORS.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  messageBtnText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-  },
+  infoTextWrap:{ flex: 1 },
+  infoLabel:{ fontSize: 10, fontWeight: '700', color: COLORS.textMuted, marginBottom: 2, letterSpacing: 0.5 },
+  infoValue:{ fontSize: 14, fontWeight: '700', color: COLORS.textMain },
+  divider:{ height: 1, backgroundColor: COLORS.border, marginBottom: 16 },
 
-  /* --- SHARED BENTO STYLES --- */
-  bentoCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+  /* Green pill action — owner differentiator (accent-toned) */
+  greenPillBtn:{
+    flexDirection: 'row', height: 56, borderRadius: 100,
+    backgroundColor: COLORS.surfaceDark,
+    justifyContent: 'center', alignItems: 'center',
   },
-  bentoLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-    marginBottom: 16,
-  },
-  listContainer: {
-    gap: 12,
-  },
+  greenPillBtnText:{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
 
-  /* --- GUEST INPUTS --- */
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background, // slate-50
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    height: 60,
+  /* ── FORM CARDS ── */
+  formCard:{
+    backgroundColor: COLORS.surface, borderRadius: 24, padding: 20,
+    marginBottom: 16, borderWidth: 1, borderColor: COLORS.border,
   },
-  inputIcon: {
-    marginRight: 12,
+  formLabel:{ fontSize: 11, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 1, marginBottom: 14 },
+  inputWrapper:{
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.border,
+    borderRadius: 16, paddingHorizontal: 16, height: 56, marginBottom: 12,
   },
-  input: {
-    flex: 1,
-    height: '100%',
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textMain,
-  },
+  inputIcon:{ marginRight: 12 },
+  input:{ flex: 1, height: '100%', fontSize: 15, fontWeight: '600', color: COLORS.textMain },
 
-  /* --- DATES (MANUAL ENTRY) --- */
-  durationRow: {
-    flexDirection: 'row',
-    gap: 12,
+  dateRow:{ flexDirection: 'row', gap: 12, marginBottom: 12 },
+  dateBox:{
+    flex: 1, backgroundColor: COLORS.background, borderRadius: 16,
+    padding: 14, borderWidth: 1, borderColor: COLORS.border,
   },
-  datePickerBox: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.background,
-    borderRadius: 20,
-    padding: 16,
-    height: 72,
-    justifyContent: 'center',
-  },
-  dateLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  dateValueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-    marginLeft: 8,
-  },
-  dateValueActive: {
-    color: COLORS.textMain,
-    fontWeight: '800',
-  },
-  calculatedStayBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 16,
-    marginTop: 16,
-  },
-  calcStayLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  nightsInput: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.primary,
-    textAlign: 'right',
-    minWidth: 40,
-  },
-  calcStayValue: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.primary,
-  },
+  dateBoxLabel:{ fontSize: 10, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 0.5, marginBottom: 8 },
+  dateBoxValue:{ flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dateText:   { fontSize: 13, fontWeight: '600', color: COLORS.textMuted },
+  dateTextActive:{ color: COLORS.textMain, fontWeight: '800' },
 
-  /* --- FINANCIALS BENTO --- */
-  financialsBento: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 32,
-    padding: 24,
-    marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
+  nightsBadge:{
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: COLORS.primaryLight, borderRadius: 16,
+    paddingHorizontal: 20, paddingVertical: 14,
+    borderWidth: 1, borderColor: '#C8DAC8',
   },
-  financialsHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  financialsLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1.5,
-  },
-  rateBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  rateText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.accent,
-  },
-  financialsValue: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.5)',
-    letterSpacing: -1,
-  },
-  financialsValueActive: {
-    color: '#FFFFFF',
-  },
+  nightsBadgeLabel:{ fontSize: 14, fontWeight: '700', color: COLORS.primary },
+  nightsInput:{ fontSize: 18, fontWeight: '800', color: COLORS.primary, textAlign: 'right', minWidth: 40 },
 
-  /* --- CONFIRM BUTTON --- */
-  confirmBtn: {
-    flexDirection: 'row',
-    height: 64,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    backgroundColor: COLORS.accent,
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+  /* Financial card — deep green, premium owner identity */
+  financialsCard:{
+    backgroundColor: COLORS.surfaceDark, borderRadius: 24,
+    padding: 24, marginBottom: 20,
   },
-  confirmBtnDisabled: {
-    backgroundColor: COLORS.border, // slate-200
-    shadowOpacity: 0,
-    elevation: 0,
+  financialsHeaderRow:{
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 16,
   },
-  confirmBtnText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-  },
-  confirmBtnTextDisabled: {
-    color: '#94A3B8', // slate-400
-  },
+  financialsLabel:{ fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.75)', letterSpacing: 1 },
+  accentBadge:{ backgroundColor: 'rgba(45,212,191,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 },
+  accentBadgeText:{ fontSize: 11, fontWeight: '800', color: COLORS.accent },
+  dividerWhite:{ height: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginBottom: 16 },
+  financialsValue:{ fontSize: 36, fontWeight: '800', color: 'rgba(255,255,255,0.35)', letterSpacing: -1 },
+  financialsValueActive:{ color: '#FFFFFF' },
 
-  /* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
-    alignSelf: 'center',
-    width: '90%', // Modern floating width
-    left: '5%',
-    right: '5%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 36, // Fully rounded pill shape
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+  /* Confirm button */
+  confirmBtn:{
+    flexDirection: 'row', height: 64, borderRadius: 100,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: COLORS.surfaceDark, marginBottom: 8,
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  confirmBtnDisabled:{ backgroundColor: COLORS.border },
+  confirmBtnText:{ fontSize: 17, fontWeight: '800', color: '#FFFFFF' },
+  confirmBtnTextDisabled:{ color: '#94A3B8' },
+
+  bottomSpacer:{ height: 160 },
+
+  /* ── DARK GREEN PILL BOTTOM NAV (owner portal) ── */
+  bottomNavContainer:{
+    position: 'absolute', bottom: Platform.OS === 'ios' ? 32 : 24,
+    alignSelf: 'center', width: '92%', zIndex: 100,
   },
-  navItem: {
-    width: 48,
-    height: 48,
-    borderRadius: 24, // Perfect circle for icon
-    justifyContent: 'center',
-    alignItems: 'center',
+  bottomNav:{
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: COLORS.surfaceDark, borderRadius: 100,
+    paddingVertical: 10, paddingHorizontal: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3, shadowRadius: 20, elevation: 20,
   },
-  navItemActive: {
-    backgroundColor: COLORS.primaryLight,
-  },
+  navItem:{ alignItems: 'center', justifyContent: 'center', flex: 1 },
+  navText:{ fontSize: 9, fontWeight: '600', color: 'rgba(255,255,255,0.45)', marginTop: 3 },
+  navTextActive:{ color: '#FFFFFF', fontWeight: '700' },
 });

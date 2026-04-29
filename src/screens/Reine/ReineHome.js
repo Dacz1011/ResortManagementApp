@@ -2,6 +2,7 @@ import {
   CalendarDays,
   CalendarPlus,
   CheckCircle2,
+  ChevronRight,
   DollarSign,
   FileBarChart,
   Home,
@@ -10,10 +11,13 @@ import {
   ReceiptText,
   Search,
   Settings,
+  Sparkles,
   Star,
+  SunMedium,
   Users,
   Wallet,
-  Wrench
+  Wrench,
+  Zap
 } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import {
@@ -29,6 +33,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -37,13 +42,22 @@ const COLORS = {
   background: '#F7F7F9',    // Light gray background
   surface: '#FFFFFF',       // Pure white cards
   surfaceDark: '#18181B',   // Stark black for nav and dark pills
-  
+
   // Reine Brand Accent
   primary: '#E64E76',       // Vibrant Reine Pink
+  primaryLight: '#FFF0F3',
 
   textMain: '#18181B',      // Dark slate/black
   textMuted: '#71717A',     // Medium gray
   border: '#E4E4E7',        // Subtle border
+
+  // Status Colors for Tasks
+  dangerBg: '#FEE2E2',
+  dangerText: '#EF4444',
+  warningBg: '#FEF9C3',
+  warningText: '#CA8A04',
+  infoBg: '#E0F2FE',
+  infoText: '#0EA5E9',
 };
 
 const QUICK_ACTIONS = [
@@ -75,21 +89,20 @@ export default function ReineHome({ navigation }) {
         bounces={false}
         style={{ opacity: fadeAnim }}
       >
-        {/* --- HERO BANNER (Matched precisely to Reference Middle Screen) --- */}
+        {/* --- HERO BANNER --- */}
         <View style={styles.heroContainer}>
           <ImageBackground
             source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2070&auto=format&fit=crop' }}
             style={styles.heroImage}
-            imageStyle={styles.heroImageStyle}
           >
             {/* Elegant dark overlay */}
             <View style={styles.heroOverlay} />
-            
-            <View style={styles.heroContent}>
+
+            <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
               {/* Top Bar */}
               <View style={styles.topBar}>
                 <View style={styles.locationPill}>
-                  <MapPin size={14} color="#FFFFFF" style={styles.locationIcon} />
+                  <MapPin size={16} color="#FFFFFF" style={styles.locationIcon} />
                   <Text style={styles.locationText}>Reine's Beach House</Text>
                 </View>
                 <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('ReineAdmin')} style={styles.profileAvatarWrap}>
@@ -101,32 +114,27 @@ export default function ReineHome({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              {/* Grouping Text and Pill to sit closely together at the bottom */}
+              {/* Bottom Content - Redesigned Typography & Layout */}
               <View style={styles.heroBottomContent}>
-                {/* Greeting */}
-                <View style={styles.greetingContainer}>
-                  <Text style={styles.greetingText}>Hey, Admin! Ready to Manage?</Text>
-                </View>
+                <Text style={styles.greetingSub}>WELCOME BACK</Text>
+                <Text style={styles.greetingText}>Ready to Manage{'\n'}Your Property?</Text>
 
-                {/* Dark Search Pill Overlay */}
-                <TouchableOpacity style={styles.searchPill} activeOpacity={0.9} onPress={() => navigation.navigate('ReineGuestMgmt')}>
-                  <Search size={20} color="rgba(255,255,255,0.8)" />
-                  <View style={styles.searchPillTextWrap}>
-                    <Text style={styles.searchPillTitle}>Search guests</Text>
-                    <Text style={styles.searchPillSubtitle}>Names • Bookings • Dates</Text>
+                <TouchableOpacity style={styles.searchBar} activeOpacity={0.9} onPress={() => navigation.navigate('ReineGuestMgmt')}>
+                  <Search size={22} color="rgba(255,255,255,0.7)" />
+                  <View style={styles.searchTextWrap}>
+                    <Text style={styles.searchTitle}>Search guests or bookings...</Text>
                   </View>
                 </TouchableOpacity>
               </View>
-
-            </View>
+            </SafeAreaView>
           </ImageBackground>
         </View>
 
         {/* --- HORIZONTAL QUICK ACTIONS PILLS --- */}
         <View style={styles.quickActionsWrapper}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.quickActionsScroll}
           >
             <TouchableOpacity style={styles.actionPillDark} activeOpacity={0.8} onPress={() => navigation.navigate('ReineBookings', { mode: 'manual' })}>
@@ -152,7 +160,7 @@ export default function ReineHome({ navigation }) {
 
         <View style={styles.mainContent}>
 
-          {/* --- CURRENTLY HOSTING (Matched Reference Image Card) --- */}
+          {/* --- CURRENTLY HOSTING --- */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Currently Hosting</Text>
           </View>
@@ -171,7 +179,7 @@ export default function ReineHome({ navigation }) {
 
             <View style={styles.cardBody}>
               <View style={styles.cardBodyHeader}>
-                <Text style={styles.cardTitle}>Ronald Cute Dacanay</Text>
+                <Text style={styles.cardTitle}>Ronald Czeasar Dacanay</Text>
                 <View style={styles.ratingRow}>
                   <Star size={14} color={COLORS.textMain} fill={COLORS.textMain} />
                   <Text style={styles.ratingText}>VIP</Text>
@@ -180,8 +188,7 @@ export default function ReineHome({ navigation }) {
 
               <Text style={styles.cardSubtitle}>Checking out tomorrow • 12:00 PM</Text>
               <Text style={styles.cardTags}>Fully Paid • No Pending Requests • Standard Room</Text>
-              
-              {/* Divider matching reference elegance */}
+
               <View style={styles.divider} />
 
               <View style={styles.cardFooter}>
@@ -193,17 +200,16 @@ export default function ReineHome({ navigation }) {
             </View>
           </View>
 
-          {/* --- TODAY'S SNAPSHOT (Discover new places style) --- */}
+          {/* --- TODAY'S SNAPSHOT --- */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today's Snapshot</Text>
           </View>
 
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.snapshotScroll}
           >
-            {/* Revenue Metric */}
             <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.7} onPress={() => navigation.navigate('ReineFinance')}>
               <ImageBackground
                 source={{ uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop' }}
@@ -221,7 +227,6 @@ export default function ReineHome({ navigation }) {
               </ImageBackground>
             </TouchableOpacity>
 
-            {/* Arrivals Metric */}
             <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.7} onPress={() => navigation.navigate('ReineBookings')}>
               <ImageBackground
                 source={{ uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop' }}
@@ -238,12 +243,84 @@ export default function ReineHome({ navigation }) {
                 </View>
               </ImageBackground>
             </TouchableOpacity>
+
+            {/* Added 3rd Card for Weather/Environment */}
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.9}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <SunMedium size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>28°C • Sunny</Text>
+                    <Text style={styles.snapshotLabel}>High Tide: 2:30 PM</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
           </ScrollView>
+
+          {/* 2. ACTIVE TASKS / PRIORITY ALERTS */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Priority Alerts</Text>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('ReineFinance')}>
+              <Text style={styles.viewAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.tasksList}>
+            {/* Maintenance Task */}
+            <TouchableOpacity style={styles.taskCard} activeOpacity={0.7} onPress={() => navigation.navigate('ReineFinance')}>
+              <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.dangerBg }]}>
+                <Wrench size={20} color={COLORS.dangerText} strokeWidth={2.5} />
+              </View>
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskTitle}>Plumbing Check</Text>
+                <Text style={styles.taskSubtitle}>Scheduled for 2:00 PM today</Text>
+              </View>
+              <View style={styles.taskAction}>
+                 <Text style={styles.actionTextResolve}>Resolve</Text>
+                 <ChevronRight size={18} color={COLORS.textMuted} />
+              </View>
+            </TouchableOpacity>
+
+            {/* Utility Bill Task */}
+            <TouchableOpacity style={styles.taskCard} activeOpacity={0.7} onPress={() => navigation.navigate('ReineFinance')}>
+              <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.warningBg }]}>
+                <Zap size={20} color={COLORS.warningText} strokeWidth={2.5} />
+              </View>
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskTitle}>Electricity Bill</Text>
+                <Text style={styles.taskSubtitle}>Due in 2 days • ₱8,240</Text>
+              </View>
+              <View style={styles.taskAction}>
+                 <Text style={styles.actionTextPay}>Pay</Text>
+                 <ChevronRight size={18} color={COLORS.textMuted} />
+              </View>
+            </TouchableOpacity>
+
+            {/* Housekeeping Task */}
+            <TouchableOpacity style={styles.taskCard} activeOpacity={0.7}>
+              <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.infoBg }]}>
+                <Sparkles size={20} color={COLORS.infoText} strokeWidth={2.5} />
+              </View>
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskTitle}>Housekeeping</Text>
+                <Text style={styles.taskSubtitle}>Cleaning required for Room A</Text>
+              </View>
+              <View style={styles.taskAction}>
+                 <ChevronRight size={18} color={COLORS.textMuted} />
+              </View>
+            </TouchableOpacity>
+          </View>
 
         </View>
       </Animated.ScrollView>
 
-      {/* --- SLEEK BLACK PILL BOTTOM NAV (Matched perfectly to Reference) --- */}
+      {/* --- SLEEK BLACK PILL BOTTOM NAV --- */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem} activeOpacity={0.8}>
@@ -279,36 +356,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 110, // Optimized clearance for floating bottom nav
+    paddingBottom: 120, // Clearance for floating bottom nav
   },
 
   /* --- HERO HEADER --- */
   heroContainer: {
     width: '100%',
-    height: 280, // Compressed overall height to remove dead space
+    height: 420, // Mockup-matched height
     backgroundColor: COLORS.surfaceDark,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 8,
   },
   heroImage: {
     width: '100%',
     height: '100%',
   },
-  heroImageStyle: {
-    // Border radius removed for square full-bleed look
-  },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Classic dark overlay for legibility
+    backgroundColor: 'rgba(0,0,0,0.4)', // Balanced overlay for clarity
   },
-  heroContent: {
+  heroSafeArea: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 10, // Slightly less top padding
-    paddingBottom: 20, // Tighter bottom padding
+    paddingTop: Platform.OS === 'ios' ? 0 : 16,
+    paddingBottom: 60, // Increased to lift the text and search bar higher
     justifyContent: 'space-between',
   },
   topBar: {
@@ -319,75 +388,85 @@ const styles = StyleSheet.create({
   locationPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(24, 24, 27, 0.45)', // Glass effect matching mockup
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   locationIcon: {
-    marginRight: 6,
+    marginRight: 8,
   },
   locationText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   profileAvatarWrap: {
     position: 'relative',
   },
   profileAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1.5,
+    width: 48, // Slightly larger profile icon as seen in mockup
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
     borderColor: '#FFFFFF',
   },
   notificationDot: {
     position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 10,
-    height: 10,
+    top: 2,
+    right: 2,
+    width: 12,
+    height: 12,
     backgroundColor: COLORS.primary,
-    borderRadius: 5,
+    borderRadius: 6,
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
+
+  /* --- HERO BOTTOM CONTENT --- */
   heroBottomContent: {
-    marginTop: 'auto', // Pushes this entire block to the bottom of the hero card
+    marginTop: 'auto',
+    marginBottom: 10, // Added small buffer
   },
-  greetingContainer: {
-    marginBottom: 12, // Snug spacing right above the search pill
-  },
-  greetingText: {
-    fontSize: 26,
+  greetingSub: {
+    fontSize: 13,
     fontWeight: '800',
     color: '#FFFFFF',
-    letterSpacing: -0.5,
-    lineHeight: 34, // Slightly tighter line height
+    letterSpacing: 2,
+    marginBottom: 10,
+    opacity: 0.9,
   },
-  
-  /* --- DARK OVERLAY SEARCH PILL --- */
-  searchPill: {
+  greetingText: {
+    fontSize: 40, // Larger, more impactful typography
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1.2,
+    lineHeight: 46,
+    marginBottom: 32, // Space before search bar
+  },
+
+  /* --- GLASS SEARCH BAR --- */
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(30,30,30,0.6)', // Deep translucent look
-    borderRadius: 100, // Pill shape
-    paddingHorizontal: 20,
-    paddingVertical: 16, // Made the pill slightly taller
+    backgroundColor: 'rgba(24, 24, 27, 0.4)', // Glassy dark effect
+    borderRadius: 24, // More rounded corners
+    paddingHorizontal: 24,
+    paddingVertical: 18,
     width: '100%',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  searchPillTextWrap: {
-    marginLeft: 12,
+  searchTextWrap: {
+    marginLeft: 14,
   },
-  searchPillTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  searchPillSubtitle: {
-    fontSize: 12,
+  searchTitle: {
+    fontSize: 16,
     fontWeight: '500',
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
 
   /* --- QUICK ACTIONS PILLS --- */
@@ -434,6 +513,13 @@ const styles = StyleSheet.create({
   mainContent: {
     paddingHorizontal: 24,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 16,
+  },
   sectionHeader: {
     marginTop: 12,
     marginBottom: 12,
@@ -443,6 +529,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textMain,
     letterSpacing: -0.5,
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.primary,
   },
 
   /* --- LARGE IMAGE CARD (Currently Hosting) --- */
@@ -543,7 +634,7 @@ const styles = StyleSheet.create({
   /* --- SNAPSHOT CARDS --- */
   snapshotScroll: {
     gap: 16,
-    paddingBottom: 20,
+    paddingBottom: 8,
   },
   snapshotCard: {
     width: 150,
@@ -557,7 +648,7 @@ const styles = StyleSheet.create({
   },
   snapshotOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.32)',
     borderRadius: 24,
   },
   snapshotContent: {
@@ -569,18 +660,76 @@ const styles = StyleSheet.create({
     marginBottom: 'auto',
   },
   snapshotValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: '#FFFFFF',
     marginBottom: 2,
   },
   snapshotLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     color: 'rgba(255,255,255,0.8)',
   },
 
-  /* --- BLACK FLOATING PILL BOTTOM NAV (Matched perfectly to Reference) --- */
+  /* --- ACTIVE TASKS LIST --- */
+  tasksList: {
+    gap: 12,
+  },
+  taskCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  taskIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  taskInfo: {
+    flex: 1,
+  },
+  taskTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    marginBottom: 4,
+    letterSpacing: -0.2,
+  },
+  taskSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.textMuted,
+  },
+  taskAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionTextResolve: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.dangerText,
+    marginRight: 4,
+  },
+  actionTextPay: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.warningText,
+    marginRight: 4,
+  },
+
+  /* --- BOTTOM NAV --- */
   bottomNavContainer: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 32 : 24,
@@ -592,8 +741,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceDark, // Solid black
-    borderRadius: 100, // Perfect pill
+    backgroundColor: COLORS.surfaceDark, 
+    borderRadius: 100, 
     paddingVertical: 12,
     paddingHorizontal: 24,
     shadowColor: '#000',

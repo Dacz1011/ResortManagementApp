@@ -49,10 +49,10 @@ const COLORS = {
 };
 
 const GUEST_HISTORY = [
-  { id: '1', name: 'Maria Sofia Gonzales', date: 'Jan 28 - Jan 30', amount: '₱12,000.00', nights: 2, status: 'COMPLETED' },
-  { id: '2', name: 'Robert Wilson',         date: 'Jan 22 - Jan 27', amount: '₱60,000.00', nights: 5, status: 'COMPLETED' },
-  { id: '3', name: 'Elena Rodriguez',       date: 'Jan 18 - Jan 20', amount: '₱24,000.00', nights: 2, status: 'COMPLETED' },
-  { id: '4', name: 'Michael Chang',         date: 'Jan 12 - Jan 15', amount: '₱36,000.00', nights: 3, status: 'COMPLETED' },
+  { id: '1', name: 'Maria Sofia Gonzales', date: 'Jan 28 - Jan 30', amount: '₱12,000.00', nights: 2, status: 'COMPLETED', phone: '+63 912 345 6789', email: 'maria.s@example.com' },
+  { id: '2', name: 'Robert Wilson',         date: 'Jan 22 - Jan 27', amount: '₱60,000.00', nights: 5, status: 'COMPLETED', phone: '+63 998 765 4321', email: 'rwilson@example.com' },
+  { id: '3', name: 'Elena Rodriguez',       date: 'Jan 18 - Jan 20', amount: '₱24,000.00', nights: 2, status: 'COMPLETED', phone: '+63 917 111 2222', email: 'elena.r@example.com' },
+  { id: '4', name: 'Michael Chang',         date: 'Jan 12 - Jan 15', amount: '₱36,000.00', nights: 3, status: 'COMPLETED', phone: '+63 920 333 4444', email: 'mchang@example.com' },
 ];
 
 export default function ReineGuestHistory({ navigation }) {
@@ -96,7 +96,7 @@ export default function ReineGuestHistory({ navigation }) {
           {/* ── FULL-BLEED HERO (mirrors ReineHome exactly) ── */}
           <View style={styles.heroContainer}>
             <ImageBackground
-              source={require('../../assets/images/REINE BEACH HOUSE 4.png')}
+              source={{ uri: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop' }}
               style={styles.heroImage}
               imageStyle={styles.heroImageStyle}
             >
@@ -230,7 +230,12 @@ export default function ReineGuestHistory({ navigation }) {
             <View style={styles.recordsList}>
               {filtered.length > 0 ? (
                 filtered.map((guest) => (
-                  <TouchableOpacity key={guest.id} activeOpacity={0.7} style={styles.recordCard}>
+                  <TouchableOpacity 
+                    key={guest.id} 
+                    activeOpacity={0.7} 
+                    style={styles.recordCard}
+                    onPress={() => navigation.navigate('ReineGuestDetails', { guest })}
+                  >
                     {/* Image top — mirrors largeCard image section */}
                     <ImageBackground
                       source={{ uri: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop' }}
@@ -464,7 +469,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
 
-  /* ── SNAPSHOT STRIP (mirrors ReineHome snapshotCard) ── */
+  /* ── SNAPSHOT STRIP (mirrors ReineHome Today's Snapshot) ── */
   snapshotScroll: {
     gap: 16,
     paddingBottom: 8,
