@@ -1,28 +1,28 @@
-import React, { useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  StatusBar,
-  ImageBackground,
-  Dimensions
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Bell,
-  User,
-  Home,
   CalendarDays,
-  Users,
-  Wallet,
-  Settings,
-  Search,
   ChevronRight,
-  UserPlus
+  Home,
+  Search,
+  Settings,
+  User,
+  UserPlus,
+  Users,
+  Wallet
 } from 'lucide-react-native';
+import { useMemo } from 'react';
+import {
+  Dimensions,
+  ImageBackground,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBookings } from '../../context/BookingContext';
 
 const { width } = Dimensions.get('window');
@@ -47,6 +47,7 @@ export default function RyuGuestMgmt({ navigation }) {
   const activeNav = 'Guest';
   const { getBookings } = useBookings();
   const bookingsData = getBookings('Ryu');
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   const guests = useMemo(() => {
     const uniqueBookings = [];
@@ -84,7 +85,8 @@ export default function RyuGuestMgmt({ navigation }) {
         >
           <View style={styles.heroOverlay} />
 
-          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
+          {/* iOS Fix: Using View + insets instead of SafeAreaView */}
+          <View style={[styles.heroSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
             <View style={styles.headerTopRow}>
               <View>
                 <Text style={styles.greetingText}>Manage Guests</Text>
@@ -113,7 +115,7 @@ export default function RyuGuestMgmt({ navigation }) {
               <Text style={styles.heroMainStat}>{guests.length} Guests</Text>
               <Text style={styles.heroSubStat}>Currently in-house and upcoming</Text>
             </View>
-          </SafeAreaView>
+          </View>
         </ImageBackground>
 
         {/* --- OVERLAPPING MAIN SHEET --- */}
@@ -185,32 +187,33 @@ export default function RyuGuestMgmt({ navigation }) {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */}
-      <View style={styles.bottomNavContainer}>
+      {/* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */}
+      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={[styles.navItem, activeNav === 'Home' && styles.navItemActive]} activeOpacity={0.7}>
-            <Home size={24} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem} activeOpacity={0.8}>
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]} activeOpacity={0.7}>
-            <CalendarDays size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={[styles.navItem, activeNav === 'Guest' && styles.navItemActive]} activeOpacity={0.7}>
-            <Users size={24} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} activeOpacity={0.7}>
-            <Wallet size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={[styles.navItem, activeNav === 'Admin' && styles.navItemActive]} activeOpacity={0.7}>
-            <Settings size={24} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
-
         </View>
       </View>
+
     </View>
   );
 }
@@ -224,7 +227,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   bottomSpacer: {
-    height: 120,
+    height: 160, // Clear space for the floating nav pill
   },
   heroHeader: {
     width: '100%',
@@ -466,37 +469,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  /* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */
+
+  /* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
+    // bottom dynamically handled
     alignSelf: 'center',
-    width: '90%', // Modern floating width
-    left: '5%',
-    right: '5%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 36, // Fully rounded pill shape
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    width: '90%',
+    zIndex: 100,
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: COLORS.primaryDark, // Uses Ryu's deep navy color
+    borderRadius: 100,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 20,
   },
   navItem: {
-    width: 48,
-    height: 48,
-    borderRadius: 24, // Perfect circle for icon
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
-  navItemActive: {
-    backgroundColor: COLORS.primaryLight,
+  navText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginTop: 4,
+  },
+  navTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

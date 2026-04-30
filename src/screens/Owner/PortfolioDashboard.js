@@ -12,104 +12,70 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowRight,
+  ArrowUpRight,
   BarChart2,
   BedDouble,
   Bell,
   BookOpen,
+  Building,
   CalendarDays,
-  Car,
-  CheckCircle2,
-  Coffee,
+  FileBarChart,
   Home,
   LayoutGrid,
-  MapPin,
+  LogIn,
   MoreHorizontal,
   PieChart,
+  ReceiptText,
   Settings,
   TrendingUp,
-  User,
   Users,
   Wallet,
-  Waves,
-  Wifi
+  Wand2
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
 // ── OWNER PORTAL PALETTE ──
-// Deliberately distinguished from property-admin Reine Pink.
-// Deep forest green primary + teal accent give the owner tier
-// an executive, high-trust feel while sharing the same structural
-// design language (full-bleed hero, quick pills, snapshot strip,
-// card rows, black-pill nav).
+// High-trust executive theme using deep forest green & teal,
+// mapped to the modern Ryu/Casa UI structure.
 const COLORS = {
-  background: '#F7F8F6',
-  surface:    '#FFFFFF',
-  surfaceDark: '#1A3626',      // Deep forest green — owner brand
+  background: '#F8FAFC',
+  surface: '#FFFFFF',
+  surfaceDark: '#1A3626',      // Owner Deep Forest Green
   surfaceDarkHover: '#0D1E14',
 
-  primary:     '#1A3626',
-  primaryLight:'#E8F0EA',
-  accent:      '#2DD4BF',      // Teal accent — owner-only highlight
+  primary: '#1A3626',
+  primaryLight: '#E8F0EA',
+  accent: '#2DD4BF',           // Owner Teal Accent
   accentLight: '#CCFBF1',
 
-  textMain:  '#0F172A',
+  textMain: '#0F172A',
   textMuted: '#64748B',
-  border:    '#E2E8F0',
+  border: '#E2E8F0',
 
-  successBg:   '#DCFCE7',
+  successBg: '#DCFCE7',
   successText: '#16A34A',
-  warningBg:   '#FEF9C3',
-  warningText: '#CA8A04',
-  dangerBg:    '#FEE2E2',
-  dangerText:  '#EF4444',
+  warningBg: '#FEF9C3',
+  warningIcon: '#EAB308',
+  infoBg: '#E0F2FE',
+  infoIcon: '#0EA5E9',
 };
 
-const PROPERTY_DETAILS = {
-  "Reine's Beach": {
-    title: "Reine's Beach House",
-    capacity: 'Unlimited Pax',
-    baseRate: '₱12,000 / night',
-    amenities: [
-      { icon: Waves,  label: 'Private Pool' },
-      { icon: Coffee, label: 'Full Kitchen' },
-      { icon: Home,   label: 'Entire House' },
-      { icon: Wifi,   label: 'High-Speed Wi-Fi' },
-      { icon: Car,    label: '4-Car Parking' },
-    ],
-  },
-  "Ryu's House": {
-    title: "Ryu's Transient House",
-    capacity: '15 Pax',
-    baseRate: '₱8,000 / night',
-    amenities: [
-      { icon: Home,   label: 'Entire House' },
-      { icon: Wifi,   label: 'High-Speed Wi-Fi' },
-      { icon: Coffee, label: 'Basic Kitchen' },
-      { icon: Car,    label: '2-Car Parking' },
-    ],
-  },
-  "Casa M.O.": {
-    title: 'Casa M.O.',
-    capacity: '20 Pax',
-    baseRate: '₱15,000 / night',
-    amenities: [
-      { icon: Waves, label: 'Private Pool' },
-      { icon: Home,  label: 'Heritage Villa' },
-      { icon: Wifi,  label: 'High-Speed Wi-Fi' },
-      { icon: Car,   label: '6-Car Parking' },
-    ],
-  },
-};
+const PORTFOLIO_TABS = ['All Properties', "Reine's", "Ryu's", "Casa M.O."];
 
-const PORTFOLIO_TABS = ['All Properties', "Reine's Beach", "Ryu's House", "Casa M.O."];
+const QUICK_ACTIONS = [
+  { id: '1', icon: BarChart2, label: 'Finance', route: 'OwnerFinance' },
+  { id: '2', icon: BookOpen, label: 'Ledger', route: 'OwnerLedger' },
+  { id: '3', icon: PieChart, label: 'Insights', route: 'OwnerInsights' },
+  { id: '4', icon: Settings, label: 'Settings', route: 'OwnerSettings' },
+];
 
 const PROPERTY_PERFORMANCE = [
   {
-    id: '1', tabName: "Reine's Beach",
+    id: '1', tabName: "Reine's",
     name: "Reine's Beach House",
     rev: '₱22.4k', occ: '94%',
     status: 'HIGH DEMAND',
@@ -117,7 +83,7 @@ const PROPERTY_PERFORMANCE = [
     image: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop',
   },
   {
-    id: '2', tabName: "Ryu's House",
+    id: '2', tabName: "Ryu's",
     name: "Ryu's Transient House",
     rev: '₱16.8k', occ: '82%',
     status: 'STABLE',
@@ -136,117 +102,107 @@ const PROPERTY_PERFORMANCE = [
 
 const HERO_IMAGES = {
   'All Properties': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-  "Reine's Beach":  'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop',
-  "Ryu's House":    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
-  "Casa M.O.":      'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop',
+  "Reine's": 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop',
+  "Ryu's": 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
+  "Casa M.O.": 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop',
 };
 
 export default function PortfolioDashboard({ navigation }) {
-  const [activeTab, setActiveTab]           = useState('All Properties');
-  const [activeNav, setActiveNav]           = useState('Property');
-  const [propertyStatus, setPropertyStatus] = useState('AVAILABLE');
+  const [activeTab, setActiveTab] = useState('All Properties');
+  const activeNav = 'Property';
+  const insets = useSafeAreaInsets();
+  const scrollY = useRef(new Animated.Value(0)).current;
 
-  // Fade-in — same pattern as ReineHome
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-  }, []);
+  // Header fades smoothly to transparent based on scroll position (Ryu/Casa Style)
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [1, 0],
+    extrapolate: 'clamp'
+  });
 
-  const activePropertyDetails = PROPERTY_DETAILS[activeTab];
   const isAllProps = activeTab === 'All Properties';
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+
+      {/* --- MODERN HEADER (FIXED TOP, FADES ON SCROLL) --- */}
+      <Animated.View style={[styles.headerWrapper, { opacity: headerOpacity }]}>
+        <View style={[styles.headerSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop' }}
+                style={styles.profileAvatar}
+              />
+              <View>
+                <Text style={styles.greetingText}>Executive Dashboard,</Text>
+                <Text style={styles.headerTitle}>Welcome Back 🌿</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.bellButton} activeOpacity={0.7} onPress={() => navigation.navigate('OwnerSettings')}>
+              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Animated.View>
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        bounces={false}
-        style={{ opacity: fadeAnim }}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
-        {/* ══════════════════════════════════════════
-            FULL-BLEED HERO  (matches ReineHome)
-            ══════════════════════════════════════════ */}
-        <View style={styles.heroContainer}>
+        {/* Spacer to push content down below the pinned header */}
+        <View style={{ height: Platform.OS === 'ios' ? insets.top + 70 : (StatusBar.currentHeight || 24) + 70 }} />
+
+        {/* --- IMMERSIVE HERO CARD (Floating Style) --- */}
+        <TouchableOpacity activeOpacity={0.9} style={styles.heroCardWrapper}>
           <ImageBackground
             source={{ uri: HERO_IMAGES[activeTab] }}
-            style={styles.heroImage}
+            style={styles.heroBackground}
+            imageStyle={{ borderRadius: 32 }}
           >
+            {/* Dark Green Gradient/Overlay Simulation */}
             <View style={styles.heroOverlay} />
 
-            <SafeAreaView edges={['top']} style={styles.safeArea}>
-              {/* Top bar — avatar pill (left) + bell (right) */}
-              <View style={styles.topBar}>
-                <View style={styles.ownerPill}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop' }}
-                    style={styles.ownerAvatar}
-                  />
-                  <View>
-                    <Text style={styles.ownerLabel}>PORTFOLIO OVERVIEW</Text>
-                    {!isAllProps && (
-                      <View style={styles.liveDotRow}>
-                        <View style={styles.liveDot} />
-                        <Text style={styles.liveText}>Live · Just now</Text>
-                      </View>
-                    )}
-                    {isAllProps && <Text style={styles.ownerName}>Resort Admin</Text>}
-                  </View>
+            <View style={styles.heroContent}>
+              <View style={styles.heroHeaderRow}>
+                <View style={styles.statusBadge}>
+                  <View style={styles.statusDot} />
+                  <Text style={styles.statusBadgeText}>PORTFOLIO LIVE</Text>
+                </View>
+                <View style={styles.weatherBadge}>
+                  <Building size={14} color={COLORS.accent} strokeWidth={2.5} style={{ marginRight: 6 }} />
+                  <Text style={styles.weatherText}>{isAllProps ? '3 Properties' : activeTab}</Text>
+                </View>
+              </View>
+
+              <View style={styles.heroMainContent}>
+                <Text style={styles.heroLabel}>{isAllProps ? "TOTAL MONTHLY REVENUE" : "PROPERTY REVENUE"}</Text>
+                <Text style={styles.heroGuestName}>{isAllProps ? "₱84,230" : "₱22,400"}<Text style={styles.heroSubDecimals}>.00</Text></Text>
+
+                <View style={styles.heroSubRow}>
+                  <TrendingUp size={14} color={COLORS.accent} style={{ marginRight: 6 }} strokeWidth={3} />
+                  <Text style={styles.heroSubText}>+12.4% vs last month</Text>
                 </View>
 
-                <TouchableOpacity style={styles.iconBtnDark} activeOpacity={0.8}>
-                  <Bell size={18} color="#FFFFFF" strokeWidth={2.5} />
-                  <View style={styles.notifDot} />
+                {/* Elegant White Action Button Integrated inside the Image Card */}
+                <TouchableOpacity style={styles.actionButtonGlass} activeOpacity={0.9} onPress={() => navigation.navigate('OwnerInsights')}>
+                  <FileBarChart size={16} color={COLORS.primary} strokeWidth={2.5} />
+                  <Text style={styles.actionButtonText}>Generate Full Report</Text>
                 </TouchableOpacity>
               </View>
-
-              {/* Hero bottom — big stat block */}
-              <View style={styles.heroBottomContent}>
-                {isAllProps ? (
-                  <>
-                    <Text style={styles.heroMainStat}>
-                      ₱54,230<Text style={styles.heroSubDecimals}>.00</Text>
-                    </Text>
-                    <Text style={styles.heroSubStat}>Total Monthly Revenue</Text>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.heroMainStat}>{activePropertyDetails.title}</Text>
-                    <Text style={styles.heroSubStat}>{activePropertyDetails.baseRate}</Text>
-                  </>
-                )}
-
-                {/* Dark pill — mirrors ReineHome search pill / trendPill */}
-                {isAllProps ? (
-                  <View style={styles.statPill}>
-                    <View style={styles.statPillIconBox}>
-                      <TrendingUp size={18} color={COLORS.successText} strokeWidth={2.5} />
-                    </View>
-                    <View>
-                      <Text style={styles.statPillTitle}>+12.4% vs last month</Text>
-                      <Text style={styles.statPillSub}>3 properties · 88.5% avg occupancy</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.statPill}>
-                    <View style={[styles.statPillIconBox, { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successBg : COLORS.warningBg }]}>
-                      <View style={[styles.statusDot, { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText }]} />
-                    </View>
-                    <View>
-                      <Text style={styles.statPillTitle}>{propertyStatus}</Text>
-                      <Text style={styles.statPillSub}>{activePropertyDetails.capacity} capacity</Text>
-                    </View>
-                  </View>
-                )}
-              </View>
-            </SafeAreaView>
+            </View>
           </ImageBackground>
-        </View>
+        </TouchableOpacity>
 
-        {/* ══════════════════════════════════════════
-            PROPERTY TAB PILLS  (quick-actions strip)
-            ══════════════════════════════════════════ */}
+        {/* --- PROPERTY TABS (Scrollable Pills) --- */}
         <View style={styles.quickActionsWrapper}>
           <ScrollView
             horizontal
@@ -259,18 +215,14 @@ export default function PortfolioDashboard({ navigation }) {
                 <TouchableOpacity
                   key={tab}
                   style={[
-                    tab === 'All Properties' ? styles.actionPillDark : styles.actionPillLight,
-                    isActive && tab !== 'All Properties' && styles.actionPillLightActive,
+                    isActive ? styles.actionPillDark : styles.actionPillLight,
                   ]}
                   activeOpacity={0.8}
-                  onPress={() => { setActiveTab(tab); setPropertyStatus('AVAILABLE'); }}
+                  onPress={() => setActiveTab(tab)}
                 >
-                  <Text
-                    style={[
-                      tab === 'All Properties' ? styles.actionPillDarkText : styles.actionPillLightText,
-                      isActive && tab !== 'All Properties' && styles.actionPillLightTextActive,
-                    ]}
-                  >
+                  <Text style={[
+                    isActive ? styles.actionPillDarkText : styles.actionPillLightText,
+                  ]}>
                     {tab}
                   </Text>
                 </TouchableOpacity>
@@ -279,577 +231,706 @@ export default function PortfolioDashboard({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* ══════════════════════════════════════════
-            MAIN CONTENT — branches on tab
-            ══════════════════════════════════════════ */}
-        <View style={styles.mainContent}>
-
-          {isAllProps ? (
-            /* ──────────────────────────────────────
-               ALL PROPERTIES VIEW
-               ────────────────────────────────────── */
-            <>
-              {/* KPI BENTO GRID */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Portfolio Logistics</Text>
-              </View>
-
-              <View style={styles.bentoGrid}>
-                {/* Active Guests */}
-                <View style={styles.bentoCard}>
-                  <View style={styles.bentoTopRow}>
-                    <View style={[styles.bentoIconBox, { backgroundColor: '#EEF2FF' }]}>
-                      <Users size={18} color="#4F46E5" strokeWidth={2.5} />
-                    </View>
-                    <MoreHorizontal size={18} color={COLORS.textMuted} />
-                  </View>
-                  <Text style={styles.bentoValue}>32</Text>
-                  <Text style={styles.bentoLabel}>ACTIVE GUESTS</Text>
-                  <View style={styles.progressBg}>
-                    <View style={[styles.progressFill, { width: '40%', backgroundColor: '#4F46E5' }]} />
-                  </View>
-                </View>
-
-                {/* Occupancy Rate */}
-                <View style={styles.bentoCard}>
-                  <View style={styles.bentoTopRow}>
-                    <View style={[styles.bentoIconBox, { backgroundColor: '#FFF7ED' }]}>
-                      <BedDouble size={18} color="#EA580C" strokeWidth={2.5} />
-                    </View>
-                    <MoreHorizontal size={18} color={COLORS.textMuted} />
-                  </View>
-                  <Text style={styles.bentoValue}>88.5%</Text>
-                  <Text style={styles.bentoLabel}>OCCUPANCY RATE</Text>
-                  <View style={styles.progressBg}>
-                    <View style={[styles.progressFill, { width: '88.5%', backgroundColor: '#EA580C' }]} />
-                  </View>
-                </View>
-              </View>
-
-              {/* ── SNAPSHOT STRIP (mirrors ReineHome Today's Snapshot) ── */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Month Snapshot</Text>
-                <TouchableOpacity
-                  style={styles.reportBtn}
-                  activeOpacity={0.7}
-                  onPress={() => navigation.navigate('OwnerFinance')}
-                >
-                  <Text style={styles.reportBtnText}>Full Report</Text>
-                  <ArrowRight size={13} color={COLORS.primary} strokeWidth={2.5} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.snapshotScroll}
+        {/* --- QUICK ACTIONS ROW (4 Square Blocks) --- */}
+        <View style={styles.squaresContainer}>
+          {QUICK_ACTIONS.map((action) => {
+            const Icon = action.icon;
+            return (
+              <TouchableOpacity
+                key={action.id}
+                style={styles.squareItem}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate(action.route)}
               >
-                {/* NOI */}
-                <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
-                  <ImageBackground
-                    source={{ uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop' }}
-                    style={styles.snapshotImage}
-                    imageStyle={{ borderRadius: 24 }}
-                  >
-                    <View style={styles.snapshotOverlay} />
-                    <View style={styles.snapshotContent}>
-                      <Wallet size={24} color="#FFFFFF" style={styles.snapshotIcon} />
-                      <View>
-                        <Text style={styles.snapshotValue}>₱38,150</Text>
-                        <Text style={styles.snapshotLabel}>Net Operating Income</Text>
-                      </View>
-                    </View>
-                  </ImageBackground>
-                </TouchableOpacity>
-
-                {/* Expenses */}
-                <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
-                  <ImageBackground
-                    source={{ uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop' }}
-                    style={styles.snapshotImage}
-                    imageStyle={{ borderRadius: 24 }}
-                  >
-                    <View style={styles.snapshotOverlay} />
-                    <View style={styles.snapshotContent}>
-                      <TrendingUp size={24} color="#FFFFFF" style={styles.snapshotIcon} />
-                      <View>
-                        <Text style={styles.snapshotValue}>₱16,079</Text>
-                        <Text style={styles.snapshotLabel}>Total Expenses</Text>
-                      </View>
-                    </View>
-                  </ImageBackground>
-                </TouchableOpacity>
-
-                {/* Properties */}
-                <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
-                  <ImageBackground
-                    source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop' }}
-                    style={styles.snapshotImage}
-                    imageStyle={{ borderRadius: 24 }}
-                  >
-                    <View style={styles.snapshotOverlay} />
-                    <View style={styles.snapshotContent}>
-                      <MapPin size={24} color="#FFFFFF" style={styles.snapshotIcon} />
-                      <View>
-                        <Text style={styles.snapshotValue}>3 Active</Text>
-                        <Text style={styles.snapshotLabel}>Properties</Text>
-                      </View>
-                    </View>
-                  </ImageBackground>
-                </TouchableOpacity>
-              </ScrollView>
-
-              {/* ── PROPERTY PERFORMANCE LIST — styled like ReineHome largeCard rows ── */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Property Performance</Text>
-              </View>
-
-              <View style={styles.propertyList}>
-                {PROPERTY_PERFORMANCE.map((prop) => (
-                  <TouchableOpacity
-                    key={prop.id}
-                    activeOpacity={0.85}
-                    onPress={() => setActiveTab(prop.tabName)}
-                    style={styles.propertyCard}
-                  >
-                    {/* Image side */}
-                    <Image source={{ uri: prop.image }} style={styles.propertyThumb} />
-
-                    <View style={styles.propertyInfo}>
-                      <View style={styles.propertyHeaderRow}>
-                        <Text style={styles.propertyName} numberOfLines={1}>{prop.name}</Text>
-                        <View style={[styles.statusBadge, { backgroundColor: prop.statusBg }]}>
-                          <Text style={[styles.statusBadgeText, { color: prop.statusText }]}>
-                            {prop.status}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.propertyStatsRow}>
-                        <View style={styles.propStatBox}>
-                          <Text style={styles.propStatLabel}>REVENUE</Text>
-                          <Text style={styles.propStatValue}>{prop.rev}</Text>
-                        </View>
-                        <View style={styles.propStatDivider} />
-                        <View style={styles.propStatBox}>
-                          <Text style={styles.propStatLabel}>OCCUPANCY</Text>
-                          <Text style={styles.propStatValue}>{prop.occ}</Text>
-                        </View>
-                        <ArrowRight size={16} color={COLORS.textMuted} style={{ marginLeft: 'auto' }} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
-          ) : (
-            /* ──────────────────────────────────────
-               SINGLE PROPERTY VIEW
-               ────────────────────────────────────── */
-            <>
-              {/* Details card — styled like ReineBookings detailsCard */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Property Details</Text>
-              </View>
-
-              <View style={styles.detailCard}>
-                <View style={styles.detailHeader}>
-                  <View style={[
-                    styles.availBadge,
-                    { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successBg : COLORS.warningBg },
-                  ]}>
-                    <View style={[
-                      styles.availDot,
-                      { backgroundColor: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText },
-                    ]} />
-                    <Text style={[
-                      styles.availText,
-                      { color: propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.warningText },
-                    ]}>
-                      {propertyStatus}
-                    </Text>
-                  </View>
-                  <View style={styles.homeIconBtn}>
-                    <Home size={20} color={COLORS.primary} strokeWidth={2.5} />
-                  </View>
+                <View style={styles.squareIconBox}>
+                  <Icon size={24} color={COLORS.primary} strokeWidth={2} />
                 </View>
-
-                <Text style={styles.detailTitle}>{activePropertyDetails.title}</Text>
-
-                <Text style={styles.amenityHeader}>INCLUDED AMENITIES</Text>
-                <View style={styles.amenityGrid}>
-                  {activePropertyDetails.amenities.map((item, idx) => {
-                    const Icon = item.icon;
-                    return (
-                      <View key={idx} style={styles.amenityPill}>
-                        <Icon size={13} color={COLORS.primary} strokeWidth={2.5} style={{ marginRight: 6 }} />
-                        <Text style={styles.amenityPillText}>{item.label}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
-
-                <View style={styles.divider} />
-
-                <View style={styles.detailFooter}>
-                  <View>
-                    <Text style={styles.footerLabel}>CAPACITY</Text>
-                    <Text style={styles.footerValue}>{activePropertyDetails.capacity}</Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.footerLabel}>BASE RATE</Text>
-                    <Text style={styles.footerValue}>{activePropertyDetails.baseRate}</Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* Status toggle card */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Update Status</Text>
-                <View style={styles.syncBadge}>
-                  <View style={styles.liveDot} />
-                  <Text style={styles.syncText}>SYNCING</Text>
-                </View>
-              </View>
-
-              <View style={styles.statusCard}>
-                <View style={styles.statusToggleRow}>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => setPropertyStatus('AVAILABLE')}
-                    style={[
-                      styles.statusToggleBtn,
-                      propertyStatus === 'AVAILABLE' && styles.statusToggleBtnActive,
-                    ]}
-                  >
-                    <CheckCircle2
-                      size={22}
-                      color={propertyStatus === 'AVAILABLE' ? COLORS.successText : COLORS.textMuted}
-                      strokeWidth={2}
-                    />
-                    <Text style={[
-                      styles.statusToggleText,
-                      propertyStatus === 'AVAILABLE' && styles.statusToggleTextActive,
-                    ]}>
-                      AVAILABLE
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => setPropertyStatus('OCCUPIED')}
-                    style={[
-                      styles.statusToggleBtn,
-                      propertyStatus === 'OCCUPIED' && styles.statusToggleBtnActive,
-                    ]}
-                  >
-                    <User
-                      size={22}
-                      color={propertyStatus === 'OCCUPIED' ? COLORS.primary : COLORS.textMuted}
-                      strokeWidth={2}
-                    />
-                    <Text style={[
-                      styles.statusToggleText,
-                      propertyStatus === 'OCCUPIED' && styles.statusToggleTextActive,
-                    ]}>
-                      OCCUPIED
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Single property snapshot strip */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Property Snapshot</Text>
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.snapshotScroll}
-              >
-                <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
-                  <ImageBackground
-                    source={{ uri: HERO_IMAGES[activeTab] }}
-                    style={styles.snapshotImage}
-                    imageStyle={{ borderRadius: 24 }}
-                  >
-                    <View style={styles.snapshotOverlay} />
-                    <View style={styles.snapshotContent}>
-                      <Wallet size={24} color="#FFFFFF" style={styles.snapshotIcon} />
-                      <View>
-                        <Text style={styles.snapshotValue}>₱22.4k</Text>
-                        <Text style={styles.snapshotLabel}>This Month</Text>
-                      </View>
-                    </View>
-                  </ImageBackground>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
-                  <ImageBackground
-                    source={{ uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop' }}
-                    style={styles.snapshotImage}
-                    imageStyle={{ borderRadius: 24 }}
-                  >
-                    <View style={styles.snapshotOverlay} />
-                    <View style={styles.snapshotContent}>
-                      <BedDouble size={24} color="#FFFFFF" style={styles.snapshotIcon} />
-                      <View>
-                        <Text style={styles.snapshotValue}>94%</Text>
-                        <Text style={styles.snapshotLabel}>Occupancy</Text>
-                      </View>
-                    </View>
-                  </ImageBackground>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
-                  <ImageBackground
-                    source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop' }}
-                    style={styles.snapshotImage}
-                    imageStyle={{ borderRadius: 24 }}
-                  >
-                    <View style={styles.snapshotOverlay} />
-                    <View style={styles.snapshotContent}>
-                      <CalendarDays size={24} color="#FFFFFF" style={styles.snapshotIcon} />
-                      <View>
-                        <Text style={styles.snapshotValue}>8 Stays</Text>
-                        <Text style={styles.snapshotLabel}>This Month</Text>
-                      </View>
-                    </View>
-                  </ImageBackground>
-                </TouchableOpacity>
-              </ScrollView>
-            </>
-          )}
+                <Text style={styles.squareLabel}>{action.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
+
+        {/* --- BENTO BOX GRID --- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Logistics Snapshot</Text>
+        </View>
+
+        <View style={styles.bentoGrid}>
+          {/* Tall Occupancy Card */}
+          <TouchableOpacity
+            style={[styles.bentoCard, styles.revenueCard]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('OwnerInsights')}
+          >
+            <View style={styles.bentoIconWrapper}>
+              <PieChart size={24} color={COLORS.primary} strokeWidth={2.5} />
+            </View>
+            <View style={styles.bentoTextWrap}>
+              <Text style={styles.bentoLabelDark}>AVG OCCUPANCY</Text>
+              <Text style={styles.revenueValueDark}>88.5%</Text>
+              <View style={styles.trendRow}>
+                <ArrowUpRight size={14} color={COLORS.successText} strokeWidth={3} />
+                <Text style={styles.trendText}>+5% vs yesterday</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* Stacked Logistics Cards */}
+          <View style={styles.bentoCol}>
+            <TouchableOpacity
+              style={[styles.bentoCard, styles.smallBento, { backgroundColor: '#F0FDF4', borderColor: '#DCFCE7' }]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('OwnerBookings')}
+            >
+              <View style={styles.bentoHeader}>
+                <Text style={styles.bentoLabelDark}>ACTIVE GUESTS</Text>
+                <Users size={18} color="#16A34A" strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.smallBentoValue, { color: '#16A34A' }]}>32 <Text style={styles.smallBentoSub}>Pax</Text></Text>
+              <Text style={styles.smallBentoDesc}>Across portfolio</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.bentoCard, styles.smallBento, { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('OwnerBookings')}
+            >
+              <View style={styles.bentoHeader}>
+                <Text style={styles.bentoLabelDark}>UPCOMING</Text>
+                <CalendarDays size={18} color={COLORS.textMain} strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.smallBentoValue, { color: COLORS.textMain }]}>14 <Text style={styles.smallBentoSub}>Stays</Text></Text>
+              <Text style={styles.smallBentoDesc}>Next 7 days</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* --- PROPERTY PERFORMANCE LIST --- */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Property Performance</Text>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('OwnerInsights')}>
+            <Text style={styles.viewAllText}>Insights</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.propertyList}>
+          {PROPERTY_PERFORMANCE.map((prop) => (
+            <TouchableOpacity
+              key={prop.id}
+              activeOpacity={0.85}
+              onPress={() => setActiveTab(prop.tabName)}
+              style={styles.propertyCard}
+            >
+              <Image source={{ uri: prop.image }} style={styles.propertyThumb} />
+              <View style={styles.propertyInfo}>
+                <View style={styles.propertyHeaderRow}>
+                  <Text style={styles.propertyName} numberOfLines={1}>{prop.name}</Text>
+                  <View style={[styles.statusBadgeMini, { backgroundColor: prop.statusBg }]}>
+                    <Text style={[styles.statusBadgeTextMini, { color: prop.statusText }]}>
+                      {prop.status}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.propertyStatsRow}>
+                  <View style={styles.propStatBox}>
+                    <Text style={styles.propStatLabel}>REVENUE</Text>
+                    <Text style={styles.propStatValue}>{prop.rev}</Text>
+                  </View>
+                  <View style={styles.propStatDivider} />
+                  <View style={styles.propStatBox}>
+                    <Text style={styles.propStatLabel}>OCCUPANCY</Text>
+                    <Text style={styles.propStatValue}>{prop.occ}</Text>
+                  </View>
+                  <ArrowRight size={18} color={COLORS.textMuted} style={{ marginLeft: 'auto' }} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Spacer for Bottom Nav */}
         <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
 
-      {/* ══════════════════════════════════════════
-          BLACK-PILL BOTTOM NAV — owner tier uses
-          the same dark pill as ReineHome but with
-          the green primary highlights preserved.
-          ══════════════════════════════════════════ */}
-      <View style={styles.bottomNavContainer}>
+      {/* --- DARK GREEN PILL BOTTOM NAV (Owner Theme) --- */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
-          <TouchableOpacity onPress={() => setActiveNav('Property')} style={styles.navItem} activeOpacity={0.8}>
-            <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : COLORS.textMuted} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem} activeOpacity={0.8}>
+            <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
             <Text style={[styles.navText, activeNav === 'Property' && styles.navTextActive]}>Portfolio</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setActiveNav('Bookings'); navigation.navigate('OwnerBookings'); }} style={styles.navItem} activeOpacity={0.8}>
-            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setActiveNav('Finance'); navigation.navigate('OwnerFinance'); }} style={styles.navItem} activeOpacity={0.8}>
-            <BarChart2 size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <BarChart2 size={22} color={activeNav === 'Finance' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setActiveNav('Ledger'); navigation.navigate('OwnerLedger'); }} style={styles.navItem} activeOpacity={0.8}>
-            <BookOpen size={22} color={activeNav === 'Ledger' ? '#FFFFFF' : COLORS.textMuted} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={styles.navItem} activeOpacity={0.8}>
+            <BookOpen size={22} color={activeNav === 'Ledger' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
             <Text style={[styles.navText, activeNav === 'Ledger' && styles.navTextActive]}>Ledger</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setActiveNav('Insights'); navigation.navigate('OwnerInsights'); }} style={styles.navItem} activeOpacity={0.8}>
-            <PieChart size={22} color={activeNav === 'Insights' ? '#FFFFFF' : COLORS.textMuted} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={styles.navItem} activeOpacity={0.8}>
+            <PieChart size={22} color={activeNav === 'Insights' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
             <Text style={[styles.navText, activeNav === 'Insights' && styles.navTextActive]}>Insights</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setActiveNav('Settings'); navigation.navigate('OwnerSettings'); }} style={styles.navItem} activeOpacity={0.8}>
-            <Settings size={22} color={activeNav === 'Settings' ? '#FFFFFF' : COLORS.textMuted} />
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Settings' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
             <Text style={[styles.navText, activeNav === 'Settings' && styles.navTextActive]}>Settings</Text>
           </TouchableOpacity>
         </View>
       </View>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: COLORS.background },
-  scrollContent:{ flexGrow: 1 },
-
-  /* ── HERO ── */
-  heroContainer: { width: '100%', height: 360 },
-  heroImage:     { width: '100%', height: '100%' },
-  heroOverlay:   { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(10,25,15,0.55)' },
-  safeArea: {
-    flex: 1, paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 0 : 8,
-    paddingBottom: 28, justifyContent: 'space-between',
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
 
-  /* Top bar */
-  topBar:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  ownerPill:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  ownerAvatar:{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)' },
-  ownerLabel: { fontSize: 10, fontWeight: '800', color: 'rgba(255,255,255,0.75)', letterSpacing: 1.2, marginBottom: 2 },
-  ownerName:  { fontSize: 18, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.3 },
-  liveDotRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
-  liveDot:    { width: 7, height: 7, borderRadius: 4, backgroundColor: COLORS.accent },
-  liveText:   { fontSize: 11, fontWeight: '700', color: COLORS.accent },
-  iconBtnDark:{
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(30,60,30,0.6)',
-    justifyContent: 'center', alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+  /* --- HEADER (ABSOLUTE TO PIN IT AT TOP) --- */
+  headerWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: COLORS.background,
   },
-  notifDot:{
-    position: 'absolute', top: 10, right: 10,
-    width: 9, height: 9, borderRadius: 5,
-    backgroundColor: COLORS.dangerText, borderWidth: 2, borderColor: '#FFFFFF',
+  headerSafeArea: {
+    paddingBottom: 8,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    height: 60,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginRight: 14,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  greetingText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+    marginBottom: 2,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+  },
+  bellButton: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+    position: 'relative',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 12,
+    right: 14,
+    width: 10,
+    height: 10,
+    backgroundColor: COLORS.accent,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
 
-  /* Hero bottom */
-  heroBottomContent: { marginTop: 'auto', gap: 10 },
-  heroMainStat:   { fontSize: 40, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
-  heroSubDecimals:{ fontSize: 22, color: 'rgba(255,255,255,0.65)' },
-  heroSubStat:    { fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
-
-  /* Dark stat pill (mirrors ReineHome searchPill / trendPill) */
-  statPill:{
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(10,25,15,0.7)',
-    borderRadius: 100, paddingHorizontal: 16, paddingVertical: 14,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+  scrollContent: {
+    paddingHorizontal: 24,
   },
-  statPillIconBox:{
-    width: 36, height: 36, borderRadius: 18,
+
+  /* --- IMMERSIVE HERO CARD (Floating Style) --- */
+  heroCardWrapper: {
+    width: '100%',
+    height: 260,
+    borderRadius: 32,
+    marginBottom: 20,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  heroBackground: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(26, 54, 38, 0.65)', // Deep Green Overlay
+    borderRadius: 32,
+  },
+  heroContent: {
+    padding: 24,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'space-between',
+  },
+  heroHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    backgroundColor: COLORS.accent,
+    borderRadius: 4,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  statusBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  weatherBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  weatherText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  heroMainContent: {
+    marginBottom: 4,
+  },
+  heroLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  heroGuestName: {
+    color: '#FFFFFF',
+    fontSize: 36,
+    fontWeight: '800',
+    letterSpacing: -1,
+    marginBottom: 6,
+  },
+  heroSubDecimals: {
+    fontSize: 20,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  heroSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  heroSubText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  actionButtonGlass: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    height: 48,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
+  },
+
+  /* --- QUICK TAB PILLS --- */
+  quickActionsWrapper: {
+    marginBottom: 20,
+    marginHorizontal: -24,
+  },
+  quickActionsScroll: {
+    paddingHorizontal: 24,
+    gap: 10,
+    alignItems: 'center',
+  },
+  actionPillDark: {
+    backgroundColor: COLORS.surfaceDark,
+    paddingHorizontal: 20,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 100,
+  },
+  actionPillDarkText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  actionPillLight: {
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 16,
+    height: 44,
+    justifyContent: 'center',
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  actionPillLightText: {
+    color: COLORS.textMain,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  /* --- SQUARE QUICK ACTIONS ROW --- */
+  squaresContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+    paddingHorizontal: 4,
+  },
+  squareItem: {
+    alignItems: 'center',
+    width: '22%',
+  },
+  squareIconBox: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F8FAFC',
+  },
+  squareLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+  },
+
+  /* --- SECTION HEADERS --- */
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginBottom: 2,
+  },
+
+  /* --- BENTO BOX GRID --- */
+  bentoGrid: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 32,
+  },
+  bentoCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 28,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  revenueCard: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.05,
+    borderColor: COLORS.border,
+    justifyContent: 'space-between',
+  },
+  bentoCol: {
+    flex: 1,
+    gap: 16,
+  },
+  smallBento: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 16,
+  },
+  bentoIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  bentoTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  bentoIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bentoTextWrap: {
+    marginTop: 'auto',
+  },
+  bentoLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  bentoLabelDark: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+  },
+  bentoValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  revenueValueDark: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
+    letterSpacing: -1.5,
+    marginBottom: 12,
+  },
+  progressBg: {
+    height: 6,
+    backgroundColor: COLORS.border,
+    borderRadius: 3,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  trendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.successBg,
-    justifyContent: 'center', alignItems: 'center', marginRight: 12,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  statusDot:{ width: 10, height: 10, borderRadius: 5 },
-  statPillTitle:{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
-  statPillSub:  { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },
+  trendText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: COLORS.successText,
+    marginLeft: 4,
+  },
+  bentoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  smallBentoValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  smallBentoSub: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  smallBentoDesc: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+  },
 
-  /* ── QUICK FILTER PILLS ── */
-  quickActionsWrapper: { marginTop: 20, marginBottom: 12 },
-  quickActionsScroll:  { paddingHorizontal: 24, gap: 10, alignItems: 'center' },
-  actionPillDark:{
-    backgroundColor: COLORS.surfaceDark, paddingHorizontal: 20,
-    height: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 100,
+  /* --- PROPERTY LIST CARDS --- */
+  propertyList: {
+    gap: 16,
   },
-  actionPillDarkText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
-  actionPillLight:{
-    backgroundColor: COLORS.surface, paddingHorizontal: 16,
-    height: 44, justifyContent: 'center', borderRadius: 100,
-    borderWidth: 1, borderColor: COLORS.border,
+  propertyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  actionPillLightActive:{ backgroundColor: COLORS.primaryLight, borderColor: COLORS.primary },
-  actionPillLightText:  { color: COLORS.textMain, fontSize: 14, fontWeight: '600' },
-  actionPillLightTextActive:{ color: COLORS.primary, fontWeight: '700' },
+  propertyThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: 18,
+    backgroundColor: COLORS.background,
+  },
+  propertyInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  propertyHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  propertyName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    flex: 1,
+    marginRight: 8,
+    letterSpacing: -0.2,
+  },
+  statusBadgeMini: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusBadgeTextMini: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  propertyStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  propStatBox: {
+    flex: 1,
+  },
+  propStatLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  propStatValue: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textMain,
+  },
+  propStatDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 12,
+  },
 
-  /* ── MAIN CONTENT ── */
-  mainContent: { paddingHorizontal: 24, paddingTop: 8 },
-  sectionHeader:{
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 16, marginTop: 8,
+  bottomSpacer: {
+    height: 160,
   },
-  sectionTitle:{ fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
-  reportBtn:{
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: COLORS.primaryLight, paddingHorizontal: 12,
-    paddingVertical: 6, borderRadius: 100,
-  },
-  reportBtnText:{ fontSize: 11, fontWeight: '800', color: COLORS.primary, marginRight: 4 },
 
-  /* ── BENTO KPI ── */
-  bentoGrid:{ flexDirection: 'row', gap: 14, marginBottom: 8 },
-  bentoCard:{
-    flex: 1, backgroundColor: COLORS.surface, borderRadius: 24, padding: 18,
-    borderWidth: 1, borderColor: COLORS.border,
+  /* --- DARK GREEN PILL BOTTOM NAV (Owner Theme) --- */
+  bottomNavContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: '92%',
+    zIndex: 100,
   },
-  bentoTopRow:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  bentoIconBox:{ width: 36, height: 36, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  bentoValue:{ fontSize: 24, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5, marginBottom: 4 },
-  bentoLabel:{ fontSize: 9, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 0.5, marginBottom: 10 },
-  progressBg:{ height: 6, backgroundColor: COLORS.border, borderRadius: 3 },
-  progressFill:{ height: '100%', borderRadius: 3 },
-
-  /* ── SNAPSHOT STRIP ── */
-  snapshotScroll:{ gap: 16, paddingBottom: 8 },
-  snapshotCard:  { width: 160, height: 180, borderRadius: 24, overflow: 'hidden' },
-  snapshotImage: { width: '100%', height: '100%' },
-  snapshotOverlay:{
-    ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.38)', borderRadius: 24,
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceDark,
+    borderRadius: 100,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
   },
-  snapshotContent:{ flex: 1, padding: 16, justifyContent: 'space-between' },
-  snapshotIcon:   { marginBottom: 'auto' },
-  snapshotValue:  { fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 2 },
-  snapshotLabel:  { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.8)' },
-
-  /* ── PROPERTY LIST CARDS ── */
-  propertyList: { gap: 14 },
-  propertyCard:{
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: COLORS.surface, borderRadius: 24, padding: 16,
-    borderWidth: 1, borderColor: COLORS.border,
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
-  propertyThumb:{ width: 68, height: 68, borderRadius: 18, backgroundColor: COLORS.background },
-  propertyInfo: { flex: 1, marginLeft: 14 },
-  propertyHeaderRow:{
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 10,
+  navText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: 3,
   },
-  propertyName:{ fontSize: 15, fontWeight: '800', color: COLORS.textMain, flex: 1, marginRight: 8, letterSpacing: -0.2 },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  statusBadgeText:{ fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
-  propertyStatsRow:{ flexDirection: 'row', alignItems: 'center' },
-  propStatBox: { flex: 1 },
-  propStatLabel:{ fontSize: 9, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 0.5, marginBottom: 2 },
-  propStatValue:{ fontSize: 14, fontWeight: '800', color: COLORS.textMain },
-  propStatDivider:{ width: 1, height: 22, backgroundColor: COLORS.border, marginHorizontal: 12 },
-
-  /* ── SINGLE PROPERTY DETAIL CARD ── */
-  detailCard:{
-    backgroundColor: COLORS.surface, borderRadius: 24, padding: 24,
-    marginBottom: 8, borderWidth: 1, borderColor: COLORS.border,
+  navTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
-  detailHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  availBadge:{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 100 },
-  availDot:  { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
-  availText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  homeIconBtn:{ width: 38, height: 38, borderRadius: 12, backgroundColor: COLORS.primaryLight, justifyContent: 'center', alignItems: 'center' },
-  detailTitle:{ fontSize: 26, fontWeight: '800', color: COLORS.primary, letterSpacing: -1, marginBottom: 20 },
-  amenityHeader:{ fontSize: 10, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 1.5, marginBottom: 10 },
-  amenityGrid:{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
-  amenityPill:{
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.border,
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12,
-  },
-  amenityPillText:{ fontSize: 11, fontWeight: '700', color: COLORS.textMain },
-  divider:{ height: 1, backgroundColor: COLORS.border, marginVertical: 20 },
-  detailFooter:{ flexDirection: 'row', justifyContent: 'space-between' },
-  footerLabel:{ fontSize: 10, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 1, marginBottom: 4 },
-  footerValue:{ fontSize: 15, fontWeight: '800', color: COLORS.textMain },
-
-  /* Status toggle card */
-  statusCard:{
-    backgroundColor: COLORS.surface, borderRadius: 24, padding: 20,
-    marginBottom: 8, borderWidth: 1, borderColor: COLORS.border,
-  },
-  statusToggleRow:{ flexDirection: 'row', gap: 12 },
-  statusToggleBtn:{
-    flex: 1, height: 80, borderRadius: 20, borderWidth: 1, borderColor: COLORS.border,
-    justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background,
-  },
-  statusToggleBtnActive:{ backgroundColor: COLORS.successBg, borderColor: COLORS.successText },
-  statusToggleText:{ fontSize: 11, fontWeight: '800', color: COLORS.textMuted, marginTop: 8, letterSpacing: 0.5 },
-  statusToggleTextActive:{ color: COLORS.textMain },
-  syncBadge:{ flexDirection: 'row', alignItems: 'center', gap: 5 },
-  syncText:{ fontSize: 10, fontWeight: '800', color: COLORS.accent, letterSpacing: 0.5 },
-
-  bottomSpacer:{ height: 160 },
-
-  /* ── BLACK-PILL BOTTOM NAV (owner = green dark, same pill shape) ── */
-  bottomNavContainer:{
-    position: 'absolute', bottom: Platform.OS === 'ios' ? 32 : 24,
-    alignSelf: 'center', width: '92%', zIndex: 100,
-  },
-  bottomNav:{
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: COLORS.surfaceDark, borderRadius: 100,
-    paddingVertical: 10, paddingHorizontal: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3, shadowRadius: 20, elevation: 20,
-  },
-  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-  navText: { fontSize: 9, fontWeight: '600', color: 'rgba(255,255,255,0.45)', marginTop: 3 },
-  navTextActive:{ color: '#FFFFFF', fontWeight: '700' },
 });

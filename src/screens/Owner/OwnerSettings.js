@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  Animated,
   TouchableOpacity,
   Image,
   Platform,
@@ -11,7 +12,7 @@ import {
   ImageBackground,
   Dimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Bell,
   Shield,
@@ -28,27 +29,36 @@ import {
   Calendar,
   BarChart2,
   BookOpen,
-  PieChart
+  PieChart,
+  CalendarCheck
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-// Premium Color Palette (Owner Portal)
+// ── OWNER PORTAL PALETTE (matches PortfolioDashboard & OwnerBookings) ──
 const COLORS = {
-  background: '#F8FAFC',    // Cool off-white for depth
-  primary: '#1A3626',       // Deep luxury forest green
-  primaryLight: '#E8F0EA',  // Soft muted green
-  primaryDark: '#0D1E14',   // Darker green
-  textMain: '#0F172A',      // Slate 900
-  textMuted: '#64748B',     // Slate 500
-  border: '#E2E8F0',        // Slate 200
+  background: '#F8FAFC',
+  surface: '#FFFFFF',
+  surfaceDark: '#1A3626',      // Owner Deep Forest Green
+  surfaceDarkHover: '#0D1E14',
+
+  primary: '#1A3626',
+  primaryLight: '#E8F0EA',
+  primaryDark: '#0D1E14',
+  accent: '#2DD4BF',
+  accentLight: '#CCFBF1',
+
+  textMain: '#0F172A',
+  textMuted: '#64748B',
+  border: '#E2E8F0',
+
   cardBg: '#FFFFFF',
   dangerBg: '#FEE2E2',
   dangerText: '#EF4444',
   successText: '#16A34A',
 };
 
-// Grouped Settings for a cleaner, organized UI
+// Grouped Settings
 const MENU_GROUPS = [
   {
     title: 'PORTFOLIO MANAGEMENT',
@@ -76,14 +86,19 @@ const MENU_GROUPS = [
 
 export default function OwnerSettings({ navigation }) {
   const activeNav = 'Settings';
+  const insets = useSafeAreaInsets();
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Header fades out as user scrolls — mirrors PortfolioDashboard behavior
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [1, 0],
+    extrapolate: 'clamp'
+  });
 
   const handleLogout = () => {
-    // Reset navigation to Login screen
     if (navigation && navigation.reset) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
     }
   };
 
@@ -91,58 +106,92 @@ export default function OwnerSettings({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      <ScrollView
+      {/* ── FIXED FADING HEADER (matches PortfolioDashboard) ── */}
+      <Animated.View style={[styles.headerWrapper, { opacity: headerOpacity }]}>
+        <View style={[styles.headerSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.iconBtnHeader}>
+                <Settings size={20} color={COLORS.primary} strokeWidth={2.5} />
+              </View>
+              <View>
+                <Text style={styles.greetingText}>Configuration</Text>
+                <Text style={styles.headerTitle}>Settings</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Animated.View>
+
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         bounces={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
-        {/* --- FULL BLEED HERO IMAGE HEADER --- */}
-        <ImageBackground
-          source={{ uri: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop' }}
-          style={styles.heroHeader}
-        >
-          {/* Dark gradient overlay for text readability */}
-          <View style={styles.heroOverlay} />
+        {/* Spacer to clear the pinned header */}
+        <View style={{ height: Platform.OS === 'ios' ? insets.top + 70 : (StatusBar.currentHeight || 24) + 70, paddingHorizontal: 20 }} />
 
-          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
-            {/* Top Nav Row */}
-            <View style={styles.headerTopRow}>
-              <View>
-                <Text style={styles.greetingText}>Configuration</Text>
-                <Text style={styles.adminTitle}>Settings</Text>
+        {/* ══════════════════════════════════════════
+            IMMERSIVE HERO CARD (matches PortfolioDashboard floating style)
+            ══════════════════════════════════════════ */}
+        <View style={styles.heroCardWrapper}>
+          <ImageBackground
+            source={{ uri: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop' }}
+            style={styles.heroBackground}
+            imageStyle={{ borderRadius: 32 }}
+          >
+            <View style={styles.heroOverlay} />
+
+            <View style={styles.heroContent}>
+              {/* Top badges row - Now absolutely positioned */}
+              <View style={styles.heroHeaderRow}>
+                <View style={styles.statusBadge}>
+                  <View style={styles.statusDot} />
+                  <Text style={styles.statusBadgeText}>PORTFOLIO OWNER</Text>
+                </View>
+                <View style={styles.weatherBadge}>
+                  <Building size={14} color={COLORS.accent} strokeWidth={2.5} style={{ marginRight: 6 }} />
+                  <Text style={styles.weatherText}>3 Properties</Text>
+                </View>
               </View>
-            </View>
 
-            {/* Glassmorphism Profile Card */}
-            <View style={styles.glassCard}>
-              <View style={styles.profileInfoRow}>
-                <View style={styles.avatarWrapper}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop' }}
-                    style={styles.avatarImage}
-                  />
-                  <View style={styles.verifiedBadge}>
-                    <CheckCircle2 size={16} color={COLORS.primary} fill="#FFFFFF" strokeWidth={2} />
+              {/* Profile card centered in hero card */}
+              <View style={styles.glassCard}>
+                <View style={styles.profileInfoRow}>
+                  <View style={styles.avatarWrapper}>
+                    <Image
+                      source={{ uri: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop' }}
+                      style={styles.avatarImage}
+                    />
+                    <View style={styles.verifiedBadge}>
+                      <CheckCircle2 size={16} color={COLORS.primary} fill="#FFFFFF" strokeWidth={2} />
+                    </View>
+                  </View>
+                  <View style={styles.profileTextContainer}>
+                    <Text style={styles.profileName}>Admin Jr.</Text>
+                    <Text style={styles.profileRole}>Portfolio Owner</Text>
                   </View>
                 </View>
 
-                <View style={styles.profileTextContainer}>
-                  <Text style={styles.profileName}>Admin Jr.</Text>
-                  <Text style={styles.profileRole}>Portfolio Owner</Text>
-                </View>
+                <TouchableOpacity activeOpacity={0.8} style={styles.editProfileBtn}>
+                  <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+                </TouchableOpacity>
               </View>
-
-              <TouchableOpacity activeOpacity={0.8} style={styles.editProfileBtn}>
-                <Text style={styles.editProfileBtnText}>Edit Profile</Text>
-              </TouchableOpacity>
             </View>
-          </SafeAreaView>
-        </ImageBackground>
+          </ImageBackground>
+        </View>
 
-        {/* --- OVERLAPPING MAIN SHEET --- */}
+        {/* ══════════════════════════════════════════
+            OVERLAPPING MAIN SHEET
+            ══════════════════════════════════════════ */}
         <View style={styles.mainSheet}>
 
-          {/* --- GROUPED SETTINGS MENU --- */}
+          {/* ── GROUPED SETTINGS MENU ── */}
           {MENU_GROUPS.map((group, groupIndex) => (
             <View key={groupIndex} style={styles.menuGroup}>
               <Text style={styles.groupTitle}>{group.title}</Text>
@@ -161,12 +210,10 @@ export default function OwnerSettings({ navigation }) {
                       <View style={styles.iconBox}>
                         <Icon size={20} color={COLORS.primary} strokeWidth={2.5} />
                       </View>
-
                       <View style={styles.menuTextContainer}>
                         <Text style={styles.menuItemTitle}>{item.title}</Text>
                         <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
                       </View>
-
                       <ChevronRight size={20} color="#CBD5E1" strokeWidth={2.5} />
                     </TouchableOpacity>
                   );
@@ -175,7 +222,7 @@ export default function OwnerSettings({ navigation }) {
             </View>
           ))}
 
-          {/* --- LOGOUT BUTTON --- */}
+          {/* ── LOGOUT BUTTON ── */}
           <View style={styles.footerContainer}>
             <TouchableOpacity activeOpacity={0.85} style={styles.logoutButton} onPress={handleLogout}>
               <LogOut size={20} color={COLORS.dangerText} strokeWidth={2.5} style={styles.logoutIcon} />
@@ -187,42 +234,35 @@ export default function OwnerSettings({ navigation }) {
 
         </View>
         <View style={styles.bottomSpacer} />
-      </ScrollView>
+      </Animated.ScrollView>
 
-      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
-      <View style={styles.bottomNavContainer}>
+      {/* ── DARK GREEN PILL BOTTOM NAV (matches PortfolioDashboard & OwnerBookings) ── */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} activeOpacity={0.7} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]}>
-            <LayoutGrid size={22} color={activeNav === 'Property' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Property' && <Text style={styles.navTextActive}>Overview</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem} activeOpacity={0.8}>
+            <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
+            <Text style={[styles.navText, activeNav === 'Property' && styles.navTextActive]}>Portfolio</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} activeOpacity={0.7} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]}>
-            <Calendar size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Bookings' && <Text style={styles.navTextActive}>Bookings</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarCheck size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} activeOpacity={0.7} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]}>
-            <BarChart2 size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Finance' && <Text style={styles.navTextActive}>Finance</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <BarChart2 size={22} color={activeNav === 'Finance' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} activeOpacity={0.7} style={[styles.navItem, activeNav === 'Ledger' && styles.navItemActive]}>
-            <BookOpen size={22} color={activeNav === 'Ledger' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Ledger' && <Text style={styles.navTextActive}>Ledger</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={styles.navItem} activeOpacity={0.8}>
+            <BookOpen size={22} color={activeNav === 'Ledger' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
+            <Text style={[styles.navText, activeNav === 'Ledger' && styles.navTextActive]}>Ledger</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} activeOpacity={0.7} style={[styles.navItem, activeNav === 'Insights' && styles.navItemActive]}>
-            <PieChart size={22} color={activeNav === 'Insights' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Insights' && <Text style={styles.navTextActive}>Insights</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={styles.navItem} activeOpacity={0.8}>
+            <PieChart size={22} color={activeNav === 'Insights' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
+            <Text style={[styles.navText, activeNav === 'Insights' && styles.navTextActive]}>Insights</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} activeOpacity={0.7} style={[styles.navItem, activeNav === 'Settings' && styles.navItemActive]}>
-            <Settings size={22} color={activeNav === 'Settings' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Settings' && <Text style={styles.navTextActive}>Settings</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Settings' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
+            <Text style={[styles.navText, styles.navTextActive]}>Settings</Text>
           </TouchableOpacity>
-
         </View>
       </View>
 
@@ -239,58 +279,135 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  /* --- FULL BLEED HERO --- */
-  heroHeader: {
-    width: '100%',
-    height: 380, // Generous height for the image
-    justifyContent: 'flex-start',
+  /* ── FIXED FADING HEADER (matches PortfolioDashboard) ── */
+  headerWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+    backgroundColor: COLORS.background,
   },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)', // Dark slate overlay for deep contrast
+  headerSafeArea: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
   },
-  heroSafeArea: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'space-between',
-    paddingBottom: 40, // Space before the overlapping sheet
-  },
-
-  /* Top Nav in Hero */
-  headerTopRow: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? 16 : 8,
+    paddingTop: 8,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconBtnHeader: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   greetingText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 2,
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
-    letterSpacing: 1,
   },
-  adminTitle: {
-    fontSize: 28,
+  headerTitle: {
+    fontSize: 20,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.textMain,
     letterSpacing: -0.5,
   },
 
-  /* Glassmorphism Profile Card */
-  glassCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Translucent
-    borderRadius: 28,
+  /* ── HERO CARD (matches PortfolioDashboard floating style) ── */
+  heroCardWrapper: {
+    marginBottom: 0,
+    marginHorizontal: 20,
+    borderRadius: 32,
+    overflow: 'hidden',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.2,
+    shadowRadius: 32,
+    elevation: 12,
+  },
+  heroBackground: {
+    height: 300,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10, 30, 20, 0.68)',
+    borderRadius: 32,
+  },
+  heroContent: {
     padding: 24,
+    flex: 1,
+    justifyContent: 'center',
+    paddingBottom: Platform.OS === 'ios' ? 28 : 0,
+  },
+  heroHeaderRow: {
+    position: 'absolute',
+    top: 24,
+    left: 24,
+    right: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(45,212,191,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 100,
+    gap: 6,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.accent,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.accent,
+    letterSpacing: 1,
+  },
+  weatherBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  weatherText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+  },
+
+  /* Glassmorphism Profile Card inside hero */
+  glassCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.13)',
+    borderRadius: 28,
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginBottom: 10,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   profileInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   avatarWrapper: {
     position: 'relative',
@@ -333,15 +450,17 @@ const styles = StyleSheet.create({
   profileRole: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.75)',
     letterSpacing: 0.5,
   },
   editProfileBtn: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
+    borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   editProfileBtnText: {
     color: '#FFFFFF',
@@ -350,20 +469,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  /* --- OVERLAPPING MAIN SHEET --- */
+  /* ── FLAT MAIN CONTENT (no curved overlay) ── */
   mainSheet: {
     backgroundColor: COLORS.background,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    marginTop: -36, // Overlaps the image header
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: 20,
+    paddingTop: 24,
     flex: 1,
   },
 
-  /* --- MENU GROUPS & CARDS --- */
+  /* ── MENU GROUPS & CARDS ── */
   menuGroup: {
-    marginBottom: 28,
+    marginBottom: 24,
   },
   groupTitle: {
     fontSize: 11,
@@ -371,7 +487,7 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     letterSpacing: 1.5,
     marginBottom: 12,
-    marginLeft: 8,
+    marginLeft: 4,
   },
   menuCard: {
     backgroundColor: COLORS.cardBg,
@@ -383,7 +499,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: COLORS.border,
   },
   menuItem: {
     flexDirection: 'row',
@@ -401,11 +517,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16
+    marginRight: 16,
   },
   menuTextContainer: {
     flex: 1,
-    paddingRight: 16
+    paddingRight: 16,
   },
   menuItemTitle: {
     fontSize: 15,
@@ -417,10 +533,10 @@ const styles = StyleSheet.create({
   menuItemSubtitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: COLORS.textMuted
+    color: COLORS.textMuted,
   },
 
-  /* --- FOOTER & LOGOUT BUTTON --- */
+  /* ── FOOTER & LOGOUT ── */
   footerContainer: {
     paddingTop: 8,
     paddingBottom: 24,
@@ -433,9 +549,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#FECACA',
   },
   logoutIcon: {
-    marginRight: 10
+    marginRight: 10,
   },
   logoutButtonText: {
     color: COLORS.dangerText,
@@ -452,48 +570,43 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: 120, // Generous padding to clear the expanding pill nav
+    height: 160,
   },
 
-  /* --- FULL-WIDTH EXPANDING PILL BOTTOM NAV --- */
+  /* ── DARK GREEN PILL BOTTOM NAV (matches PortfolioDashboard & OwnerBookings) ── */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -12 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 25,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
-    paddingTop: 16,
-    paddingHorizontal: 12,
+    alignSelf: 'center',
+    width: '92%',
+    zIndex: 100,
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: COLORS.surfaceDark,
+    borderRadius: 100,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
   },
   navItem: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 100,
+    flex: 1,
   },
-  navItemActive: {
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 14,
+  navText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: 3,
   },
   navTextActive: {
-    color: COLORS.primary,
-    fontSize: 12,
-    fontWeight: '800',
-    marginLeft: 6,
-    letterSpacing: -0.3,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

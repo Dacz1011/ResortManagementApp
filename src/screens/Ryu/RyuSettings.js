@@ -1,48 +1,48 @@
-import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Platform,
-  StatusBar,
-  ImageBackground,
-  Dimensions
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Home,
   Bell,
-  Shield,
-  HelpCircle,
-  ChevronRight,
-  LogOut,
-  CalendarDays,
-  Users,
-  Wallet,
-  Settings,
-  CheckCircle2,
   Building,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
   CreditCard,
-  Info
+  HelpCircle,
+  Home,
+  Info,
+  LogOut,
+  Settings,
+  Shield,
+  Users,
+  Wallet
 } from 'lucide-react-native';
+import {
+  Dimensions,
+  Image,
+  ImageBackground,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
-// High-End Boutique Palette (Matches Reine Suite)
+// Ryu Navy Blue Palette
 const COLORS = {
-  background: '#F4F7FA',    // Deep, crisp off-white for the main sheet
-  primary: '#E64E76',       // Signature Reine Pink
-  primaryLight: '#FDF0F4',  // Soft pink background for accents
-  primaryDark: '#BE375A',
-  textMain: '#0F172A',      // Slate 900
-  textMuted: '#64748B',     // Slate 500
-  border: '#E2E8F0',        // Slate 200
+  background: '#F8FAFC',
+  primary: '#23324B',
+  primaryLight: '#E0E7FF',
+  primaryDark: '#1A2537',
+  textMain: '#0F172A',
+  textMuted: '#64748B',
+  border: '#E2E8F0',
   cardBg: '#FFFFFF',
   dangerBg: '#FEE2E2',
   dangerText: '#EF4444',
+  successText: '#16A34A',
 };
 
 // Grouped Settings for a cleaner, organized UI
@@ -70,8 +70,9 @@ const MENU_GROUPS = [
   }
 ];
 
-export default function ReineSettings({ navigation }) {
+export default function RyuAdmin({ navigation }) {
   const activeNav = 'Admin';
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   const handleLogout = () => {
     // Reset navigation to Login screen
@@ -94,18 +95,19 @@ export default function ReineSettings({ navigation }) {
       >
         {/* --- FULL BLEED HERO IMAGE HEADER --- */}
         <ImageBackground
-          source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2070&auto=format&fit=crop' }}
+          source={{ uri: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop' }}
           style={styles.heroHeader}
         >
           {/* Dark gradient overlay for text readability */}
           <View style={styles.heroOverlay} />
 
-          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
+          {/* iOS Fix: Using View + insets instead of SafeAreaView */}
+          <View style={[styles.heroSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
             {/* Top Nav Row */}
             <View style={styles.headerTopRow}>
               <View>
                 <Text style={styles.greetingText}>Configuration</Text>
-                <Text style={styles.adminTitle}>Settings</Text>
+                <Text style={styles.adminTitle}>Admin Panel</Text>
               </View>
             </View>
 
@@ -114,17 +116,17 @@ export default function ReineSettings({ navigation }) {
               <View style={styles.profileInfoRow}>
                 <View style={styles.avatarWrapper}>
                   <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop' }}
+                    source={{ uri: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=150&auto=format&fit=crop' }}
                     style={styles.avatarImage}
                   />
                   <View style={styles.verifiedBadge}>
-                    <CheckCircle2 size={16} color={COLORS.primary} fill="#FFFFFF" />
+                    <CheckCircle2 size={16} color={COLORS.successText} fill="#FFFFFF" />
                   </View>
                 </View>
 
                 <View style={styles.profileTextContainer}>
-                  <Text style={styles.profileName}>Reine's Admin</Text>
-                  <Text style={styles.profileRole}>Resort Manager</Text>
+                  <Text style={styles.profileName}>Ryu Admin</Text>
+                  <Text style={styles.profileRole}>Property Manager</Text>
                 </View>
               </View>
 
@@ -132,7 +134,7 @@ export default function ReineSettings({ navigation }) {
                 <Text style={styles.editProfileBtnText}>Edit Profile</Text>
               </TouchableOpacity>
             </View>
-          </SafeAreaView>
+          </View>
         </ImageBackground>
 
         {/* --- OVERLAPPING MAIN SHEET --- */}
@@ -178,34 +180,35 @@ export default function ReineSettings({ navigation }) {
               <Text style={styles.logoutButtonText}>Sign Out</Text>
             </TouchableOpacity>
 
-            <Text style={styles.versionText}>REINE'S BEACH HOUSE RESORT V2.4.0</Text>
+            <Text style={styles.versionText}>RYU'S TRANSIENT HOUSE V2.4.0</Text>
           </View>
 
         </View>
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* --- FLOATING BOTTOM NAVIGATION --- */}
-      <View style={styles.floatingNavWrapper}>
-        <View style={styles.floatingNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineHome')}>
-            <Home size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+      {/* --- SLEEK BLACK PILL BOTTOM NAV (Ryu Colors) --- */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
+        <View style={styles.bottomNav}>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem} activeOpacity={0.8}>
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineBookings')}>
-            <CalendarDays size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineGuestMgmt')}>
-            <Users size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ReineFinance')}>
-            <Wallet size={22} color={COLORS.textMuted} strokeWidth={2.5} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.navItem, activeNav === 'Admin' && styles.navItemActive]} onPress={() => {}}>
-            <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={2.5} />
-            {activeNav === 'Admin' && <Text style={styles.navTextActive}>Admin</Text>}
+          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -215,267 +218,43 @@ export default function ReineSettings({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 120, // Prevents content from hiding behind the floating nav
-  },
-
-  /* --- FULL BLEED HERO --- */
-  heroHeader: {
-    width: '100%',
-    height: 380, // Generous height for the image
-    justifyContent: 'flex-start',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)', // Dark slate overlay for deep contrast
-  },
-  heroSafeArea: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'space-between',
-    paddingBottom: 40, // Space before the overlapping sheet
-  },
-
-  /* Top Nav in Hero */
-  headerTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? 16 : 8,
-  },
-  greetingText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  adminTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-
-  /* Glassmorphism Profile Card */
-  glassCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Translucent
-    borderRadius: 28,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginBottom: 10,
-  },
-  profileInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatarWrapper: {
-    position: 'relative',
-    marginRight: 16,
-  },
-  avatarImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: '#FDECE6',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileTextContainer: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  profileRole: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
-    letterSpacing: 0.5,
-  },
-  editProfileBtn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editProfileBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-
-  /* --- OVERLAPPING MAIN SHEET --- */
-  mainSheet: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    marginTop: -36, // Overlaps the image header
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    flex: 1,
-  },
-
-  /* --- MENU GROUPS & CARDS --- */
-  menuGroup: {
-    marginBottom: 28,
-  },
-  groupTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-    marginBottom: 12,
-    marginLeft: 8,
-  },
-  menuCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 28,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: COLORS.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16
-  },
-  menuTextContainer: {
-    flex: 1,
-    paddingRight: 16
-  },
-  menuItemTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    marginBottom: 4,
-    letterSpacing: -0.2,
-  },
-  menuItemSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.textMuted
-  },
-
-  /* --- FOOTER & LOGOUT BUTTON --- */
-  footerContainer: {
-    paddingTop: 8,
-    paddingBottom: 24,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.dangerBg,
-    borderRadius: 24,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoutIcon: {
-    marginRight: 10
-  },
-  logoutButtonText: {
-    color: COLORS.dangerText,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  versionText: {
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-  },
-
-  /* --- FLOATING BOTTOM NAV --- */
-  floatingNavWrapper: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
-    left: 24,
-    right: 24,
-  },
-  floatingNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    height: 72,
-    borderRadius: 36,
-    paddingHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  navItem: {
-    flex: 1,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    borderRadius: 28,
-  },
-  navItemActive: {
-    backgroundColor: COLORS.primaryLight,
-    flex: 1.5,
-  },
-  navTextActive: {
-    color: COLORS.primary,
-    fontSize: 13,
-    fontWeight: '800',
-    marginLeft: 6,
-    letterSpacing: -0.2,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { flexGrow: 1 },
+  bottomSpacer: { height: 160 },
+  heroHeader: { width: '100%', height: 380, justifyContent: 'flex-start' },
+  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(26, 37, 55, 0.65)' },
+  heroSafeArea: { flex: 1, paddingHorizontal: 24, justifyContent: 'space-between', paddingBottom: 40 },
+  headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Platform.OS === 'android' ? 16 : 8 },
+  greetingText: { fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.8)', marginBottom: 2, textTransform: 'uppercase', letterSpacing: 1 },
+  adminTitle: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5 },
+  glassCard: { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)', marginBottom: 10 },
+  profileInfoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  avatarWrapper: { position: 'relative', marginRight: 16 },
+  avatarImage: { width: 64, height: 64, borderRadius: 20, backgroundColor: COLORS.primaryLight, borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)' },
+  verifiedBadge: { position: 'absolute', bottom: -4, right: -4, width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
+  profileTextContainer: { flex: 1 },
+  profileName: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.3 },
+  profileRole: { fontSize: 13, fontWeight: '600', color: 'rgba(255, 255, 255, 0.8)', letterSpacing: 0.5 },
+  editProfileBtn: { backgroundColor: 'rgba(255, 255, 255, 0.15)', borderRadius: 16, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
+  editProfileBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
+  mainSheet: { backgroundColor: COLORS.background, borderTopLeftRadius: 36, borderTopRightRadius: 36, marginTop: -36, paddingHorizontal: 24, paddingTop: 32, flex: 1 },
+  menuGroup: { marginBottom: 28 },
+  groupTitle: { fontSize: 11, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 1.5, marginBottom: 12, marginLeft: 8 },
+  menuCard: { backgroundColor: COLORS.cardBg, borderRadius: 28, paddingHorizontal: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 12, elevation: 2, borderWidth: 1, borderColor: '#FFFFFF' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20 },
+  menuItemBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  iconBox: { width: 44, height: 44, borderRadius: 14, backgroundColor: COLORS.primaryLight, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  menuTextContainer: { flex: 1, paddingRight: 16 },
+  menuItemTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.2 },
+  menuItemSubtitle: { fontSize: 12, fontWeight: '500', color: COLORS.textMuted },
+  footerContainer: { paddingTop: 8, paddingBottom: 24 },
+  logoutButton: { flexDirection: 'row', backgroundColor: COLORS.dangerBg, borderRadius: 24, height: 64, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  logoutIcon: { marginRight: 10 },
+  logoutButtonText: { color: COLORS.dangerText, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+  versionText: { textAlign: 'center', fontSize: 10, fontWeight: '700', color: COLORS.textMuted, letterSpacing: 1.5 },
+  bottomNavContainer: { position: 'absolute', alignSelf: 'center', width: '90%', zIndex: 100 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.primaryDark, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 20 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  navText: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 4 },
+  navTextActive: { color: '#FFFFFF', fontWeight: '700' },
 });

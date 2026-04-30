@@ -213,17 +213,22 @@ export default function OwnerBookings({ navigation }) {
 
                 {/* Hero bottom */}
                 <View style={styles.heroBottomContent}>
+                  <Text style={styles.heroLabel}>MONTHLY SUMMARY</Text>
                   <Text style={styles.heroMainStat}>{occupiedDates.length} Bookings</Text>
-                  <Text style={styles.heroSubStat}>
-                    Across {PROPERTIES.length} properties this month
-                  </Text>
 
-                  {/* Portfolio summary pill — mirrors ReineHome statPill / trendPill */}
+                  <View style={styles.heroSubRow}>
+                    <TrendingUp size={14} color={COLORS.accent} strokeWidth={3} style={{ marginRight: 6 }} />
+                    <Text style={styles.heroSubStat}>
+                      Across {PROPERTIES.length} properties this month
+                    </Text>
+                  </View>
+
+                  {/* Portfolio summary pill — mirrors PortfolioDashboard trend pill */}
                   <View style={styles.statPill}>
                     <View style={styles.statPillIconBox}>
                       <TrendingUp size={18} color={COLORS.successText} strokeWidth={2.5} />
                     </View>
-                    <View>
+                    <View style={styles.statPillTextContent}>
                       <Text style={styles.statPillTitle}>{totalBookings} active stays across all properties</Text>
                       <Text style={styles.statPillSub}>Tap a property tab to filter the calendar</Text>
                     </View>
@@ -599,17 +604,53 @@ const styles = StyleSheet.create({
     paddingBottom: 28, justifyContent: 'space-between',
   },
   topBar:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  locationPill:{ flexDirection: 'row', alignItems: 'center' },
-  locationText:{ fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  locationPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  locationText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
   iconBtnDark:{
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: 'rgba(30,60,30,0.6)',
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
-  heroBottomContent:{ marginTop: 'auto', gap: 10 },
-  heroMainStat:{ fontSize: 42, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
-  heroSubStat: { fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
+  heroBottomContent: {
+    marginTop: 'auto',
+    gap: 4,
+  },
+  heroLabel: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginBottom: 2,
+  },
+  heroMainStat: {
+    fontSize: 38,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1,
+  },
+  heroSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  heroSubStat: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+  },
 
   /* Stat pill in hero */
   statPill:{
@@ -622,6 +663,9 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: COLORS.successBg,
     justifyContent: 'center', alignItems: 'center', marginRight: 12,
+  },
+  statPillTextContent: {
+    justifyContent: 'center',
   },
   statPillTitle:{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
   statPillSub:  { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },

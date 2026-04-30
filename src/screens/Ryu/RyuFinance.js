@@ -1,40 +1,40 @@
-import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
-  StatusBar,
-  ImageBackground,
-  Dimensions
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Banknote,
   Bell,
-  Plus,
-  Zap,
-  Droplet,
-  ChevronLeft,
-  ChevronDown,
-  Camera,
-  ShoppingBag,
-  Wind,
-  Wrench,
-  Megaphone,
-  Home,
   CalendarDays,
+  Camera,
+  ChevronDown,
+  ChevronLeft,
+  Droplet,
+  Home,
+  Megaphone,
+  Plus,
+  PlusCircle,
+  Settings,
+  ShoppingBag,
   Users,
   Wallet,
-  Settings,
-  Banknote,
-  PlusCircle,
-  ArrowUpRight,
-  ArrowDownRight
+  Wind,
+  Wrench,
+  Zap
 } from 'lucide-react-native';
+import { useState } from 'react';
+import {
+  Dimensions,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -72,6 +72,7 @@ const TRANSACTIONS = [
 export default function RyuFinance({ navigation }) {
   const activeNav = 'Finance';
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   // Form States
   const [utilityAmount, setUtilityAmount] = useState('');
@@ -92,7 +93,8 @@ export default function RyuFinance({ navigation }) {
         >
           <View style={styles.heroOverlay} />
 
-          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
+          {/* iOS Fix: Replaced SafeAreaView with dynamic View */}
+          <View style={[styles.heroSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
             {/* Top Nav Row */}
             <View style={styles.headerTopRow}>
               <View>
@@ -120,7 +122,7 @@ export default function RyuFinance({ navigation }) {
               </View>
               <Text style={styles.heroMainStat}>₱42,500<Text style={styles.heroSubDecimals}>.00</Text></Text>
             </View>
-          </SafeAreaView>
+          </View>
         </ImageBackground>
 
         {/* OVERLAPPING MAIN SHEET */}
@@ -216,7 +218,8 @@ export default function RyuFinance({ navigation }) {
             style={styles.heroHeaderForm}
           >
             <View style={styles.heroOverlay} />
-            <SafeAreaView edges={['top']} style={styles.heroSafeAreaForm}>
+            {/* iOS Fix: Replaced SafeAreaView with dynamic View */}
+            <View style={[styles.heroSafeAreaForm, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
               <View style={styles.headerTopRow}>
                 <TouchableOpacity onPress={() => setShowExpenseForm(false)} style={styles.backBtnWrapper}>
                   <ChevronLeft size={28} color="#FFFFFF" strokeWidth={2.5} />
@@ -226,7 +229,7 @@ export default function RyuFinance({ navigation }) {
                   <Text style={styles.adminName}>Expense Logger</Text>
                 </View>
               </View>
-            </SafeAreaView>
+            </View>
           </ImageBackground>
 
           {/* OVERLAPPING MAIN SHEET */}
@@ -383,45 +386,30 @@ export default function RyuFinance({ navigation }) {
 
       {showExpenseForm ? renderExpenseLogger() : renderTransactionList()}
 
-      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
-      <View style={styles.bottomNavContainer}>
+      {/* --- SLEEK BLACK PILL BOTTOM NAV (Reine style, Ryu colors) --- */}
+      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuHome')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
-              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem} activeOpacity={0.8}>
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuBookings')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
-              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuGuestMgmt')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
-              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => { setShowExpenseForm(false); }} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
-              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => { setShowExpenseForm(false); }} style={styles.navItem} activeOpacity={0.8}>
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('RyuAdmin')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
-              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
-
         </View>
       </View>
     </View>
@@ -468,7 +456,7 @@ const styles = StyleSheet.create({
   heroSafeAreaForm: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 32 : 16,
+    // paddingTop handled dynamically
   },
 
   /* Top Nav in Hero */
@@ -1006,54 +994,43 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: 110, // Keeps form clear of bottom nav
+    height: 160, // Clear space for the floating bottom nav
   },
 
-  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
+  /* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 15,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    alignSelf: 'center',
+    width: '90%',
+    zIndex: 100,
   },
   bottomNav: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
-    paddingHorizontal: 8,
+    backgroundColor: COLORS.primaryDark, // Uses Ryu's deep navy color
+    borderRadius: 100,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 20,
   },
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
   },
-  navIconWrapper: {
-    width: 48,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  navIconWrapperActive: {
-    backgroundColor: COLORS.primaryLight,
-  },
   navText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
+    marginTop: 4,
   },
   navTextActive: {
-    color: COLORS.primary,
-    fontWeight: '800',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

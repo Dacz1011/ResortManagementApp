@@ -30,7 +30,7 @@ import {
   Settings,
   TrendingUp,
   Wrench
-} from 'lucide-react-native';
+} from 'lucide-native';
 
 const { width } = Dimensions.get('window');
 
@@ -309,7 +309,7 @@ export default function OwnerFinance({ navigation }) {
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
 
-          <TouchableOpacity onPress={() => navigation.navigate('PortfolioDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]} activeOpacity={0.8}>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={[styles.navItem, activeNav === 'Property' && styles.navItemActive]} activeOpacity={0.8}>
             <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} strokeWidth={2} />
             <Text style={[styles.navText, activeNav === 'Property' && styles.navTextActive]}>Portfolio</Text>
           </TouchableOpacity>
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   heroSafeArea: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 40 : 20,
+    paddingTop: Platform.OS === 'android' ? 8 : 4,
     justifyContent: 'space-between',
     paddingBottom: 28,
   },
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 0,
   },
   locationPill: {
     flexDirection: 'row',
@@ -406,6 +406,7 @@ const styles = StyleSheet.create({
   /* --- NOI CARD --- */
   heroBottomContent: {
     marginTop: 'auto',
+    marginBottom: 20, // Nudges the card up 20px from the bottom
   },
   noiCard: {
     backgroundColor: 'rgba(26, 54, 38, 0.85)', // Deep green glass effect
@@ -418,12 +419,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 8,
+    alignItems: 'flex-start',
   },
   noiHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
+    alignSelf: 'stretch',
   },
   statusPill: {
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -452,16 +455,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.8)',
+    marginBottom: 0,
   },
   noiDivider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.15)',
     marginVertical: 20,
+    alignSelf: 'stretch',
   },
   noiCalculationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    alignSelf: 'stretch',
   },
   calcLabel: {
     fontSize: 9,

@@ -1,32 +1,30 @@
-import React, { useState, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
-  StatusBar,
-  Animated,
-  Dimensions
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  History,
-  ListFilter,
-  Search,
   BedDouble,
-  CalendarDays,
   Calendar,
+  CalendarDays,
+  ChevronLeft,
   Download,
   Home,
-  Users,
-  Wallet,
+  ListFilter,
+  Search,
   Settings,
-  ChevronLeft
+  Users,
+  Wallet
 } from 'lucide-react-native';
+import { useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -63,6 +61,7 @@ export default function RyuGuestHistory({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const activeNav = 'Guest';
   const scrollY = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   // Header fades smoothly to transparent based on scroll position
   const headerOpacity = scrollY.interpolate({
@@ -77,7 +76,8 @@ export default function RyuGuestHistory({ navigation }) {
 
       {/* --- MODERN HEADER (PINNED TO VERY TOP, FADES ON SCROLL) --- */}
       <Animated.View style={[styles.headerWrapper, { opacity: headerOpacity }]}>
-        <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+        {/* iOS Fix: Using View + insets instead of SafeAreaView */}
+        <View style={[styles.headerSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
@@ -92,10 +92,10 @@ export default function RyuGuestHistory({ navigation }) {
               <ListFilter size={20} color={COLORS.primary} strokeWidth={2} />
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </View>
       </Animated.View>
 
-      <SafeAreaView edges={['bottom']} style={styles.safeArea}>
+      <View style={styles.safeArea}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.keyboardView}>
           <Animated.ScrollView
             showsVerticalScrollIndicator={false}
@@ -106,8 +106,8 @@ export default function RyuGuestHistory({ navigation }) {
             )}
             scrollEventThrottle={16}
           >
-            {/* Spacer height to clear the pinned absolute header */}
-            <View style={{ height: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 60 : 80 }} />
+            {/* Spacer height to clear the pinned absolute header dynamically */}
+            <View style={{ height: Platform.OS === 'ios' ? insets.top + 70 : (StatusBar.currentHeight || 24) + 70 }} />
 
             {/* --- SEARCH BAR --- */}
             <View style={styles.searchContainer}>
@@ -180,7 +180,7 @@ export default function RyuGuestHistory({ navigation }) {
             <View style={styles.bottomSpacer} />
           </Animated.ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
 
       {/* --- FLOATING ACTION BUTTON (DOWNLOAD) --- */}
       <TouchableOpacity activeOpacity={0.9} style={styles.fab}>
@@ -189,30 +189,29 @@ export default function RyuGuestHistory({ navigation }) {
         </View>
       </TouchableOpacity>
 
-      {/* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */}
-      <View style={styles.bottomNavContainer}>
+      {/* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={[styles.navItem, activeNav === 'Home' && styles.navItemActive]} activeOpacity={0.7}>
-            <Home size={24} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem} activeOpacity={0.8}>
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={[styles.navItem, activeNav === 'Bookings' && styles.navItemActive]} activeOpacity={0.7}>
-            <CalendarDays size={24} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={[styles.navItem, activeNav === 'Guest' && styles.navItemActive]} activeOpacity={0.7}>
-            <Users size={24} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={[styles.navItem, activeNav === 'Finance' && styles.navItemActive]} activeOpacity={0.7}>
-            <Wallet size={24} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={[styles.navItem, activeNav === 'Admin' && styles.navItemActive]} activeOpacity={0.7}>
-            <Settings size={24} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
+          <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
           </TouchableOpacity>
-
         </View>
       </View>
 
@@ -460,7 +459,7 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: 140,
+    height: 160,
   },
 
   /* --- FLOATING ACTION BUTTON --- */
@@ -484,46 +483,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /* --- SLEEK FLOATING ICON-ONLY BOTTOM NAV --- */
+  /* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */
   bottomNavContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
     alignSelf: 'center',
-    width: '90%', // Modern floating width
-    left: '5%',
-    right: '5%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 36, // Fully rounded pill shape
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    width: '90%',
+    zIndex: 100,
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: COLORS.primaryDark,
+    borderRadius: 100,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 20,
   },
   navItem: {
-    width: 48,
-    height: 48,
-    borderRadius: 24, // Perfect circle for icon
-    justifyContent: 'center',
     alignItems: 'center',
-  },
-  navItemActive: {
-    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    flex: 1,
   },
   navText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     color: COLORS.textMuted,
+    marginTop: 4,
   },
   navTextActive: {
-    color: COLORS.primary,
-    fontWeight: '800',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

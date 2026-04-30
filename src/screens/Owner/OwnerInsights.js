@@ -423,7 +423,7 @@ export default function OwnerInsights({ navigation }) {
           ══════════════════════════════════════════ */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-          <TouchableOpacity onPress={() => navigation.navigate('PortfolioDashboard')} style={styles.navItem} activeOpacity={0.8}>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem} activeOpacity={0.8}>
             <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.45)'} />
             <Text style={[styles.navText, activeNav === 'Property' && styles.navTextActive]}>Portfolio</Text>
           </TouchableOpacity>
