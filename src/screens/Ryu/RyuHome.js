@@ -1,30 +1,32 @@
 import {
-  ArrowUpRight,
-  Banknote,
-  Bell,
   CalendarDays,
   CalendarPlus,
+  CheckCircle2,
   ChevronRight,
-  Droplet,
+  DollarSign,
   FileBarChart,
   Home,
   LogIn,
-  LogOut,
+  MapPin,
   ReceiptText,
+  Search,
   Settings,
+  Sparkles,
+  Star,
   SunMedium,
   Users,
   Wallet,
-  Wand2,
   Wrench,
   Zap
 } from 'lucide-react-native';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Animated,
+  Dimensions,
   Image,
   ImageBackground,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -33,24 +35,28 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Ryu-specific Palette Adapted to the modern Floating Nav System
-const COLORS = {
-  background: '#F8FAFC',    // Cool off-white for depth
-  primary: '#23324B',       // Ryu Deep Navy
-  primaryLight: '#E0E7FF',  // Soft indigo/blue tint
-  primaryDark: '#1A2537',   // Deeper navy for gradients/accents
-  textMain: '#0F172A',      // Slate 900
-  textMuted: '#64748B',     // Slate 500
-  border: '#E2E8F0',        // Slate 200
-  cardBg: '#FFFFFF',
+const { width } = Dimensions.get('window');
 
-  // Accents (Standardized)
-  successBg: '#DCFCE7',
-  successText: '#16A34A',
+// Ryu Deep Navy Palette
+const COLORS = {
+  background: '#F7F7F9',    
+  surface: '#FFFFFF',       
+  surfaceDark: '#1A2537',   // Ryu Deep Navy
+  surfaceDarkActive: '#23324B', 
+
+  primary: '#23324B',       // Ryu Primary
+  primaryLight: '#E0E7FF',
+
+  textMain: '#18181B',      
+  textMuted: '#71717A',     
+  border: '#E4E4E7',        
+
+  dangerBg: '#FEE2E2',
+  dangerText: '#EF4444',
   warningBg: '#FEF9C3',
-  warningIcon: '#EAB308',
+  warningText: '#CA8A04',
   infoBg: '#E0F2FE',
-  infoIcon: '#0EA5E9',
+  infoText: '#0EA5E9',
 };
 
 const QUICK_ACTIONS = [
@@ -62,232 +68,246 @@ const QUICK_ACTIONS = [
 
 export default function RyuHome({ navigation }) {
   const activeNav = 'Home';
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets(); // iOS compatibility fix
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
 
-  // Header fades smoothly to transparent based on scroll position
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [1, 0],
-    extrapolate: 'clamp'
-  });
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
-
-      {/* --- MODERN HEADER (FIXED TOP, FADES ON SCROLL) --- */}
-      <Animated.View style={[styles.headerWrapper, { opacity: headerOpacity }]}>
-        {/* iOS Fix: Using View + insets instead of SafeAreaView */}
-        <View style={[styles.headerSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=150&auto=format&fit=crop' }}
-                style={styles.profileAvatar}
-              />
-              <View>
-                <Text style={styles.greetingText}>Welcome back,</Text>
-                <Text style={styles.headerTitle}>Ryu Admin 🌙</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.bellButton}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('RyuNotifications')}
-            >
-              <Bell size={22} color={COLORS.textMain} strokeWidth={2} />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Animated.View>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
+        bounces={false}
+        style={{ opacity: fadeAnim }}
       >
-        {/* Spacer to push content down so it doesn't overlap the pinned header dynamically */}
-        <View style={{ height: Platform.OS === 'ios' ? insets.top + 70 : (StatusBar.currentHeight || 24) + 70 }} />
-
-        {/* --- IMMERSIVE HERO CARD --- */}
-        <TouchableOpacity activeOpacity={0.9} style={styles.heroCardWrapper}>
+        {/* --- HERO BANNER --- */}
+        <View style={styles.heroContainer}>
           <ImageBackground
             source={{ uri: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop' }}
-            style={styles.heroBackground}
-            imageStyle={{ borderRadius: 32 }}
+            style={styles.heroImage}
           >
-            {/* Dark Navy Gradient/Overlay Simulation */}
             <View style={styles.heroOverlay} />
 
-            <View style={styles.heroContent}>
-              <View style={styles.heroHeaderRow}>
-                <View style={styles.statusBadge}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusBadgeText}>OCCUPIED</Text>
+            <View style={[styles.heroSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 10 }]}>
+              {/* Top Bar */}
+              <View style={styles.topBar}>
+                <View style={styles.locationPill}>
+                  <MapPin size={16} color="#FFFFFF" style={styles.locationIcon} />
+                  <Text style={styles.locationText}>Ryu's Transient House</Text>
                 </View>
-                <View style={styles.weatherBadge}>
-                  <SunMedium size={14} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 4 }} />
-                  <Text style={styles.weatherText}>24°C</Text>
-                </View>
+                <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('RyuAdmin')} style={styles.profileAvatarWrap}>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=150&auto=format&fit=crop' }}
+                    style={styles.profileAvatar}
+                  />
+                  <View style={styles.notificationDot} />
+                </TouchableOpacity>
               </View>
 
-              <View style={styles.heroMainContent}>
-                <Text style={styles.heroLabel}>CURRENT GUEST</Text>
-                <Text style={styles.heroGuestName}>Mark J.</Text>
-                <View style={styles.heroSubRow}>
-                  <LogIn size={14} color="rgba(255,255,255,0.7)" style={{ marginRight: 4 }} />
-                  <Text style={styles.heroSubText}>Checking out tomorrow • 12:00 PM</Text>
-                </View>
+              {/* Bottom Content */}
+              <View style={styles.heroBottomContent}>
+                <Text style={styles.greetingSub}>WELCOME BACK</Text>
+                <Text style={styles.greetingText}>Ready to Manage{'\n'}Your Property?</Text>
 
-                {/* Elegant White Action Button Integrated inside the Image Card */}
-                <TouchableOpacity style={styles.actionButtonGlass} activeOpacity={0.9}>
-                  <Wand2 size={16} color={COLORS.primary} strokeWidth={2.5} />
-                  <Text style={styles.actionButtonText}>Mark as Cleaned</Text>
+                <TouchableOpacity style={styles.searchBar} activeOpacity={0.9} onPress={() => navigation.navigate('RyuGuestMgmt')}>
+                  <Search size={22} color="rgba(255,255,255,0.7)" />
+                  <View style={styles.searchTextWrap}>
+                    <Text style={styles.searchTitle}>Search guests or bookings...</Text>
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
           </ImageBackground>
-        </TouchableOpacity>
-
-        {/* --- QUICK ACTIONS ROW (Adopted from Reine) --- */}
-        <View style={styles.quickActionsContainer}>
-          {QUICK_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            return (
-              <TouchableOpacity
-                key={action.id}
-                style={styles.actionItem}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate(action.route, action.params)}
-              >
-                <View style={styles.actionIconBox}>
-                  <Icon size={24} color={COLORS.primary} strokeWidth={2} />
-                </View>
-                <Text style={styles.actionLabel}>{action.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
         </View>
 
-        {/* --- BENTO BOX GRID --- */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Today's Snapshot</Text>
-        </View>
-
-        <View style={styles.bentoGrid}>
-          {/* Tall Revenue Card */}
-          <TouchableOpacity
-            style={[styles.bentoCard, styles.revenueCard]}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('RyuFinance')}
-          >
-            <View style={styles.bentoIconWrapper}>
-              <Banknote size={24} color="#FFFFFF" strokeWidth={2.5} />
-            </View>
-            <View style={styles.bentoTextWrap}>
-              <Text style={styles.bentoLabel}>TOTAL REVENUE</Text>
-              <Text style={styles.revenueValue}>₱12.0K</Text>
-              <View style={styles.trendRow}>
-                <ArrowUpRight size={14} color={COLORS.successText} strokeWidth={3} />
-                <Text style={styles.trendText}>+8% vs yesterday</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Stacked Logistics Cards */}
-          <View style={styles.bentoCol}>
-            <TouchableOpacity
-              style={[styles.bentoCard, styles.smallBento, { backgroundColor: '#F0F9FF', borderColor: '#E0F2FE' }]}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('RyuBookings')}
-            >
-              <View style={styles.bentoHeader}>
-                <Text style={styles.bentoLabelDark}>CHECK-IN</Text>
-                <LogIn size={18} color="#0284C7" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.smallBentoValue, { color: '#0284C7' }]}>2:00 <Text style={styles.smallBentoSub}>PM</Text></Text>
-              <Text style={styles.smallBentoDesc}>Next Guest: Jonathan</Text>
+        {/* --- HORIZONTAL QUICK ACTIONS PILLS --- */}
+        <View style={styles.quickActionsWrapper}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickActionsScroll}>
+            <TouchableOpacity style={styles.actionPillDark} activeOpacity={0.8} onPress={() => navigation.navigate('RyuBookings', { mode: 'manual' })}>
+              <Text style={styles.actionPillDarkText}>Quick Actions</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.bentoCard, styles.smallBento, { backgroundColor: '#FFF7ED', borderColor: '#FFEDD5' }]}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('RyuBookings')}
+            {QUICK_ACTIONS.map((action) => {
+              const Icon = action.icon;
+              return (
+                <TouchableOpacity
+                  key={action.id}
+                  style={styles.actionPillLight}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate(action.route, action.params)}
+                >
+                  <Icon size={16} color={COLORS.textMain} style={{ marginRight: 6 }} />
+                  <Text style={styles.actionPillLightText}>{action.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        <View style={styles.mainContent}>
+
+          {/* --- CURRENTLY HOSTING --- */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Currently Hosting</Text>
+          </View>
+
+          <View style={styles.largeCard}>
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1502672260266-1c1de2d96674?q=80&w=2000&auto=format&fit=crop' }}
+              style={styles.cardImageTop}
             >
-              <View style={styles.bentoHeader}>
-                <Text style={styles.bentoLabelDark}>CHECK-OUT</Text>
-                <LogOut size={18} color="#EA580C" strokeWidth={2.5} />
+              <View style={styles.cardImageOverlay}>
+                <View style={styles.cardFavoriteBtn}>
+                  <CheckCircle2 size={18} color="#FFFFFF" />
+                </View>
               </View>
-              <Text style={[styles.smallBentoValue, { color: '#EA580C' }]}>12:00 <Text style={styles.smallBentoSub}>PM</Text></Text>
-              <Text style={styles.smallBentoDesc}>Housekeeping Ready</Text>
+            </ImageBackground>
+
+            <View style={styles.cardBody}>
+              <View style={styles.cardBodyHeader}>
+                <Text style={styles.cardTitle}>Mark J.</Text>
+                <View style={styles.ratingRow}>
+                  <Star size={14} color={COLORS.textMain} fill={COLORS.textMain} />
+                  <Text style={styles.ratingText}>VIP</Text>
+                </View>
+              </View>
+
+              <Text style={styles.cardSubtitle}>Checking out tomorrow • 12:00 PM</Text>
+              <Text style={styles.cardTags}>Fully Paid • No Pending Requests • Standard Room</Text>
+
+              <View style={styles.divider} />
+
+              <View style={styles.cardFooter}>
+                <Text style={styles.priceAmount}>₱12,000 <Text style={styles.priceSubtitle}>total</Text></Text>
+                <TouchableOpacity style={styles.blackButton} activeOpacity={0.8}>
+                  <Text style={styles.blackButtonText}>Mark Cleaned</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* --- TODAY'S SNAPSHOT --- */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Snapshot</Text>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.snapshotScroll}>
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.7} onPress={() => navigation.navigate('RyuFinance')}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <DollarSign size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>₱12.4K</Text>
+                    <Text style={styles.snapshotLabel}>Total Revenue</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.7} onPress={() => navigation.navigate('RyuBookings')}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <LogIn size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>1 Guest</Text>
+                    <Text style={styles.snapshotLabel}>Expected Arrivals</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.9}>
+              <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1472552944129-b035e9ea3744?q=80&w=2000&auto=format&fit=crop' }}
+                style={styles.snapshotImage}
+                imageStyle={{ borderRadius: 24 }}
+              >
+                <View style={styles.snapshotOverlay} />
+                <View style={styles.snapshotContent}>
+                  <SunMedium size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                  <View>
+                    <Text style={styles.snapshotValue}>24°C • Clear</Text>
+                    <Text style={styles.snapshotLabel}>Night Mode</Text>
+                  </View>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+          </ScrollView>
+
+          {/* --- PRIORITY ALERTS --- */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Priority Alerts</Text>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('RyuFinance')}>
+              <Text style={styles.viewAllText}>See All</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.tasksList}>
+            <TouchableOpacity style={styles.taskCard} activeOpacity={0.7} onPress={() => navigation.navigate('RyuFinance')}>
+              <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.dangerBg }]}>
+                <Wrench size={20} color={COLORS.dangerText} strokeWidth={2.5} />
+              </View>
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskTitle}>Plumbing Check</Text>
+                <Text style={styles.taskSubtitle}>Scheduled for 2:00 PM today</Text>
+              </View>
+              <View style={styles.taskAction}>
+                 <Text style={styles.actionTextResolve}>Resolve</Text>
+                 <ChevronRight size={18} color={COLORS.textMuted} />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.taskCard} activeOpacity={0.7} onPress={() => navigation.navigate('RyuFinance')}>
+              <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.warningBg }]}>
+                <Zap size={20} color={COLORS.warningText} strokeWidth={2.5} />
+              </View>
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskTitle}>Electricity Bill</Text>
+                <Text style={styles.taskSubtitle}>Due in 2 days • ₱8,240</Text>
+              </View>
+              <View style={styles.taskAction}>
+                 <Text style={styles.actionTextPay}>Pay</Text>
+                 <ChevronRight size={18} color={COLORS.textMuted} />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.taskCard} activeOpacity={0.7}>
+              <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.infoBg }]}>
+                <Sparkles size={20} color={COLORS.infoText} strokeWidth={2.5} />
+              </View>
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskTitle}>Housekeeping</Text>
+                <Text style={styles.taskSubtitle}>Cleaning required for Room A</Text>
+              </View>
+              <View style={styles.taskAction}>
+                 <ChevronRight size={18} color={COLORS.textMuted} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
         </View>
-
-        {/* --- ACTIVE TASKS SECTION --- */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Priority Tasks</Text>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('RyuFinance')}
-          >
-            <Text style={styles.viewAllText}>See All</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.tasksList}>
-          {/* Task 1 */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.taskCard}
-            onPress={() => navigation.navigate('RyuFinance')}
-          >
-            <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.warningBg }]}>
-              <Zap size={22} color={COLORS.warningIcon} strokeWidth={2.5} />
-            </View>
-            <View style={styles.taskInfo}>
-              <Text style={styles.taskTitle}>Meralco Utility</Text>
-              <Text style={styles.taskSubtitle}>Pending Payment • ₱8,240</Text>
-            </View>
-            <View style={styles.taskAction}>
-              <Text style={styles.payNowText}>Pay</Text>
-              <ChevronRight size={18} color={COLORS.textMuted} />
-            </View>
-          </TouchableOpacity>
-
-          {/* Task 2 */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={styles.taskCard}
-            onPress={() => navigation.navigate('RyuFinance')}
-          >
-            <View style={[styles.taskIconWrapper, { backgroundColor: COLORS.infoBg }]}>
-              <Droplet size={22} color={COLORS.infoIcon} strokeWidth={2.5} />
-            </View>
-            <View style={styles.taskInfo}>
-              <Text style={styles.taskTitle}>Water Utility</Text>
-              <Text style={styles.taskSubtitle}>Due in 2 days • ₱1,150</Text>
-            </View>
-            <View style={styles.taskAction}>
-              <Text style={styles.payNowText}>Pay</Text>
-              <ChevronRight size={18} color={COLORS.textMuted} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Spacer for Bottom Nav */}
-        <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
 
-      {/* --- SLEEK BLACK PILL BOTTOM NAV (Reine style, Ryu colors) --- */}
-      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      {/* --- BOTTOM NAV --- */}
       <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem} activeOpacity={0.8}>
@@ -308,461 +328,82 @@ export default function RyuHome({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem} activeOpacity={0.8}>
             <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
-            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Menu</Text>
           </TouchableOpacity>
         </View>
       </View>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-
-  /* --- HEADER (ABSOLUTE TO PIN IT AT TOP) --- */
-  headerWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    backgroundColor: COLORS.background,
-  },
-  headerSafeArea: {
-    paddingBottom: 8,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    height: 60,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginRight: 14,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  greetingText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    marginBottom: 2,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-  bellButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-    position: 'relative',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 12,
-    right: 14,
-    width: 10,
-    height: 10,
-    backgroundColor: COLORS.primary,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-
-  scrollContent: {
-    paddingHorizontal: 24,
-  },
-
-  /* --- IMMERSIVE HERO CARD --- */
-  heroCardWrapper: {
-    width: '100%',
-    height: 260,
-    borderRadius: 32,
-    marginBottom: 24,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-  heroBackground: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(26, 37, 55, 0.55)',
-    borderRadius: 32,
-  },
-  heroContent: {
-    padding: 24,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'space-between',
-  },
-  heroHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 100,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#4ADE80',
-    borderRadius: 4,
-    marginRight: 6,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  statusBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  weatherBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 100,
-  },
-  weatherText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroMainContent: {
-    marginBottom: 4,
-  },
-  heroLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-  heroGuestName: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 6,
-  },
-  heroSubRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  heroSubText: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  actionButtonGlass: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-  },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-  },
-
-  /* --- QUICK ACTIONS ROW --- */
-  quickActionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 32,
-    paddingHorizontal: 4,
-  },
-  actionItem: {
-    alignItems: 'center',
-    width: '22%',
-  },
-  actionIconBox: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F8FAFC',
-  },
-  actionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-  },
-
-  /* --- SECTION HEADERS --- */
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginBottom: 2,
-  },
-
-  /* --- BENTO BOX GRID --- */
-  bentoGrid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  bentoCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 28,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  revenueCard: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.2,
-    borderColor: COLORS.primaryDark,
-    justifyContent: 'space-between',
-  },
-  bentoCol: {
-    flex: 1,
-    gap: 16,
-  },
-  smallBento: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  bentoIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  bentoTextWrap: {
-    marginTop: 'auto',
-  },
-  bentoLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  bentoLabelDark: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
-  },
-  revenueValue: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -1.5,
-    marginBottom: 12,
-  },
-  trendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  trendText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginLeft: 4,
-  },
-  bentoHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  smallBentoValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  smallBentoSub: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  smallBentoDesc: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-  },
-
-  /* --- ACTIVE TASKS --- */
-  tasksList: {
-    gap: 16,
-  },
-  taskCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  taskIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  taskInfo: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    marginBottom: 4,
-    letterSpacing: -0.2,
-  },
-  taskSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.textMuted,
-  },
-  taskAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  payNowText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginRight: 4,
-  },
-
-  bottomSpacer: {
-    height: 160,
-  },
-
-  /* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */
-  bottomNavContainer: {
-    position: 'absolute',
-    alignSelf: 'center',
-    width: '90%',
-    zIndex: 100,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.primaryDark,
-    borderRadius: 100,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-    marginTop: 4,
-  },
-  navTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { flexGrow: 1, paddingBottom: 120 },
+  heroContainer: { width: '100%', height: 420, backgroundColor: COLORS.surfaceDark },
+  heroImage: { width: '100%', height: '100%' },
+  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(26, 37, 55, 0.65)' },
+  heroSafeArea: { flex: 1, paddingHorizontal: 24, paddingBottom: 60, justifyContent: 'space-between' },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  locationPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(24, 24, 27, 0.45)', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 100, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.15)' },
+  locationIcon: { marginRight: 8 },
+  locationText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },
+  profileAvatarWrap: { position: 'relative' },
+  profileAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: '#FFFFFF' },
+  notificationDot: { position: 'absolute', top: 2, right: 2, width: 12, height: 12, backgroundColor: COLORS.primary, borderRadius: 6, borderWidth: 2, borderColor: '#FFFFFF' },
+  heroBottomContent: { marginTop: 'auto', marginBottom: 10 },
+  greetingSub: { fontSize: 13, fontWeight: '800', color: '#FFFFFF', letterSpacing: 2, marginBottom: 10, opacity: 0.9 },
+  greetingText: { fontSize: 40, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1.2, lineHeight: 46, marginBottom: 32 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(24, 24, 27, 0.4)', borderRadius: 24, paddingHorizontal: 24, paddingVertical: 18, width: '100%', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.2)' },
+  searchTextWrap: { marginLeft: 14 },
+  searchTitle: { fontSize: 16, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },
+  quickActionsWrapper: { marginTop: 20, marginBottom: 12 },
+  quickActionsScroll: { paddingHorizontal: 24, gap: 10, alignItems: 'center' },
+  actionPillDark: { backgroundColor: COLORS.surfaceDark, paddingHorizontal: 20, height: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 100 },
+  actionPillDarkText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  actionPillLight: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, paddingHorizontal: 16, height: 44, justifyContent: 'center', borderRadius: 100, borderWidth: 1, borderColor: COLORS.border },
+  actionPillLightText: { color: COLORS.textMain, fontSize: 14, fontWeight: '600' },
+  mainContent: { paddingHorizontal: 24 },
+  sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 16 },
+  sectionHeader: { marginTop: 12, marginBottom: 12 },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
+  viewAllText: { fontSize: 14, fontWeight: '800', color: COLORS.primary },
+  largeCard: { backgroundColor: COLORS.surface, borderRadius: 24, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
+  cardImageTop: { width: '100%', height: 240, justifyContent: 'flex-start', alignItems: 'flex-end' },
+  cardImageOverlay: { padding: 16 },
+  cardFavoriteBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
+  cardBody: { padding: 20 },
+  cardBodyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  cardTitle: { fontSize: 18, fontWeight: '800', color: COLORS.textMain, flex: 1 },
+  ratingRow: { flexDirection: 'row', alignItems: 'center' },
+  ratingText: { fontSize: 14, fontWeight: '800', color: COLORS.textMain, marginLeft: 6 },
+  cardSubtitle: { fontSize: 14, fontWeight: '600', color: COLORS.textMuted, marginBottom: 4 },
+  cardTags: { fontSize: 13, fontWeight: '500', color: '#A1A1AA', marginBottom: 16 },
+  divider: { height: 1, backgroundColor: COLORS.border, marginBottom: 16 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  priceAmount: { fontSize: 18, fontWeight: '800', color: COLORS.textMain },
+  priceSubtitle: { fontSize: 14, fontWeight: '500', color: COLORS.textMuted },
+  blackButton: { backgroundColor: COLORS.surfaceDark, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 100 },
+  blackButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  snapshotScroll: { gap: 16, paddingBottom: 8 },
+  snapshotCard: { width: 150, height: 180, borderRadius: 24, overflow: 'hidden' },
+  snapshotImage: { width: '100%', height: '100%' },
+  snapshotOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.32)', borderRadius: 24 },
+  snapshotContent: { flex: 1, padding: 16, justifyContent: 'space-between' },
+  snapshotIcon: { marginBottom: 'auto' },
+  snapshotValue: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 2 },
+  snapshotLabel: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.8)' },
+  tasksList: { gap: 12 },
+  taskCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: COLORS.border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 1 },
+  taskIconWrapper: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
+  taskInfo: { flex: 1 },
+  taskTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.2 },
+  taskSubtitle: { fontSize: 13, fontWeight: '500', color: COLORS.textMuted },
+  taskAction: { flexDirection: 'row', alignItems: 'center' },
+  actionTextResolve: { fontSize: 13, fontWeight: '800', color: COLORS.dangerText, marginRight: 4 },
+  actionTextPay: { fontSize: 13, fontWeight: '800', color: COLORS.warningText, marginRight: 4 },
+  bottomNavContainer: { position: 'absolute', alignSelf: 'center', width: '90%', zIndex: 100 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.surfaceDark, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 20 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  navText: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 4 },
+  navTextActive: { color: '#FFFFFF', fontWeight: '700' },
 });

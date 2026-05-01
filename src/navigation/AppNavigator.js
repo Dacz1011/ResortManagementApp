@@ -25,6 +25,7 @@ import ReineGuestDetails from '../screens/Reine/ReineGuestDetails';
 import ReineGuestHistory from '../screens/Reine/ReineGuestHistory';
 import ReineGuestMgmt from '../screens/Reine/ReineGuestMgmt';
 import ReineHome from '../screens/Reine/ReineHome';
+import ReinePropertyProfile from '../screens/Reine/ReinePropertyProfile';
 
 // Casa Screens
 import CasaAdmin from '../screens/Casa/CasaAdmin';
@@ -72,6 +73,7 @@ const AppNavigator = () => {
       <Stack.Screen name="ReineGuestHistory" component={ReineGuestHistory} />
       <Stack.Screen name="ReineGuestDetails" component={ReineGuestDetails} />
       <Stack.Screen name="ReineNotifications" component={NotificationScreen} initialParams={{ propertyId: 'Reine' }} />
+      <Stack.Screen name="ReinePropertyProfile" component={ReinePropertyProfile} />
 
       {/* Casa Property Stack */}
       <Stack.Screen name="CasaHome" component={CasaHome} />
