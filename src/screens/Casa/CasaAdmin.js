@@ -1,51 +1,55 @@
-import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
+  Bell,
+  Building,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  CreditCard,
+  HelpCircle,
+  Home,
+  Info,
+  LogOut,
+  MapPin,
+  Settings,
+  Shield,
+  Users,
+  Wallet
+} from 'lucide-react-native';
+import { useEffect, useRef } from 'react';
+import {
+  Animated,
+  Dimensions,
   Image,
+  ImageBackground,
   Platform,
   StatusBar,
-  ImageBackground,
-  Dimensions
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Home,
-  Bell,
-  Shield,
-  HelpCircle,
-  ChevronRight,
-  LogOut,
-  CalendarDays,
-  Users,
-  Wallet,
-  Settings,
-  CheckCircle2,
-  Building,
-  CreditCard,
-  Info
-} from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
-// Casa M.O. Deep Forest Green Palette (Unified Design System)
+// Casa Deep Forest Green Palette applied to Reine's Structure
 const COLORS = {
-  background: '#F8FAFC',
-  primary: '#1B5E20',       // Casa Deep Forest Green
-  primaryLight: '#E8F5E9',  // Soft green tint
-  primaryDark: '#0D3B10',   // Deep green for accents
-  textMain: '#0F172A',
-  textMuted: '#64748B',
-  border: '#E2E8F0',
-  cardBg: '#FFFFFF',
+  background: '#F7F7F9',    
+  surface: '#FFFFFF',       
+  surfaceDark: '#0D3B10',   // Casa Dark Green
+  surfaceDarkActive: '#1B5E20',
+
+  primary: '#1B5E20',       // Casa Primary
+  primaryLight: '#E8F5E9',
+
+  textMain: '#18181B',      
+  textMuted: '#71717A',     
+  border: '#E4E4E7',        
+
   dangerBg: '#FEE2E2',
   dangerText: '#EF4444',
 };
 
-// Grouped Settings for a cleaner, organized UI
 const MENU_GROUPS = [
   {
     title: 'PROPERTY MANAGEMENT',
@@ -72,9 +76,18 @@ const MENU_GROUPS = [
 
 export default function CasaAdmin({ navigation }) {
   const activeNav = 'Admin';
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets(); 
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleLogout = () => {
-    // Reset navigation to Login screen
     if (navigation && navigation.reset) {
       navigation.reset({
         index: 0,
@@ -87,61 +100,64 @@ export default function CasaAdmin({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         bounces={false}
+        style={{ opacity: fadeAnim }}
       >
-        {/* --- FULL BLEED HERO IMAGE HEADER --- */}
-        <ImageBackground
-          source={{ uri: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop' }}
-          style={styles.heroHeader}
-        >
-          {/* Deep Green gradient overlay for text readability */}
-          <View style={styles.heroOverlay} />
+        {/* --- HERO HEADER --- */}
+        <View style={styles.heroContainer}>
+          <ImageBackground
+            source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2070&auto=format&fit=crop' }}
+            style={styles.heroImage}
+            imageStyle={styles.heroImageStyle}
+          >
+            <View style={styles.heroOverlay} />
 
-          <SafeAreaView edges={['top']} style={styles.heroSafeArea}>
-            {/* Top Nav Row */}
-            <View style={styles.headerTopRow}>
-              <View>
-                <Text style={styles.greetingText}>Configuration</Text>
-                <Text style={styles.adminTitle}>Settings</Text>
-              </View>
-            </View>
-
-            {/* Glassmorphism Profile Card */}
-            <View style={styles.glassCard}>
-              <View style={styles.profileInfoRow}>
-                <View style={styles.avatarWrapper}>
+            <View style={[styles.heroContent, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 10 }]}>
+              {/* Top Bar */}
+              <View style={styles.topBar}>
+                <View style={styles.locationPill}>
+                  <MapPin size={14} color="#FFFFFF" style={styles.locationIcon} />
+                  <Text style={styles.locationText}>System Control</Text>
+                </View>
+                <TouchableOpacity activeOpacity={0.8} style={styles.profileAvatarWrap}>
                   <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop' }}
-                    style={styles.avatarImage}
+                    source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop' }}
+                    style={styles.profileAvatar}
                   />
-                  <View style={styles.verifiedBadge}>
-                    <CheckCircle2 size={16} color={COLORS.primary} fill="#FFFFFF" />
-                  </View>
-                </View>
-
-                <View style={styles.profileTextContainer}>
-                  <Text style={styles.profileName}>Casa Admin</Text>
-                  <Text style={styles.profileRole}>Property Manager</Text>
-                </View>
+                  <View style={styles.notificationDot} />
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity activeOpacity={0.8} style={styles.editProfileBtn}>
-                <Text style={styles.editProfileBtnText}>Edit Profile</Text>
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
-        </ImageBackground>
+              <View style={styles.heroBottomContent}>
+                <View style={styles.greetingContainer}>
+                  <Text style={styles.greetingText}>Admin Settings{'\n'}& Preferences</Text>
+                </View>
 
-        {/* --- OVERLAPPING MAIN SHEET --- */}
-        <View style={styles.mainSheet}>
+                <TouchableOpacity style={styles.searchPill} activeOpacity={0.9}>
+                  <View style={styles.searchPillIconBox}>
+                    <CheckCircle2 size={18} color={COLORS.primary} strokeWidth={2.5} />
+                  </View>
+                  <View style={styles.searchPillTextWrap}>
+                    <Text style={styles.searchPillTitle}>Casa Admin</Text>
+                    <Text style={styles.searchPillSubtitle}>Verified Property Manager</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ImageBackground>
+        </View>
+
+        <View style={styles.mainContent}>
 
           {/* --- GROUPED SETTINGS MENU --- */}
           {MENU_GROUPS.map((group, groupIndex) => (
             <View key={groupIndex} style={styles.menuGroup}>
-              <Text style={styles.groupTitle}>{group.title}</Text>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{group.title}</Text>
+              </View>
 
               <View style={styles.menuCard}>
                 {group.items.map((item, itemIndex) => {
@@ -155,7 +171,7 @@ export default function CasaAdmin({ navigation }) {
                       style={[styles.menuItem, !isLast && styles.menuItemBorder]}
                     >
                       <View style={styles.iconBox}>
-                        <Icon size={20} color={COLORS.primary} strokeWidth={2.5} />
+                        <Icon size={20} color={COLORS.textMain} strokeWidth={2.5} />
                       </View>
 
                       <View style={styles.menuTextContainer}>
@@ -163,7 +179,7 @@ export default function CasaAdmin({ navigation }) {
                         <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
                       </View>
 
-                      <ChevronRight size={20} color="#CBD5E1" strokeWidth={2.5} />
+                      <ChevronRight size={20} color={COLORS.border} strokeWidth={2.5} />
                     </TouchableOpacity>
                   );
                 })}
@@ -178,325 +194,64 @@ export default function CasaAdmin({ navigation }) {
               <Text style={styles.logoutButtonText}>Sign Out</Text>
             </TouchableOpacity>
 
-            <Text style={styles.versionText}>CASA M.O. V2.4.0</Text>
+            <Text style={styles.versionText}>CASA M.O. RESORT V2.4.0</Text>
           </View>
 
         </View>
-      </ScrollView>
+        <View style={styles.bottomSpacer} />
+      </Animated.ScrollView>
 
-      {/* --- MODERN FULL-WIDTH BOTTOM NAVIGATION --- */}
-      <View style={styles.bottomNavContainer}>
+      {/* --- SLEEK BLACK PILL BOTTOM NAV --- */}
+      <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CasaHome')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Home' && styles.navIconWrapperActive]}>
-              <Home size={22} color={activeNav === 'Home' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Home' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('CasaHome')} style={styles.navItem} activeOpacity={0.8}>
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CasaBookings')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Bookings' && styles.navIconWrapperActive]}>
-              <CalendarDays size={22} color={activeNav === 'Bookings' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Bookings' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('CasaBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CasaGuestMgmt')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Guest' && styles.navIconWrapperActive]}>
-              <Users size={22} color={activeNav === 'Guest' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Guest' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guest</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('CasaGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CasaFinance')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Finance' && styles.navIconWrapperActive]}>
-              <Wallet size={22} color={activeNav === 'Finance' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Finance' ? 2.5 : 2} />
-            </View>
+          <TouchableOpacity onPress={() => navigation.navigate('CasaFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CasaAdmin')} activeOpacity={0.7}>
-            <View style={[styles.navIconWrapper, activeNav === 'Admin' && styles.navIconWrapperActive]}>
-              <Settings size={22} color={activeNav === 'Admin' ? COLORS.primary : COLORS.textMuted} strokeWidth={activeNav === 'Admin' ? 2.5 : 2} />
-            </View>
-            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('CasaAdmin')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Menu</Text>
           </TouchableOpacity>
-
         </View>
       </View>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 100, // Added padding to clear the bottom nav without a separate spacer
-  },
-
-  /* --- FULL BLEED HERO --- */
-  heroHeader: {
-    width: '100%',
-    height: 380,
-    justifyContent: 'flex-start',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(27, 94, 32, 0.75)', // Deep Green Overlay for deep contrast
-  },
-  heroSafeArea: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'space-between',
-    paddingBottom: 40, // Space before the overlapping sheet
-  },
-
-  /* Top Nav in Hero */
-  headerTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: Platform.OS === 'android' ? 16 : 8,
-  },
-  greetingText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  adminTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-
-  /* Glassmorphism Profile Card */
-  glassCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Translucent
-    borderRadius: 28,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginBottom: 10,
-  },
-  profileInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatarWrapper: {
-    position: 'relative',
-    marginRight: 16,
-  },
-  avatarImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: COLORS.primaryLight,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileTextContainer: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    letterSpacing: -0.3,
-  },
-  profileRole: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
-    letterSpacing: 0.5,
-  },
-  editProfileBtn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editProfileBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-
-  /* --- OVERLAPPING MAIN SHEET --- */
-  mainSheet: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    marginTop: -36, // Overlaps the image header
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    flex: 1,
-  },
-
-  /* --- MENU GROUPS & CARDS --- */
-  menuGroup: {
-    marginBottom: 28,
-  },
-  groupTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-    marginBottom: 12,
-    marginLeft: 8,
-  },
-  menuCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 28,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  menuItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: COLORS.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16
-  },
-  menuTextContainer: {
-    flex: 1,
-    paddingRight: 16
-  },
-  menuItemTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    marginBottom: 4,
-    letterSpacing: -0.2,
-  },
-  menuItemSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.textMuted
-  },
-
-  /* --- FOOTER & LOGOUT BUTTON --- */
-  footerContainer: {
-    paddingTop: 8,
-    paddingBottom: 24,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.dangerBg,
-    borderRadius: 24,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoutIcon: {
-    marginRight: 10
-  },
-  logoutButtonText: {
-    color: COLORS.dangerText,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  versionText: {
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-  },
-
-  /* --- MODERN FULL-WIDTH BOTTOM NAV --- */
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 15,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingTop: 16,
-    paddingHorizontal: 8,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  navIconWrapper: {
-    width: 48,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  navIconWrapperActive: {
-    backgroundColor: COLORS.primaryLight,
-  },
-  navText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-  },
-  navTextActive: {
-    color: COLORS.primaryDark,
-    fontWeight: '800',
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { flexGrow: 1 },
+  heroContainer: { width: '100%', height: 280, backgroundColor: COLORS.surfaceDark, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 15, elevation: 8 },
+  heroImage: { width: '100%', height: '100%' }, heroImageStyle: {},
+  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(27, 94, 32, 0.65)' },
+  heroContent: { flex: 1, paddingHorizontal: 24, paddingBottom: 20, justifyContent: 'space-between' },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  locationPill: { flexDirection: 'row', alignItems: 'center' }, locationIcon: { marginRight: 6 }, locationText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  profileAvatarWrap: { position: 'relative' }, profileAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 1.5, borderColor: '#FFFFFF' },
+  notificationDot: { position: 'absolute', top: 0, right: 0, width: 10, height: 10, backgroundColor: COLORS.primary, borderRadius: 5, borderWidth: 2, borderColor: '#FFFFFF' },
+  heroBottomContent: { marginTop: 'auto' }, greetingContainer: { marginBottom: 12 }, greetingText: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.5, lineHeight: 34 },
+  searchPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30,30,30,0.6)', borderRadius: 100, paddingHorizontal: 20, paddingVertical: 16, width: '100%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  searchPillIconBox: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }, searchPillTextWrap: { marginLeft: 12 },
+  searchPillTitle: { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 }, searchPillSubtitle: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },
+  mainContent: { paddingHorizontal: 24, paddingTop: 24 }, menuGroup: { marginBottom: 24 }, sectionHeader: { marginBottom: 12 }, sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
+  menuCard: { backgroundColor: COLORS.surface, borderRadius: 24, paddingHorizontal: 20, borderWidth: 1, borderColor: COLORS.border }, menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20 },
+  menuItemBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.border }, iconBox: { width: 44, height: 44, borderRadius: 14, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: COLORS.border },
+  menuTextContainer: { flex: 1, paddingRight: 16 }, menuItemTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.2 }, menuItemSubtitle: { fontSize: 12, fontWeight: '500', color: COLORS.textMuted },
+  footerContainer: { paddingTop: 8, paddingBottom: 24 }, logoutButton: { flexDirection: 'row', backgroundColor: COLORS.dangerBg, borderRadius: 24, height: 64, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  logoutIcon: { marginRight: 10 }, logoutButtonText: { color: COLORS.dangerText, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 }, versionText: { textAlign: 'center', fontSize: 10, fontWeight: '700', color: COLORS.textMuted, letterSpacing: 1.5 },
+  bottomSpacer: { height: 160 }, bottomNavContainer: { position: 'absolute', alignSelf: 'center', width: '90%', zIndex: 100 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.surfaceDark, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 20 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 }, navText: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 4 }, navTextActive: { color: '#FFFFFF', fontWeight: '700' },
 });

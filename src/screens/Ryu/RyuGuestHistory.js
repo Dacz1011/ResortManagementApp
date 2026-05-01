@@ -1,22 +1,25 @@
 import {
+  ArrowDownToLine,
   BedDouble,
-  Calendar,
   CalendarDays,
-  ChevronLeft,
-  Download,
+  CheckCircle2,
+  Clock,
   Home,
   ListFilter,
+  MapPin,
   Search,
   Settings,
   Users,
   Wallet
 } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -28,168 +31,265 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
-// Deep Navy Blue Theme (Ryu's Transient House)
+// Ryu Deep Navy Palette applied to Reine's Structure
 const COLORS = {
-  background: '#F8FAFC',
-  primary: '#23324B',       // Deep Navy Blue
-  primaryLight: '#E0E7FF',
-  accent: '#E0E7FF',
-  textMain: '#0F172A',
-  textMuted: '#64748B',
-  border: '#E2E8F0',
-  cardBg: '#FFFFFF',
+  background: '#F7F7F9',
+  surface: '#FFFFFF',
+  surfaceDark: '#1A2537',        // Ryu Deep Navy
+  surfaceDarkActive: '#23324B',  // Ryu Primary
 
-  // Status Badges
-  statusCompletedBg: '#E2E8F0',
-  statusCompletedText: '#1E293B',
+  primary: '#23324B',            // Ryu Primary
+  primaryLight: '#E0E7FF',       // Ryu Light Tint
 
-  // Summary Cards
-  summaryDarkBg: '#1E293B',
-  summaryLightBg: '#E2E8F0',
+  textMain: '#18181B',
+  textMuted: '#71717A',
+  border: '#E4E4E7',
+
+  successBg: '#DCFCE7',
+  successText: '#16A34A',
 };
 
-// Mock data for guest history
 const GUEST_HISTORY = [
-  { id: '1', name: 'Maria Sofia Gonzales', date: 'Jan 28 - Jan 30', amount: '₱12,000.00', status: 'COMPLETED' },
-  { id: '2', name: 'Robert Wilson', date: 'Jan 22 - Jan 27', amount: '₱12,000.00', status: 'COMPLETED' },
-  { id: '3', name: 'Elena Rodriguez', date: 'Jan 18 - Jan 20', amount: '₱12,000.00', status: 'COMPLETED' },
-  { id: '4', name: 'Michael Chang', date: 'Jan 12 - Jan 15', amount: '₱12,000.00', status: 'COMPLETED' },
-  { id: '5', name: 'David Lee', date: 'Jan 05 - Jan 08', amount: '₱12,000.00', status: 'COMPLETED' },
+  { id: '1', name: 'Maria Sofia Gonzales', date: 'Jan 28 - Jan 30', amount: '₱12,000.00', nights: 2, status: 'COMPLETED', phone: '+63 912 345 6789', email: 'maria.s@example.com' },
+  { id: '2', name: 'Robert Wilson',        date: 'Jan 22 - Jan 27', amount: '₱60,000.00', nights: 5, status: 'COMPLETED', phone: '+63 998 765 4321', email: 'rwilson@example.com' },
+  { id: '3', name: 'Elena Rodriguez',      date: 'Jan 18 - Jan 20', amount: '₱24,000.00', nights: 2, status: 'COMPLETED', phone: '+63 917 111 2222', email: 'elena.r@example.com' },
+  { id: '4', name: 'Michael Chang',        date: 'Jan 12 - Jan 15', amount: '₱36,000.00', nights: 3, status: 'COMPLETED', phone: '+63 920 333 4444', email: 'mchang@example.com' },
 ];
 
 export default function RyuGuestHistory({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const activeNav = 'Guest';
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets(); // iOS compatibility fix
 
-  // Header fades smoothly to transparent based on scroll position
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 60],
-    outputRange: [1, 0],
-    extrapolate: 'clamp'
-  });
+  const insets = useSafeAreaInsets();
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const filtered = GUEST_HISTORY.filter((g) =>
+    g.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalStays = GUEST_HISTORY.length;
+  const avgNights = Math.round(
+    GUEST_HISTORY.reduce((sum, g) => sum + g.nights, 0) / GUEST_HISTORY.length
+  );
+  const totalRevenue = GUEST_HISTORY.reduce(
+    (sum, g) => sum + parseInt(g.amount.replace(/[₱,\.]/g, '').slice(0, -2)),
+    0
+  );
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
-      {/* --- MODERN HEADER (PINNED TO VERY TOP, FADES ON SCROLL) --- */}
-      <Animated.View style={[styles.headerWrapper, { opacity: headerOpacity }]}>
-        {/* iOS Fix: Using View + insets instead of SafeAreaView */}
-        <View style={[styles.headerSafeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.7}>
-                <ChevronLeft size={28} color={COLORS.primary} strokeWidth={2.5} />
-              </TouchableOpacity>
-              <View>
-                <Text style={styles.headerTitle}>Guest History</Text>
-                <Text style={styles.headerSubtitle}>FIXED RATE LOG</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.filterButton} activeOpacity={0.7}>
-              <ListFilter size={20} color={COLORS.primary} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Animated.View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <Animated.ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+          style={{ opacity: fadeAnim }}
+        >
+          {/* ── FULL-BLEED HERO (mirrors ReineHome exactly) ── */}
+          <View style={styles.heroContainer}>
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop' }}
+              style={styles.heroImage}
+              imageStyle={styles.heroImageStyle}
+            >
+              <View style={styles.heroOverlay} />
 
-      <View style={styles.safeArea}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.keyboardView}>
-          <Animated.ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true }
-            )}
-            scrollEventThrottle={16}
-          >
-            {/* Spacer height to clear the pinned absolute header dynamically */}
-            <View style={{ height: Platform.OS === 'ios' ? insets.top + 70 : (StatusBar.currentHeight || 24) + 70 }} />
-
-            {/* --- SEARCH BAR --- */}
-            <View style={styles.searchContainer}>
-              <Search size={20} color={COLORS.textMuted} strokeWidth={2.5} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search guest name..."
-                placeholderTextColor={COLORS.textMuted}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-
-            {/* --- STAY SUMMARY CARDS --- */}
-            <Text style={styles.sectionLabel}>STAY SUMMARY</Text>
-            <View style={styles.summaryRow}>
-
-              {/* Total Stays Card */}
-              <View style={[styles.summaryCard, { backgroundColor: COLORS.summaryDarkBg }]}>
-                <Text style={[styles.summaryLabel, { color: '#94A3B8' }]}>TOTAL STAYS</Text>
-                <Text style={[styles.summaryValue, { color: '#FFFFFF' }]}>42</Text>
-                <BedDouble size={64} color="#FFFFFF" opacity={0.05} style={styles.bgIcon} />
-              </View>
-
-              {/* Avg Duration Card */}
-              <View style={[styles.summaryCard, { backgroundColor: COLORS.summaryLightBg }]}>
-                <Text style={[styles.summaryLabel, { color: COLORS.primary }]}>AVG. DURATION</Text>
-                <View style={styles.durationValueRow}>
-                  <Text style={[styles.summaryValue, { color: COLORS.primary }]}>1</Text>
-                  <Text style={styles.summaryValueUnit}> day</Text>
+              <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
+                {/* Top bar */}
+                <View style={styles.topBar}>
+                  <View style={styles.locationPill}>
+                    <MapPin size={14} color="#FFFFFF" style={styles.locationIcon} />
+                    <Text style={styles.locationText}>Guest History</Text>
+                  </View>
+                  <TouchableOpacity style={styles.iconBtnDark} activeOpacity={0.8}>
+                    <ListFilter size={18} color="#FFFFFF" strokeWidth={2.5} />
+                  </TouchableOpacity>
                 </View>
-                <CalendarDays size={64} color={COLORS.primary} opacity={0.05} style={styles.bgIcon} />
-              </View>
 
+                {/* Hero bottom — big stat + subtitle */}
+                <View style={styles.heroBottomContent}>
+                  <Text style={styles.heroMainStat}>{totalStays} Stays</Text>
+                  <Text style={styles.heroSubStat}>Completed stays — Fixed Rate Log</Text>
+
+                  {/* Dark search-style pill — mirrors ReineHome search pill */}
+                  <View style={styles.searchPill}>
+                    <Search size={20} color="rgba(255,255,255,0.8)" style={{ marginRight: 12 }} />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Search guest name..."
+                      placeholderTextColor="rgba(255,255,255,0.5)"
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                    />
+                  </View>
+                </View>
+              </View>
+            </ImageBackground>
+          </View>
+
+          {/* ── QUICK FILTER PILLS (mirrors ReineHome quickActionsWrapper) ── */}
+          <View style={styles.quickActionsWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.quickActionsScroll}
+            >
+              <TouchableOpacity style={styles.actionPillDark} activeOpacity={0.8}>
+                <Text style={styles.actionPillDarkText}>Past 30 Days</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionPillLight} activeOpacity={0.7}>
+                <Text style={styles.actionPillLightText}>This Month</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionPillLight} activeOpacity={0.7}>
+                <Text style={styles.actionPillLightText}>Last 3 Months</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionPillLight} activeOpacity={0.7}>
+                <Text style={styles.actionPillLightText}>All Time</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+
+          {/* ── MAIN CONTENT ── */}
+          <View style={styles.mainContent}>
+
+            {/* ── SNAPSHOT STRIP (mirrors ReineHome Today's Snapshot) ── */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Stay Summary</Text>
             </View>
 
-            {/* --- GUEST RECORDS LIST --- */}
-            <View style={styles.listHeaderRow}>
-              <Text style={styles.sectionLabel}>GUEST RECORDS</Text>
-              <TouchableOpacity style={styles.pastDaysPill} activeOpacity={0.7}>
-                <Text style={styles.pastDaysText}>Past 30 Days</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.snapshotScroll}
+            >
+              <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
+                <ImageBackground
+                  source={{ uri: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop' }}
+                  style={styles.snapshotImage}
+                  imageStyle={{ borderRadius: 24 }}
+                >
+                  <View style={styles.snapshotOverlay} />
+                  <View style={styles.snapshotContent}>
+                    <BedDouble size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                    <View>
+                      <Text style={styles.snapshotValue}>{totalStays} Stays</Text>
+                      <Text style={styles.snapshotLabel}>Total Completed</Text>
+                    </View>
+                  </View>
+                </ImageBackground>
               </TouchableOpacity>
+
+              <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
+                <ImageBackground
+                  source={{ uri: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop' }}
+                  style={styles.snapshotImage}
+                  imageStyle={{ borderRadius: 24 }}
+                >
+                  <View style={styles.snapshotOverlay} />
+                  <View style={styles.snapshotContent}>
+                    <Clock size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                    <View>
+                      <Text style={styles.snapshotValue}>{avgNights} nights</Text>
+                      <Text style={styles.snapshotLabel}>Avg. Duration</Text>
+                    </View>
+                  </View>
+                </ImageBackground>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.snapshotCard} activeOpacity={0.8}>
+                <ImageBackground
+                  source={{ uri: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop' }}
+                  style={styles.snapshotImage}
+                  imageStyle={{ borderRadius: 24 }}
+                >
+                  <View style={styles.snapshotOverlay} />
+                  <View style={styles.snapshotContent}>
+                    <Wallet size={24} color="#FFFFFF" style={styles.snapshotIcon} />
+                    <View>
+                      <Text style={styles.snapshotValue}>₱{totalRevenue.toLocaleString()}</Text>
+                      <Text style={styles.snapshotLabel}>Total Earned</Text>
+                    </View>
+                  </View>
+                </ImageBackground>
+              </TouchableOpacity>
+            </ScrollView>
+
+            {/* ── GUEST RECORDS ── */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Guest Records</Text>
             </View>
 
             <View style={styles.recordsList}>
-              {GUEST_HISTORY.map((guest) => (
-                <TouchableOpacity key={guest.id} activeOpacity={0.7} style={styles.recordCard}>
+              {filtered.length > 0 ? (
+                filtered.map((guest) => (
+                  <TouchableOpacity 
+                    key={guest.id} 
+                    activeOpacity={0.7} 
+                    style={styles.recordCard}
+                  >
+                    <ImageBackground
+                      source={{ uri: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop' }}
+                      style={styles.recordCardImage}
+                      imageStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+                    >
+                      <View style={styles.recordCardImageOverlay} />
+                      <View style={styles.recordCardImageContent}>
+                        <View style={styles.confirmedBadge}>
+                          <CheckCircle2 size={11} color={COLORS.successText} strokeWidth={3} style={{ marginRight: 3 }} />
+                          <Text style={styles.confirmedBadgeText}>{guest.status}</Text>
+                        </View>
+                        <View style={styles.nightsBadge}>
+                          <Text style={styles.nightsBadgeText}>{guest.nights}N</Text>
+                        </View>
+                      </View>
+                    </ImageBackground>
 
-                  <View style={styles.recordHeader}>
-                    <Text style={styles.guestName}>{guest.name}</Text>
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusText}>{guest.status}</Text>
+                    <View style={styles.recordCardBody}>
+                      <View style={styles.cardBodyHeader}>
+                        <Text style={styles.guestName}>{guest.name}</Text>
+                        <Text style={styles.guestDate}>{guest.date}</Text>
+                      </View>
+
+                      <View style={styles.divider} />
+
+                      <View style={styles.cardFooter}>
+                        <Text style={styles.amountLabel}>AMOUNT PAID</Text>
+                        <Text style={styles.amountValue}>{guest.amount}</Text>
+                      </View>
                     </View>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.emptyCard}>
+                  <View style={styles.emptyIconBox}>
+                    <CalendarDays size={32} color={COLORS.textMain} strokeWidth={1.5} />
                   </View>
-
-                  <View style={styles.dateRow}>
-                    <Calendar size={14} color={COLORS.textMuted} strokeWidth={2} style={{ marginRight: 6 }} />
-                    <Text style={styles.guestDate}>{guest.date}</Text>
-                  </View>
-
-                  <View style={styles.amountRow}>
-                    <Text style={styles.amountLabel}>AMOUNT PAID</Text>
-                    <Text style={styles.amountValue}>{guest.amount}</Text>
-                  </View>
-
-                </TouchableOpacity>
-              ))}
+                  <Text style={styles.emptyTitle}>No Results Found</Text>
+                  <Text style={styles.emptySub}>
+                    No past stays match your search. Try a different name.
+                  </Text>
+                </View>
+              )}
             </View>
+          </View>
+          <View style={styles.bottomSpacer} />
+        </Animated.ScrollView>
+      </KeyboardAvoidingView>
 
-            <View style={styles.bottomSpacer} />
-          </Animated.ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-
-      {/* --- FLOATING ACTION BUTTON (DOWNLOAD) --- */}
       <TouchableOpacity activeOpacity={0.9} style={styles.fab}>
-        <View style={styles.fabInner}>
-          <Download size={24} color="#FFFFFF" strokeWidth={2.5} />
-        </View>
+        <ArrowDownToLine size={24} color="#FFFFFF" strokeWidth={2.5} />
       </TouchableOpacity>
 
-      {/* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */}
       <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('RyuHome')} style={styles.navItem} activeOpacity={0.8}>
@@ -210,11 +310,10 @@ export default function RyuGuestHistory({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('RyuAdmin')} style={styles.navItem} activeOpacity={0.8}>
             <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
-            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Admin</Text>
+            <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Menu</Text>
           </TouchableOpacity>
         </View>
       </View>
-
     </View>
   );
 }
@@ -224,299 +323,79 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  safeArea: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
+  scrollContent: { flexGrow: 1 },
 
-  /* --- HEADER (ABSOLUTE FOR SMOOTH SCROLL) --- */
-  headerWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    backgroundColor: COLORS.background,
+  heroContainer: { width: '100%', height: 340 },
+  heroImage: { width: '100%', height: '100%' },
+  heroImageStyle: {},
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(26, 37, 55, 0.65)',
   },
-  headerSafeArea: {
-    paddingBottom: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 60,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  backBtn: {
-    marginRight: 12,
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1,
-  },
-  filterButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-  },
+  safeArea: { flex: 1, paddingHorizontal: 24, paddingBottom: 28, justifyContent: 'space-between' },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  locationPill: { flexDirection: 'row', alignItems: 'center' },
+  locationIcon: { marginRight: 6 },
+  locationText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  iconBtnDark: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(30,30,30,0.6)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
 
-  scrollContent: {
-    paddingHorizontal: 24,
-  },
+  heroBottomContent: { marginTop: 'auto', gap: 10 },
+  heroMainStat: { fontSize: 42, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1, marginBottom: 0 },
+  heroSubStat: { fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
 
-  /* --- SEARCH BAR --- */
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    height: 60,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: COLORS.textMain,
-    height: '100%',
-  },
+  searchPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(24,24,27,0.65)', borderRadius: 100, paddingHorizontal: 20, paddingVertical: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  searchInput: { flex: 1, fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
 
-  /* --- SUMMARY CARDS --- */
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.textMuted,
-    letterSpacing: 1.5,
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
-  },
-  summaryCard: {
-    flex: 1,
-    borderRadius: 28,
-    padding: 24,
-    height: 120,
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  summaryLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 8,
-  },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: -1,
-  },
-  durationValueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  summaryValueUnit: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginLeft: 4,
-  },
-  bgIcon: {
-    position: 'absolute',
-    right: -10,
-    bottom: -10,
-  },
+  quickActionsWrapper: { marginTop: 20, marginBottom: 12 },
+  quickActionsScroll: { paddingHorizontal: 24, gap: 10, alignItems: 'center' },
+  actionPillDark: { backgroundColor: COLORS.surfaceDark, paddingHorizontal: 20, height: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 100 },
+  actionPillDarkText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  actionPillLight: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, paddingHorizontal: 16, height: 44, justifyContent: 'center', borderRadius: 100, borderWidth: 1, borderColor: COLORS.border },
+  actionPillLightText: { color: COLORS.textMain, fontSize: 14, fontWeight: '600' },
 
-  /* --- RECORDS LIST --- */
-  listHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  pastDaysPill: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  pastDaysText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  recordsList: {
-    gap: 16,
-  },
-  recordCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  recordHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  guestName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: COLORS.textMain,
-  },
-  statusBadge: {
-    backgroundColor: COLORS.statusCompletedBg,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 100,
-  },
-  statusText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: COLORS.statusCompletedText,
-    letterSpacing: 0.5,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  guestDate: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.textMuted,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    borderTopWidth: 1,
-    borderTopColor: COLORS.background,
-    paddingTop: 16,
-  },
-  amountLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94A3B8',
-    letterSpacing: 1,
-  },
-  amountValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-  },
+  mainContent: { paddingHorizontal: 24, paddingTop: 8 },
+  sectionHeader: { marginBottom: 16, marginTop: 8 },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
 
-  bottomSpacer: {
-    height: 160,
-  },
+  snapshotScroll: { gap: 16, paddingBottom: 8 },
+  snapshotCard: { width: 160, height: 180, borderRadius: 24, overflow: 'hidden' },
+  snapshotImage: { width: '100%', height: '100%' },
+  snapshotOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.32)', borderRadius: 24 },
+  snapshotContent: { flex: 1, padding: 16, justifyContent: 'space-between' },
+  snapshotIcon: { marginBottom: 'auto' },
+  snapshotValue: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 2 },
+  snapshotLabel: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.8)' },
 
-  /* --- FLOATING ACTION BUTTON --- */
-  fab: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : 110,
-    right: 24,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
-    zIndex: 10,
-  },
-  fabInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  recordsList: { gap: 16, marginBottom: 8 },
+  recordCard: { backgroundColor: COLORS.surface, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
+  recordCardImage: { width: '100%', height: 120 },
+  recordCardImageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  recordCardImageContent: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 16 },
+  confirmedBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.successBg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  confirmedBadgeText: { fontSize: 10, fontWeight: '800', color: COLORS.successText },
+  nightsBadge: { backgroundColor: 'rgba(24,24,27,0.6)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  nightsBadgeText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
+  recordCardBody: { padding: 20 },
+  cardBodyHeader: { marginBottom: 16 },
+  guestName: { fontSize: 17, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.3 },
+  guestDate: { fontSize: 13, fontWeight: '500', color: COLORS.textMuted },
 
-  /* --- REINE-STYLE BOTTOM NAV (RYU COLORS) --- */
-  bottomNavContainer: {
-    position: 'absolute',
-    alignSelf: 'center',
-    width: '90%',
-    zIndex: 100,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.primaryDark,
-    borderRadius: 100,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.textMuted,
-    marginTop: 4,
-  },
-  navTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
+  divider: { height: 1, backgroundColor: COLORS.border, marginBottom: 16 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  amountLabel: { fontSize: 11, fontWeight: '800', color: COLORS.textMuted, letterSpacing: 0.5 },
+  amountValue: { fontSize: 20, fontWeight: '800', color: COLORS.primary, letterSpacing: -0.5 },
+
+  emptyCard: { backgroundColor: COLORS.surface, borderRadius: 24, padding: 32, alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
+  emptyIconBox: { width: 64, height: 64, borderRadius: 32, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: COLORS.border },
+  emptyTitle: { fontSize: 18, fontWeight: '800', color: COLORS.textMain, marginBottom: 8 },
+  emptySub: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', lineHeight: 20 },
+
+  fab: { position: 'absolute', bottom: Platform.OS === 'ios' ? 120 : 110, right: 24, width: 60, height: 60, borderRadius: 20, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 16, elevation: 8, zIndex: 10 },
+  bottomSpacer: { height: 160 },
+
+  bottomNavContainer: { position: 'absolute', alignSelf: 'center', width: '90%', zIndex: 100 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.surfaceDark, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 20 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  navText: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 4 },
+  navTextActive: { color: '#FFFFFF', fontWeight: '700' },
 });
