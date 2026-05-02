@@ -679,27 +679,27 @@ export default function ReineFinance({ navigation }) {
         </TouchableOpacity>
       )}
 
-      {/* ── BLACK PILL BOTTOM NAV ── */}
+      {/* ── PINK PILL BOTTOM NAV ── */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem} activeOpacity={0.8}>
-            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ReineBookings')} style={styles.navItem} activeOpacity={0.8}>
-            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ReineGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
-            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => { setShowExpenseForm(false); }} style={styles.navItem} activeOpacity={0.8}>
-            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ReineAdmin')} style={styles.navItem} activeOpacity={0.8}>
-            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Menu</Text>
           </TouchableOpacity>
         </View>
@@ -984,20 +984,20 @@ const styles = StyleSheet.create({
 
   bottomSpacer: { height: 160 },
 
-  /* ── BLACK PILL BOTTOM NAV ── */
+  /* ── PINK PILL BOTTOM NAV ── */
   bottomNavContainer: {
     position: 'absolute', bottom: Platform.OS === 'ios' ? 32 : 24,
     alignSelf: 'center', width: '90%', zIndex: 100,
   },
   bottomNav: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: COLORS.surfaceDark, borderRadius: 100,
+    backgroundColor: COLORS.primary, borderRadius: 100,
     paddingVertical: 12, paddingHorizontal: 24,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25, shadowRadius: 20, elevation: 20,
+    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35, shadowRadius: 20, elevation: 20,
   },
   navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-  navText: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 4 },
+  navText: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginTop: 4 },
   navTextActive: { color: '#FFFFFF', fontWeight: '700' },
 
   /* Modal */

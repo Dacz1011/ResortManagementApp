@@ -178,7 +178,7 @@ export default function ReineAdmin({ navigation }) {
                       style={[styles.menuItem, !isLast && styles.menuItemBorder]}
                     >
                       <View style={styles.iconBox}>
-                        <Icon size={20} color={COLORS.textMain} strokeWidth={2.5} />
+                        <Icon size={20} color={COLORS.primary} strokeWidth={2.5} />
                       </View>
 
                       <View style={styles.menuTextContainer}>
@@ -197,7 +197,7 @@ export default function ReineAdmin({ navigation }) {
           {/* --- LOGOUT BUTTON --- */}
           <View style={styles.footerContainer}>
             <TouchableOpacity activeOpacity={0.85} style={styles.logoutButton} onPress={handleLogout}>
-              <LogOut size={20} color={COLORS.dangerText} strokeWidth={2.5} style={styles.logoutIcon} />
+              <LogOut size={20} color="#FFFFFF" strokeWidth={2.5} style={styles.logoutIcon} />
               <Text style={styles.logoutButtonText}>Sign Out</Text>
             </TouchableOpacity>
 
@@ -208,28 +208,27 @@ export default function ReineAdmin({ navigation }) {
         <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
 
-      {/* --- SLEEK BLACK PILL BOTTOM NAV (Matched perfectly to ReineHome) --- */}
-      {/* iOS Fix: Guarantee pill sits perfectly above iOS home indicator bar */}
+      {/* --- PINK PILL BOTTOM NAV --- */}
       <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('ReineHome')} style={styles.navItem} activeOpacity={0.8}>
-            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : COLORS.textMuted} />
+            <Home size={22} color={activeNav === 'Home' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Home' && styles.navTextActive]}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ReineBookings')} style={styles.navItem} activeOpacity={0.8}>
-            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : COLORS.textMuted} />
+            <CalendarDays size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Bookings' && styles.navTextActive]}>Bookings</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ReineGuestMgmt')} style={styles.navItem} activeOpacity={0.8}>
-            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : COLORS.textMuted} />
+            <Users size={22} color={activeNav === 'Guest' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Guest' && styles.navTextActive]}>Guests</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ReineFinance')} style={styles.navItem} activeOpacity={0.8}>
-            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : COLORS.textMuted} />
+            <Wallet size={22} color={activeNav === 'Finance' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Finance' && styles.navTextActive]}>Finance</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ReineAdmin')} style={styles.navItem} activeOpacity={0.8}>
-            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : COLORS.textMuted} />
+            <Settings size={22} color={activeNav === 'Admin' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
             <Text style={[styles.navText, activeNav === 'Admin' && styles.navTextActive]}>Menu</Text>
           </TouchableOpacity>
         </View>
@@ -255,11 +254,11 @@ const styles = StyleSheet.create({
   searchPillTitle: { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 }, searchPillSubtitle: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.7)' },
   mainContent: { paddingHorizontal: 24, paddingTop: 24 }, menuGroup: { marginBottom: 24 }, sectionHeader: { marginBottom: 12 }, sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
   menuCard: { backgroundColor: COLORS.surface, borderRadius: 24, paddingHorizontal: 20, borderWidth: 1, borderColor: COLORS.border }, menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20 },
-  menuItemBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.border }, iconBox: { width: 44, height: 44, borderRadius: 14, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: COLORS.border },
+  menuItemBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.border }, iconBox: { width: 44, height: 44, borderRadius: 14, backgroundColor: COLORS.primaryLight, justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: COLORS.primaryLight },
   menuTextContainer: { flex: 1, paddingRight: 16 }, menuItemTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.2 }, menuItemSubtitle: { fontSize: 12, fontWeight: '500', color: COLORS.textMuted },
-  footerContainer: { paddingTop: 8, paddingBottom: 24 }, logoutButton: { flexDirection: 'row', backgroundColor: COLORS.dangerBg, borderRadius: 24, height: 64, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  logoutIcon: { marginRight: 10 }, logoutButtonText: { color: COLORS.dangerText, fontSize: 16, fontWeight: '800', letterSpacing: 0.5 }, versionText: { textAlign: 'center', fontSize: 10, fontWeight: '700', color: COLORS.textMuted, letterSpacing: 1.5 },
+  footerContainer: { paddingTop: 8, paddingBottom: 24 }, logoutButton: { flexDirection: 'row', backgroundColor: COLORS.primary, borderRadius: 24, height: 64, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  logoutIcon: { marginRight: 10 }, logoutButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 }, versionText: { textAlign: 'center', fontSize: 10, fontWeight: '700', color: COLORS.textMuted, letterSpacing: 1.5 },
   bottomSpacer: { height: 160 }, bottomNavContainer: { position: 'absolute', alignSelf: 'center', width: '90%', zIndex: 100 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.surfaceDark, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 20 },
-  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 }, navText: { fontSize: 10, fontWeight: '600', color: COLORS.textMuted, marginTop: 4 }, navTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.primary, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.35, shadowRadius: 20, elevation: 20 },
+  navItem: { alignItems: 'center', justifyContent: 'center', flex: 1 }, navText: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginTop: 4 }, navTextActive: { color: '#FFFFFF', fontWeight: '700' },
 });
