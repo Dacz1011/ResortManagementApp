@@ -1,4 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Banknote,
+  BarChart2,
+  BookOpen,
+  CalendarDays,
+  ConciergeBell,
+  Info,
+  LayoutGrid,
+  Lightbulb,
+  MapPin,
+  PieChart,
+  Settings,
+  TrendingUp,
+  Wrench
+} from 'lucide-react-native'; // <--- FIXED THIS LINE
+import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -13,24 +30,6 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Banknote,
-  BarChart2,
-  BookOpen,
-  Calendar,
-  CalendarDays,
-  ConciergeBell,
-  Info,
-  LayoutGrid,
-  Lightbulb,
-  MapPin,
-  PieChart,
-  Settings,
-  TrendingUp,
-  Wrench
-} from 'lucide-native';
 
 const { width } = Dimensions.get('window');
 
