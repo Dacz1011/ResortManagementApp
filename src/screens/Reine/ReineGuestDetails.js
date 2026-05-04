@@ -26,6 +26,7 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBookings } from '../../context/BookingContext';
 
 const COLORS = {
   background: '#F7F7F9',
@@ -43,9 +44,12 @@ const COLORS = {
 export default function ReineGuestDetails({ route, navigation }) {
   // Extract guest details passed from the history screen
   const { guest } = route.params || {};
+  const { updateGuestPhotos } = useBookings();
 
-  const [checkoutPhoto, setCheckoutPhoto] = useState(null);
+  const [checkoutPhoto, setCheckoutPhoto] = useState(guest?.checkoutImage || null);
+  const [guestPhoto, setGuestPhoto] = useState(guest?.image || null);
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const [pickerType, setPickerType] = useState('checkout'); // 'guest' or 'checkout'
   const insets = useSafeAreaInsets(); // iOS compatibility fix
 
   // Fallback if no guest data is found
@@ -60,20 +64,28 @@ export default function ReineGuestDetails({ route, navigation }) {
     );
   }
 
+  const handleImagePicked = (uri) => {
+    if (pickerType === 'guest') {
+      setGuestPhoto(uri);
+    } else {
+      setCheckoutPhoto(uri);
+    }
+  };
+
   const openCamera = async () => {
     setShowImagePicker(false);
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Camera access is required to take a checkout photo.');
+      Alert.alert('Permission Denied', 'Camera access is required.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: pickerType === 'guest' ? [1, 1] : [4, 3],
       quality: 0.8,
     });
     if (!result.canceled) {
-      setCheckoutPhoto(result.assets[0].uri);
+      handleImagePicked(result.assets[0].uri);
     }
   };
 
@@ -81,16 +93,40 @@ export default function ReineGuestDetails({ route, navigation }) {
     setShowImagePicker(false);
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Gallery access is required to upload a photo.');
+      Alert.alert('Permission Denied', 'Gallery access is required.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: pickerType === 'guest' ? [1, 1] : [4, 3],
       quality: 0.8,
     });
     if (!result.canceled) {
-      setCheckoutPhoto(result.assets[0].uri);
+      handleImagePicked(result.assets[0].uri);
+    }
+  };
+
+  const triggerPicker = (type) => {
+    setPickerType(type);
+    setShowImagePicker(true);
+  };
+
+  const handleSave = async () => {
+    // Parse checkIn and checkOut from the date string "Oct 5 - Oct 8"
+    const dateParts = guest.date.split(' - ');
+    const checkIn = dateParts[0];
+    const checkOut = dateParts[1];
+
+    const success = await updateGuestPhotos('Reine', guest.name, checkIn, checkOut, {
+      image: guestPhoto,
+      checkoutImage: checkoutPhoto
+    });
+
+    if (success) {
+      Alert.alert("Success", "Guest details and documentation have been saved securely.");
+      navigation.goBack();
+    } else {
+      Alert.alert("Error", "Could not save changes. Please try again.");
     }
   };
 
@@ -119,9 +155,20 @@ export default function ReineGuestDetails({ route, navigation }) {
           {/* PROFILE SUMMARY CARD */}
           <View style={styles.profileCard}>
             <View style={styles.profileHeader}>
-              <View style={styles.avatarWrapper}>
-                <User size={32} color={COLORS.primary} strokeWidth={2} />
-              </View>
+              <TouchableOpacity
+                style={styles.avatarWrapper}
+                activeOpacity={0.8}
+                onPress={() => triggerPicker('guest')}
+              >
+                {guestPhoto ? (
+                  <Image source={{ uri: guestPhoto }} style={styles.avatarImage} />
+                ) : (
+                  <User size={32} color={COLORS.primary} strokeWidth={2} />
+                )}
+                <View style={styles.cameraBadge}>
+                  <Camera size={12} color="#FFFFFF" strokeWidth={2.5} />
+                </View>
+              </TouchableOpacity>
               <View style={styles.profileTextWrap}>
                 <Text style={styles.guestName}>{guest.name}</Text>
                 <View style={styles.statusBadge}>
@@ -195,7 +242,7 @@ export default function ReineGuestDetails({ route, navigation }) {
               <TouchableOpacity
                 style={styles.uploadBox}
                 activeOpacity={0.7}
-                onPress={() => setShowImagePicker(true)}
+                onPress={() => triggerPicker('checkout')}
               >
                 <Camera size={32} color={COLORS.primary} strokeWidth={1.5} style={{ marginBottom: 12 }} />
                 <Text style={styles.uploadText}>Tap to Capture or Upload</Text>
@@ -204,15 +251,12 @@ export default function ReineGuestDetails({ route, navigation }) {
 
             {/* Save Button */}
             <TouchableOpacity
-              style={[styles.saveBtn, !checkoutPhoto && styles.saveBtnDisabled]}
+              style={[styles.saveBtn, (!checkoutPhoto && !guestPhoto) && styles.saveBtnDisabled]}
               activeOpacity={0.8}
-              disabled={!checkoutPhoto}
-              onPress={() => {
-                Alert.alert("Success", "Checkout documentation has been saved securely.");
-                navigation.goBack();
-              }}
+              disabled={!checkoutPhoto && !guestPhoto}
+              onPress={handleSave}
             >
-              <Text style={styles.saveBtnText}>Save Documentation</Text>
+              <Text style={styles.saveBtnText}>Save All Changes</Text>
             </TouchableOpacity>
           </View>
 
@@ -229,7 +273,9 @@ export default function ReineGuestDetails({ route, navigation }) {
         <Pressable style={styles.modalOverlay} onPress={() => setShowImagePicker(false)}>
           <View style={[styles.bottomSheet, { paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 24) : 24 }]}>
             <View style={styles.bottomSheetIndicator} />
-            <Text style={styles.bottomSheetTitle}>Select Source</Text>
+            <Text style={styles.bottomSheetTitle}>
+              {pickerType === 'guest' ? 'Update Guest Photo' : 'Select Proof Source'}
+            </Text>
             <View style={styles.pickerOptionsRow}>
               <TouchableOpacity style={styles.pickerOption} onPress={openCamera} activeOpacity={0.7}>
                 <View style={styles.pickerIconCircle}>
@@ -351,6 +397,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    position: 'relative',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: COLORS.primary,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   profileTextWrap: {
     flex: 1,

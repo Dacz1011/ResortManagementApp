@@ -61,9 +61,33 @@ const COLORS = {
 };
 
 const PROPERTIES = [
-  { id: 'Reine', name: "Reine's Beach House", subtitle: 'Luxury Oceanfront Suites', rate: 15000, image: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop' },
-  { id: 'Ryu', name: "Ryu's Transient House", subtitle: 'Urban Comfort & Convenience', rate: 8000, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop' },
-  { id: 'Casa', name: "Casa M.O.", subtitle: 'Traditional Heritage Villa', rate: 12000, image: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop' },
+  {
+    id: 'Reine',
+    name: "Reine's Beach House",
+    subtitle: 'Luxury Oceanfront Suites',
+    rate: 15000,
+    image: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop',
+    color: '#E64E76',
+    lightColor: '#FFF0F3'
+  },
+  {
+    id: 'Ryu',
+    name: "Ryu's Transient House",
+    subtitle: 'Urban Comfort & Convenience',
+    rate: 8000,
+    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
+    color: '#1A2537', // Dark Blueish
+    lightColor: '#E0E7FF'
+  },
+  {
+    id: 'Casa',
+    name: "Casa M.O.",
+    subtitle: 'Traditional Heritage Villa',
+    rate: 12000,
+    image: 'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1887&auto=format&fit=crop',
+    color: '#013220', // Dark Green
+    lightColor: '#E8F5E9'
+  },
 ];
 
 export default function OwnerBookings({ navigation }) {
@@ -264,10 +288,16 @@ export default function OwnerBookings({ navigation }) {
               return (
                 <TouchableOpacity
                   key={prop.id}
-                  style={[styles.actionPillLight, isActive && styles.actionPillLightActive]}
+                  style={[
+                    styles.actionPillLight,
+                    isActive && { backgroundColor: prop.lightColor, borderColor: prop.color }
+                  ]}
                   onPress={() => setSelectedPropertyId(prop.id)}
                 >
-                  <Text style={[styles.actionPillLightText, isActive && styles.actionPillLightTextActive]}>
+                  <Text style={[
+                    styles.actionPillLightText,
+                    isActive && { color: prop.color, fontWeight: '700' }
+                  ]}>
                     {prop.name.split("'")[0]}
                   </Text>
                 </TouchableOpacity>
@@ -320,11 +350,11 @@ export default function OwnerBookings({ navigation }) {
                 let textStyle = [styles.dayText];
 
                 if (isSelected) {
-                  cellStyle.push(styles.dayCellSelected);
+                  cellStyle.push({ backgroundColor: selectedProperty.color, transform: [{ scale: 1.1 }] });
                   textStyle.push(styles.dayTextSelected);
                 } else if (isOccupied) {
-                  cellStyle.push(styles.dayCellOccupied);
-                  textStyle.push(styles.dayTextOccupied);
+                  cellStyle.push({ backgroundColor: selectedProperty.lightColor });
+                  textStyle.push({ color: selectedProperty.color });
                 } else if (isPast) {
                   textStyle.push(styles.dayTextDisabled);
                 }
@@ -338,7 +368,7 @@ export default function OwnerBookings({ navigation }) {
                   >
                     <View style={cellStyle}>
                       <Text style={textStyle}>{day}</Text>
-                      {isToday && !isSelected && <View style={styles.todayDot} />}
+                      {isToday && !isSelected && <View style={[styles.todayDot, { backgroundColor: selectedProperty.color }]} />}
                     </View>
                   </TouchableOpacity>
                 );
@@ -405,7 +435,7 @@ export default function OwnerBookings({ navigation }) {
                     <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelBooking}>
                       <X size={20} color={COLORS.textMain} strokeWidth={2.5} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.primaryButton}>
+                    <TouchableOpacity style={[styles.primaryButton, { backgroundColor: selectedProperty.color }]}>
                       <MessageSquare size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 8 }} />
                       <Text style={styles.primaryButtonText}>Message</Text>
                     </TouchableOpacity>
@@ -472,7 +502,10 @@ export default function OwnerBookings({ navigation }) {
                   <Text style={styles.financialNight}>.00 total</Text>
                 </View>
 
-                <TouchableOpacity style={styles.primarySubmitBtn} onPress={handleConfirmBooking}>
+                <TouchableOpacity
+                  style={[styles.primarySubmitBtn, { backgroundColor: selectedProperty.color }]}
+                  onPress={handleConfirmBooking}
+                >
                   <CalendarPlus size={20} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 10 }} />
                   <Text style={styles.primarySubmitBtnText}>Confirm Reservation</Text>
                 </TouchableOpacity>
@@ -517,7 +550,7 @@ export default function OwnerBookings({ navigation }) {
 
       {/* ── PINK PILL BOTTOM NAV ── */}
       <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
-        <View style={styles.bottomNav}>
+        <View style={[styles.bottomNav, { backgroundColor: selectedProperty.color }]}>
           <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem}>
             <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
           </TouchableOpacity>

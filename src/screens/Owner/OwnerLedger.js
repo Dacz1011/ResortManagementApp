@@ -95,7 +95,8 @@ export default function OwnerLedger({ navigation }) {
         amount: item.amount,
         date: item.date,
         type: 'Income',
-        icon: Wallet
+        icon: Wallet,
+        ...item
       }));
 
       const electricityExpenses = electricity.map(item => ({
@@ -105,7 +106,9 @@ export default function OwnerLedger({ navigation }) {
         amount: item.amount,
         date: item.date,
         type: 'Expenses',
-        icon: Zap
+        icon: Zap,
+        utilityType: 'Electricity',
+        ...item
       }));
 
       const waterExpenses = water.map(item => ({
@@ -115,7 +118,9 @@ export default function OwnerLedger({ navigation }) {
         amount: item.amount,
         date: item.date,
         type: 'Expenses',
-        icon: Droplet
+        icon: Droplet,
+        utilityType: 'Water',
+        ...item
       }));
 
       const otherExpenses = pettyCash.map(item => ({
@@ -125,7 +130,8 @@ export default function OwnerLedger({ navigation }) {
         amount: item.amount,
         date: item.date,
         type: 'Expenses',
-        icon: Banknote
+        icon: Banknote,
+        ...item
       }));
 
       const combinedData = [...income, ...electricityExpenses, ...waterExpenses, ...otherExpenses];
@@ -150,14 +156,18 @@ export default function OwnerLedger({ navigation }) {
     if (activeFilter === 'Expenses') return item.type === 'Expenses';
     return true;
   }).filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.title && item.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (item.subtitle && item.subtitle.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const renderTransactionItem = ({ item }) => {
     const isIncome = item.type === 'Income';
     return (
-      <View style={styles.transactionCard}>
+      <TouchableOpacity
+        style={styles.transactionCard}
+        onPress={() => navigation.navigate('OwnerDetail', { item })}
+        activeOpacity={0.7}
+      >
         <View style={[styles.txIconBox, { backgroundColor: isIncome ? COLORS.successBg : COLORS.expenseBg }]}>
           {isIncome ? <ArrowDownRight size={20} color={COLORS.successText} /> : <ArrowUpRight size={20} color={COLORS.expenseText} />}
         </View>
@@ -168,7 +178,7 @@ export default function OwnerLedger({ navigation }) {
         <Text style={[styles.txAmount, { color: isIncome ? COLORS.successText : COLORS.textMain }]}>
           {isIncome ? '+' : '-'}₱{Number(item.amount).toLocaleString()}
         </Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 

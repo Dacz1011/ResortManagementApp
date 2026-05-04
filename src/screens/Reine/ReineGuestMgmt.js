@@ -21,7 +21,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Image
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBookings } from '../../context/BookingContext';
@@ -95,6 +96,12 @@ export default function ReineGuestMgmt({ navigation }) {
           name: booking.guestName,
           date: `${booking.checkIn} - ${booking.checkOut}`,
           status: booking.status === 'CONFIRMED' ? 'FULLY PAID' : 'BALANCE DUE',
+          phone: booking.contact,
+          email: booking.email,
+          amount: booking.amount,
+          nights: booking.nights || 2,
+          image: booking.image,
+          checkoutImage: booking.checkoutImage,
         });
       }
     });
@@ -296,9 +303,18 @@ export default function ReineGuestMgmt({ navigation }) {
             {guests.map((guest) => {
               const isPaid = guest.status === 'FULLY PAID';
               return (
-                <TouchableOpacity key={guest.id} activeOpacity={0.7} style={styles.guestCard}>
+                <TouchableOpacity
+                  key={guest.id}
+                  activeOpacity={0.7}
+                  style={styles.guestCard}
+                  onPress={() => navigation.navigate('ReineGuestDetails', { guest })}
+                >
                   <View style={styles.avatar}>
-                    <User size={22} color={COLORS.primary} strokeWidth={2} />
+                    {guest.image ? (
+                      <Image source={{ uri: guest.image }} style={styles.avatarImage} />
+                    ) : (
+                      <User size={22} color={COLORS.primary} strokeWidth={2} />
+                    )}
                   </View>
                   <View style={styles.guestInfo}>
                     <Text style={styles.guestName}>{guest.name}</Text>
@@ -410,7 +426,8 @@ const styles = StyleSheet.create({
   newEntryName: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 4, letterSpacing: -0.2 },
   newEntryDesc: { fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.6)' },
   guestCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: COLORS.border },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: COLORS.border },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', marginRight: 16, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
+  avatarImage: { width: '100%', height: '100%' },
   guestInfo: { flex: 1, paddingRight: 8 },
   guestName: { fontSize: 16, fontWeight: '800', color: COLORS.textMain, marginBottom: 4, letterSpacing: -0.2 },
   guestDate: { fontSize: 13, fontWeight: '500', color: COLORS.textMuted },

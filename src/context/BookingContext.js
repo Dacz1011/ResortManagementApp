@@ -58,12 +58,9 @@ export const BookingProvider = ({ children }) => {
     setter(updatedBookings);
     await mockDb.saveAll(storageKey, updatedBookings);
 
-    // Sync with Finance: Log to dailyCollections
-    // We extract guest info from the first day of new bookings
     const days = Object.keys(newBookings);
     if (days.length > 0) {
       const firstDayData = newBookings[days[0]];
-      // Extract numeric amount from string like "₱12,000.00"
       const numericAmount = firstDayData.amount ?
         parseFloat(firstDayData.amount.replace(/[^\d.]/g, '')) : 0;
 
@@ -75,6 +72,54 @@ export const BookingProvider = ({ children }) => {
         type: 'Booking'
       });
     }
+  };
+
+  const updateGuestPhotos = async (propertyId, guestName, checkIn, checkOut, photos) => {
+    let currentBookings;
+    let setter;
+    let storageKey;
+
+    switch (propertyId) {
+      case 'Reine':
+        currentBookings = { ...reineBookings };
+        setter = setReineBookings;
+        storageKey = 'bookings_reine';
+        break;
+      case 'Ryu':
+        currentBookings = { ...ryuBookings };
+        setter = setRyuBookings;
+        storageKey = 'bookings_ryu';
+        break;
+      case 'Casa':
+        currentBookings = { ...casaBookings };
+        setter = setCasaBookings;
+        storageKey = 'bookings_casa';
+        break;
+      default:
+        return;
+    }
+
+    const updatedBookings = { ...currentBookings };
+    let changed = false;
+
+    Object.keys(updatedBookings).forEach((day) => {
+      const b = updatedBookings[day];
+      if (
+        b.guestName === guestName &&
+        b.checkIn === checkIn &&
+        b.checkOut === checkOut
+      ) {
+        updatedBookings[day] = { ...b, ...photos };
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      setter(updatedBookings);
+      await mockDb.saveAll(storageKey, updatedBookings);
+      return true;
+    }
+    return false;
   };
 
   const deleteStay = async (propertyId, guestName, checkIn, checkOut) => {
@@ -128,7 +173,7 @@ export const BookingProvider = ({ children }) => {
   };
 
   return (
-    <BookingContext.Provider value={{ getBookings, addBooking, deleteStay, refreshBookings: loadAllBookings }}>
+    <BookingContext.Provider value={{ getBookings, addBooking, deleteStay, updateGuestPhotos, refreshBookings: loadAllBookings }}>
       {children}
     </BookingContext.Provider>
   );

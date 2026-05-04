@@ -110,7 +110,11 @@ export default function OwnerMaintenance({ navigation }) {
   const renderLogItem = ({ item }) => {
     const isOpen = item.status === 'Open';
     return (
-      <View style={styles.logCard}>
+      <TouchableOpacity
+        style={styles.logCard}
+        onPress={() => navigation.navigate('OwnerDetail', { item })}
+        activeOpacity={0.7}
+      >
         <View style={styles.logHeader}>
           <View style={[styles.statusBadge, { backgroundColor: isOpen ? COLORS.dangerBg : COLORS.successBg }]}>
             <Text style={[styles.statusBadgeText, { color: isOpen ? COLORS.dangerText : COLORS.successText }]}>
@@ -151,7 +155,7 @@ export default function OwnerMaintenance({ navigation }) {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

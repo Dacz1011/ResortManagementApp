@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,11 @@ import {
   Modal,
   Alert,
   ImageBackground,
-  Animated
+  Animated,
+  ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path, Defs, LinearGradient, Stop, Circle } from 'react-native-svg';
 import {
   Bell,
@@ -31,8 +33,10 @@ import {
   X,
   CheckCircle2,
   MapPin,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Image as ImageIcon
 } from 'lucide-react-native';
+import { mockDb } from '../../services/mockDb';
 
 const { width } = Dimensions.get('window');
 
@@ -60,26 +64,34 @@ const COLORS = {
 // Filter Options
 const TABS = ['All Properties', "Reine's", "Ryu's", "Casa M.O."];
 
-// Mock Data for Revenue Bars
-const REVENUE_DATA = [
-  { id: '1', name: "Reine's Beach House", amount: '₱320k', progress: '85%', color: '#E64E76' },
-  { id: '2', name: "Ryu's Transient House", amount: '₱210k', progress: '50%', color: '#FB7185' },
-  { id: '3', name: "Casa M.O.", amount: '₱312k', progress: '82%', color: '#FDA4AF' },
-  { id: '4', name: "Seasonal Events", amount: '₱140k', progress: '35%', color: '#FECDD3' },
-  { id: '5', name: "Misc Services", amount: '₱82k', progress: '20%', color: '#FFE4E6' },
-];
+// Hero Images for different tabs
+const HERO_IMAGES = {
+  'All Properties': 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop',
+  "Reine's": 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=2070&auto=format&fit=crop',
+  "Ryu's": 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?q=80&w=2070&auto=format&fit=crop',
+  "Casa M.O.": 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop'
+};
 
-// Mock Data for Reports
-const REPORTS_DATA = [
-  { id: '1', title: 'July 2023 Financials', size: '2.4 MB • PDF Document' },
-  { id: '2', title: 'June 2023 Financials', size: '2.1 MB • PDF Document' },
-  { id: '3', title: 'May 2023 Financials', size: '1.9 MB • PDF Document' },
-];
-
-export default function OwnerAnalytics({ navigation }) {
+export default function OwnerInsights({ navigation }) {
   const [activeTab, setActiveTab] = useState('All Properties');
   const [isExportModalVisible, setExportModalVisible] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Real Data States
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    occupancyRate: 0,
+    totalBookings: 0,
+    revenueByProperty: [],
+    trendData: [],
+    reports: [
+      { id: '1', title: 'August 2023 Financials', size: '2.4 MB • PDF Document' },
+      { id: '2', title: 'July 2023 Financials', size: '2.1 MB • PDF Document' },
+      { id: '3', title: 'June 2023 Financials', size: '1.9 MB • PDF Document' },
+    ]
+  });
+
   const activeNav = 'Insights';
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -91,6 +103,76 @@ export default function OwnerAnalytics({ navigation }) {
       useNativeDriver: true,
     }).start();
   }, [activeTab]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const dailyCollections = await mockDb.getAll('dailyCollections');
+      const rooms = await mockDb.getAll('rooms');
+      const bookings = await mockDb.getAll('bookings') || [];
+
+      // Filter based on active tab
+      let filteredCollections = dailyCollections;
+      let filteredRooms = rooms;
+      let filteredBookings = bookings;
+
+      if (activeTab !== 'All Properties') {
+        const propMatch = activeTab.replace("'s", "");
+        filteredCollections = dailyCollections.filter(item => item.property.includes(propMatch));
+        filteredRooms = rooms.filter(r => r.property.includes(propMatch));
+        filteredBookings = bookings.filter(b => b.property?.includes(propMatch));
+      }
+
+      // Calculate Total Revenue
+      const totalRev = filteredCollections.reduce((sum, item) => sum + Number(item.amount), 0);
+
+      // Calculate Occupancy
+      const occupiedRooms = filteredRooms.filter(r => r.isOccupied).length;
+      const totalRoomsCount = filteredRooms.length || 1;
+      const occRate = (occupiedRooms / totalRoomsCount) * 100;
+
+      // Group Revenue by Property for the bars
+      const propertyMap = {};
+      const barDataSource = activeTab === 'All Properties' ? dailyCollections : filteredCollections;
+
+      barDataSource.forEach(item => {
+        const prop = item.property;
+        propertyMap[prop] = (propertyMap[prop] || 0) + Number(item.amount);
+      });
+
+      const colors = ['#E64E76', '#FB7185', '#FDA4AF', '#FECDD3'];
+      const revenueByProp = Object.keys(propertyMap).map((name, index) => {
+        const amount = propertyMap[name];
+        const progress = totalRev > 0 ? (amount / totalRev) * 100 : 0;
+        return {
+          id: index.toString(),
+          name,
+          amount: `₱${(amount / 1000).toFixed(1)}k`,
+          progress: `${progress}%`,
+          color: colors[index % colors.length]
+        };
+      });
+
+      setStats(prev => ({
+        ...prev,
+        totalRevenue: totalRev,
+        occupancyRate: occRate,
+        totalBookings: filteredBookings.length + filteredCollections.length, // Transactions + Bookings
+        revenueByProperty: revenueByProp
+      }));
+
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [activeTab])
+  );
 
   const handleDownloadPress = (report) => {
     setSelectedReport(report);
@@ -108,6 +190,14 @@ export default function OwnerAnalytics({ navigation }) {
     }, 600);
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
@@ -121,7 +211,7 @@ export default function OwnerAnalytics({ navigation }) {
         {/* ── FULL-BLEED HERO ── */}
         <View style={styles.heroContainer}>
           <ImageBackground
-            source={{ uri: 'https://images.unsplash.com/photo-1551288049-bbbda536339a?q=80&w=2070&auto=format&fit=crop' }}
+            source={{ uri: HERO_IMAGES[activeTab] }}
             style={styles.heroImage}
           >
             <View style={styles.heroOverlay} />
@@ -139,10 +229,10 @@ export default function OwnerAnalytics({ navigation }) {
 
               <View style={styles.heroBottomContent}>
                 <Text style={styles.heroSubStat}>BUSINESS INTELLIGENCE</Text>
-                <Text style={styles.heroMainStat}>₱842,400</Text>
+                <Text style={styles.heroMainStat}>₱{stats.totalRevenue.toLocaleString()}</Text>
                 <View style={styles.trendPill}>
                   <TrendingUp size={16} color={COLORS.successText} strokeWidth={3} />
-                  <Text style={styles.trendPillText}>+12.4% vs last month</Text>
+                  <Text style={styles.trendPillText}>Live Statistics</Text>
                 </View>
               </View>
             </View>
@@ -168,21 +258,43 @@ export default function OwnerAnalytics({ navigation }) {
         </View>
 
         <View style={styles.mainContent}>
+
+          {/* ── GROWTH OVERVIEW VISUAL CARD ── */}
+          <View style={styles.imageCard}>
+             <ImageBackground
+                source={{ uri: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2074&auto=format&fit=crop' }}
+                style={styles.statsPreviewImage}
+                imageStyle={{ borderRadius: 24 }}
+             >
+                <View style={styles.statsImageOverlay}>
+                    <View style={styles.overlayTextContent}>
+                        <ImageIcon size={20} color="#FFFFFF" />
+                        <Text style={styles.statsImageText}>Growth Overview</Text>
+                    </View>
+                    <Text style={styles.overlaySubtext}>Visualizing your property performance data</Text>
+                </View>
+             </ImageBackground>
+          </View>
+
           {/* ── METRICS BENTO ── */}
           <View style={styles.metricsRow}>
             <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>TOTAL REVENUE</Text>
-              <Text style={styles.metricValue}>₱842k</Text>
+              <Text style={styles.metricLabel}>REVENUE</Text>
+              <Text style={styles.metricValue}>₱{(stats.totalRevenue / 1000).toFixed(0)}k</Text>
             </View>
             <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>OCCUPANCY</Text>
-              <Text style={styles.metricValue}>78.2%</Text>
+              <Text style={styles.metricValue}>{stats.occupancyRate.toFixed(0)}%</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>TXNS</Text>
+              <Text style={styles.metricValue}>{stats.totalBookings}</Text>
             </View>
           </View>
 
           {/* ── TREND CHART ── */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Occupancy Trend</Text>
+            <Text style={styles.sectionTitle}>Performance Curve</Text>
           </View>
 
           <View style={styles.chartCard}>
@@ -208,31 +320,36 @@ export default function OwnerAnalytics({ navigation }) {
                 <Circle cx="75" cy="10" r="3" fill={COLORS.primary} stroke="#FFFFFF" strokeWidth={1.5} />
               </Svg>
               <View style={styles.chartXAxis}>
-                <Text style={styles.axisLabel}>WK 1</Text>
-                <Text style={styles.axisLabel}>WK 2</Text>
-                <Text style={styles.axisLabel}>WK 3</Text>
-                <Text style={styles.axisLabel}>WK 4</Text>
+                <Text style={styles.axisLabel}>JAN</Text>
+                <Text style={styles.axisLabel}>FEB</Text>
+                <Text style={styles.axisLabel}>MAR</Text>
+                <Text style={styles.axisLabel}>APR</Text>
+                <Text style={styles.axisLabel}>MAY</Text>
               </View>
             </View>
           </View>
 
           {/* ── REVENUE BY PROPERTY ── */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Revenue by Property</Text>
+            <Text style={styles.sectionTitle}>Property Distribution</Text>
           </View>
 
           <View style={styles.barsCard}>
-            {REVENUE_DATA.map((item) => (
-              <View key={item.id} style={styles.barWrapper}>
-                <View style={styles.barHeader}>
-                  <Text style={styles.barLabel}>{item.name}</Text>
-                  <Text style={styles.barAmount}>{item.amount}</Text>
+            {stats.revenueByProperty.length > 0 ? (
+              stats.revenueByProperty.map((item) => (
+                <View key={item.id} style={styles.barWrapper}>
+                  <View style={styles.barHeader}>
+                    <Text style={styles.barLabel}>{item.name}</Text>
+                    <Text style={styles.barAmount}>{item.amount}</Text>
+                  </View>
+                  <View style={styles.barTrack}>
+                    <View style={[styles.barFill, { width: item.progress, backgroundColor: item.color }]} />
+                  </View>
                 </View>
-                <View style={styles.barTrack}>
-                  <View style={[styles.barFill, { width: item.progress, backgroundColor: item.color }]} />
-                </View>
-              </View>
-            ))}
+              ))
+            ) : (
+              <Text style={{ textAlign: 'center', color: COLORS.textMuted, padding: 20 }}>No property data available.</Text>
+            )}
           </View>
 
           {/* ── REPORTS ── */}
@@ -241,7 +358,7 @@ export default function OwnerAnalytics({ navigation }) {
           </View>
 
           <View style={styles.reportsContainer}>
-            {REPORTS_DATA.map((report) => (
+            {stats.reports.map((report) => (
               <TouchableOpacity
                 key={report.id}
                 activeOpacity={0.7}
@@ -352,17 +469,25 @@ const styles = StyleSheet.create({
   actionPillLightTextActive: { color: COLORS.primary, fontWeight: '700' },
 
   mainContent: { paddingHorizontal: 24, paddingTop: 16 },
+
+  imageCard: { width: '100%', height: 180, marginBottom: 24, borderRadius: 24, overflow: 'hidden', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 },
+  statsPreviewImage: { width: '100%', height: '100%', justifyContent: 'flex-end' },
+  statsImageOverlay: { padding: 20, backgroundColor: 'rgba(0,0,0,0.4)' },
+  overlayTextContent: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+  statsImageText: { color: '#FFFFFF', fontWeight: '800', fontSize: 18, letterSpacing: -0.5 },
+  overlaySubtext: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: '500' },
+
   sectionHeader: { marginBottom: 16 },
   sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
 
-  metricsRow: { flexDirection: 'row', gap: 16, marginBottom: 24 },
-  metricCard: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: COLORS.border },
-  metricLabel: { fontSize: 10, fontWeight: '800', color: COLORS.textMuted, marginBottom: 8, letterSpacing: 0.5 },
-  metricValue: { fontSize: 24, fontWeight: '800', color: COLORS.primary },
+  metricsRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  metricCard: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center' },
+  metricLabel: { fontSize: 9, fontWeight: '800', color: COLORS.textMuted, marginBottom: 6, letterSpacing: 1 },
+  metricValue: { fontSize: 20, fontWeight: '800', color: COLORS.primary },
 
   chartCard: { backgroundColor: COLORS.surface, borderRadius: 24, padding: 24, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border },
   svgContainer: { width: '100%' },
-  chartXAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
+  chartXAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12, paddingHorizontal: 4 },
   axisLabel: { fontSize: 10, fontWeight: '700', color: COLORS.textMuted },
 
   barsCard: { backgroundColor: COLORS.surface, borderRadius: 24, padding: 24, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border },

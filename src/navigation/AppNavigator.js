@@ -11,6 +11,8 @@ import OwnerLedger from '../screens/Owner/OwnerLedger';
 import OwnerInsights from '../screens/Owner/OwnerInsights';
 import OwnerSettings from '../screens/Owner/OwnerSettings';
 import OwnerMaintenance from '../screens/Owner/OwnerMaintenance';
+import OwnerAccount from '../screens/Owner/OwnerAccount';
+import OwnerDetail from '../screens/Owner/OwnerDetail';
 
 // Ryu Screens
 import RyuHome from '../screens/Ryu/RyuHome';
@@ -28,6 +30,7 @@ import ReineGuestMgmt from '../screens/Reine/ReineGuestMgmt';
 import ReineFinance from '../screens/Reine/ReineFinance';
 import ReineAdmin from '../screens/Reine/ReineAdmin';
 import ReineGuestHistory from '../screens/Reine/ReineGuestHistory';
+import ReineGuestDetails from '../screens/Reine/ReineGuestDetails';
 
 // Casa Screens
 import CasaHome from '../screens/Casa/CasaHome';
@@ -56,6 +59,9 @@ const AppNavigator = () => {
       <Stack.Screen name="OwnerInsights" component={OwnerInsights} />
       <Stack.Screen name="OwnerSettings" component={OwnerSettings} />
       <Stack.Screen name="OwnerMaintenance" component={OwnerMaintenance} />
+      <Stack.Screen name="OwnerAccount" component={OwnerAccount} />
+      <Stack.Screen name="OwnerDetail" component={OwnerDetail} />
+      <Stack.Screen name="OwnerNotifications" component={NotificationScreen} initialParams={{ propertyId: 'Owner' }} />
 
       {/* Ryu Property Stack */}
       <Stack.Screen name="RyuHome" component={RyuHome} />
@@ -74,6 +80,7 @@ const AppNavigator = () => {
       <Stack.Screen name="ReineFinance" component={ReineFinance} />
       <Stack.Screen name="ReineAdmin" component={ReineAdmin} />
       <Stack.Screen name="ReineGuestHistory" component={ReineGuestHistory} />
+      <Stack.Screen name="ReineGuestDetails" component={ReineGuestDetails} />
       <Stack.Screen name="ReineNotifications" component={NotificationScreen} initialParams={{ propertyId: 'Reine' }} />
 
       {/* Casa Property Stack */}

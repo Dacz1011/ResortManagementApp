@@ -172,9 +172,30 @@ export default function LoginScreen() {
       // Save username for next time (Persistence)
       await mockDb.saveAll('auth_session', [{ lastUser: user, lastLogin: new Date().toISOString() }]);
 
+      // 1. Check Hardcoded Super Admins
       if (user === 'Admin123' && password === '123456') {
         navigation.navigate('OwnerDashboard');
-      } else if (user === 'Ryu_Admin' && password === '123456') {
+        return;
+      }
+
+      // 2. Check Dynamic Admin Accounts created via OwnerAccount
+      const accounts = await mockDb.getAll('admin_accounts');
+      const matchedAccount = accounts.find(
+        acc => acc.username === user.toLowerCase() && acc.password === password
+      );
+
+      if (matchedAccount) {
+        // Navigate based on assigned property
+        const prop = matchedAccount.property;
+        if (prop.includes('Reine')) navigation.navigate('ReineHome');
+        else if (prop.includes('Ryu')) navigation.navigate('RyuHome');
+        else if (prop.includes('Casa')) navigation.navigate('CasaHome');
+        else navigation.navigate('OwnerDashboard');
+        return;
+      }
+
+      // 3. Backward Compatibility / Fallback
+      if (user === 'Ryu_Admin' && password === '123456') {
         navigation.navigate('RyuHome');
       } else if (user === 'Reine_Admin' && password === '123456') {
         navigation.navigate('ReineHome');
@@ -184,6 +205,14 @@ export default function LoginScreen() {
         Alert.alert('Authentication Failed', 'Please verify your credentials and try again.');
       }
     });
+  };
+
+  const handleForgotPassword = () => {
+    Alert.alert(
+      'Credentials Recovery',
+      'Please contact the owner to change credentials for login.',
+      [{ text: 'OK' }]
+    );
   };
 
   const PropertyIcon = activeProp.icon;
@@ -198,8 +227,9 @@ export default function LoginScreen() {
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardWrapper}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -294,7 +324,11 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.forgotBtn} activeOpacity={0.7}>
+                <TouchableOpacity
+                  style={styles.forgotBtn}
+                  activeOpacity={0.7}
+                  onPress={handleForgotPassword}
+                >
                   <Text style={styles.forgotText}>Recover password?</Text>
                 </TouchableOpacity>
 
@@ -335,7 +369,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
     paddingBottom: 40,
   },
 

@@ -10,13 +10,13 @@ import {
   StatusBar,
   ImageBackground,
   Dimensions,
+  Animated,
   Modal,
-  TextInput,
-  Alert,
-  KeyboardAvoidingView,
-  Animated
+  Pressable,
+  Alert
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import {
   Bell,
   Shield,
@@ -24,7 +24,6 @@ import {
   ChevronRight,
   LogOut,
   Settings as SettingsIcon,
-  CheckCircle2,
   Building,
   CreditCard,
   Info,
@@ -34,30 +33,21 @@ import {
   BarChart2,
   BookOpen,
   PieChart,
-  X,
-  UserPlus,
-  Lock,
-  MapPin,
-  Settings
+  Camera,
+  Image as ImageIcon
 } from 'lucide-react-native';
-import { mockDb } from '../../services/mockDb';
 
 const { width } = Dimensions.get('window');
 
-// Matched strictly to Reine palette
 const COLORS = {
   background: '#F7F7F9',
   surface: '#FFFFFF',
   surfaceDark: '#18181B',
-  surfaceDarkActive: '#27272A',
-
   primary: '#E64E76',
   primaryLight: '#FFF0F3',
-
   textMain: '#18181B',
   textMuted: '#71717A',
   border: '#E4E4E7',
-
   success: '#10B981',
   successBg: '#DCFCE7',
   successText: '#16A34A',
@@ -65,7 +55,6 @@ const COLORS = {
   dangerText: '#EF4444',
 };
 
-// Grouped Settings
 const MENU_GROUPS = [
   {
     title: 'PORTFOLIO MANAGEMENT',
@@ -79,7 +68,7 @@ const MENU_GROUPS = [
     items: [
       { id: 'personal', icon: User, title: 'Personal Information', subtitle: 'Admin profile details' },
       { id: 'notif', icon: Bell, title: 'Notifications', subtitle: 'Alerts, emails, and messages' },
-      { id: 'security', icon: Shield, title: 'Security', subtitle: 'Create Admin accounts & credentials' },
+      { id: 'security', icon: Shield, title: 'Security & Access', subtitle: 'Manage staff accounts & credentials' },
     ]
   },
   {
@@ -96,13 +85,8 @@ export default function OwnerSettings({ navigation }) {
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // --- ADMIN CREATION STATES ---
-  const [showAdminModal, setShowAdminModal] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop');
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -111,6 +95,40 @@ export default function OwnerSettings({ navigation }) {
       useNativeDriver: true,
     }).start();
   }, []);
+
+  const openCamera = async () => {
+    setShowImagePicker(false);
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Camera access is required.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const openGallery = async () => {
+    setShowImagePicker(false);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Gallery access is required.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
 
   const handleLogout = () => {
     if (navigation && navigation.reset) {
@@ -121,44 +139,11 @@ export default function OwnerSettings({ navigation }) {
     }
   };
 
-  const handleCreateAccount = async () => {
-    if (!fullName || !username || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await mockDb.add('users', {
-        fullName,
-        username: username.toLowerCase().trim(),
-        password,
-        role: 'ADMIN',
-        createdAt: new Date().toISOString()
-      });
-
-      Alert.alert('Success', 'Admin account created successfully.');
-      setShowAdminModal(false);
-      setFullName('');
-      setUsername('');
-      setPassword('');
-      setConfirmPassword('');
-    } catch (error) {
-      console.error("Error creating admin account:", error);
-      Alert.alert('Error', 'Failed to create account. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleMenuItemPress = (id) => {
     if (id === 'security') {
-      setShowAdminModal(true);
+      navigation.navigate('OwnerAccount');
+    } else if (id === 'notif') {
+      navigation.navigate('OwnerNotifications');
     }
   };
 
@@ -172,7 +157,6 @@ export default function OwnerSettings({ navigation }) {
         bounces={false}
         style={{ opacity: fadeAnim }}
       >
-        {/* ── FULL-BLEED HERO ── */}
         <View style={styles.heroContainer}>
           <ImageBackground
             source={{ uri: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop' }}
@@ -182,34 +166,41 @@ export default function OwnerSettings({ navigation }) {
             <View style={styles.heroOverlay} />
 
             <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
-              {/* Top bar */}
               <View style={styles.topBar}>
                 <View style={styles.locationPill}>
                   <SettingsIcon size={14} color="#FFFFFF" style={styles.locationIcon} />
                   <Text style={styles.locationText}>Settings</Text>
                 </View>
-                <TouchableOpacity style={styles.profileAvatarWrap} onPress={() => {}}>
+                <TouchableOpacity
+                  style={styles.profileAvatarWrap}
+                  onPress={() => setShowImagePicker(true)}
+                  activeOpacity={0.8}
+                >
                   <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop' }}
+                    source={{ uri: profileImage }}
                     style={styles.profileAvatar}
                   />
-                  <View style={styles.notificationDot} />
+                  <View style={styles.cameraBadge}>
+                    <Camera size={10} color="#FFFFFF" strokeWidth={3} />
+                  </View>
                 </TouchableOpacity>
               </View>
 
-              {/* Hero text */}
               <View style={styles.heroBottomContent}>
                 <Text style={styles.heroMainStat}>Admin Jr.</Text>
                 <Text style={styles.heroSubStat}>Portfolio Owner • Verified Account</Text>
-                <TouchableOpacity style={styles.heroActionBtn} activeOpacity={0.8}>
-                  <Text style={styles.heroActionBtnText}>Edit Profile</Text>
+                <TouchableOpacity
+                  style={styles.heroActionBtn}
+                  activeOpacity={0.8}
+                  onPress={() => setShowImagePicker(true)}
+                >
+                  <Text style={styles.heroActionBtnText}>Edit Profile Picture</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </ImageBackground>
         </View>
 
-        {/* ── MAIN CONTENT ── */}
         <View style={styles.mainContent}>
           {MENU_GROUPS.map((group, groupIndex) => (
             <View key={groupIndex} style={styles.menuGroup}>
@@ -246,7 +237,6 @@ export default function OwnerSettings({ navigation }) {
             </View>
           ))}
 
-          {/* ── LOGOUT BUTTON ── */}
           <TouchableOpacity activeOpacity={0.85} style={styles.logoutButton} onPress={handleLogout}>
             <LogOut size={20} color={COLORS.dangerText} strokeWidth={2.5} style={{ marginRight: 10 }} />
             <Text style={styles.logoutButtonText}>Sign Out of Session</Text>
@@ -257,84 +247,38 @@ export default function OwnerSettings({ navigation }) {
         <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
 
-      {/* --- ADMIN ACCOUNT CREATION MODAL --- */}
+      {/* IMAGE PICKER MODAL */}
       <Modal
-        visible={showAdminModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAdminModal(false)}
+        visible={showImagePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowImagePicker(false)}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.modalContainer}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>New Admin Account</Text>
-                <TouchableOpacity onPress={() => setShowAdminModal(false)}>
-                  <X size={24} color={COLORS.textMain} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={styles.formGroup}>
-                  <Text style={styles.formLabel}>FULL NAME</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter full name"
-                    placeholderTextColor={COLORS.textMuted}
-                    value={fullName}
-                    onChangeText={setFullName}
-                  />
-
-                  <Text style={styles.formLabel}>USERNAME</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter username"
-                    placeholderTextColor={COLORS.textMuted}
-                    autoCapitalize="none"
-                    value={username}
-                    onChangeText={setUsername}
-                  />
-
-                  <Text style={styles.formLabel}>PASSWORD</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter password"
-                    placeholderTextColor={COLORS.textMuted}
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                  />
-
-                  <Text style={styles.formLabel}>CONFIRM PASSWORD</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Confirm password"
-                    placeholderTextColor={COLORS.textMuted}
-                    secureTextEntry
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                  />
-
-                  <TouchableOpacity
-                    style={[styles.primarySubmitBtn, isSubmitting && { opacity: 0.7 }]}
-                    onPress={handleCreateAccount}
-                    disabled={isSubmitting}
-                  >
-                    <Text style={styles.primarySubmitBtnText}>
-                      {isSubmitting ? 'Creating...' : 'Create Admin Account'}
-                    </Text>
-                  </TouchableOpacity>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowImagePicker(false)}>
+          <View style={[styles.bottomSheet, { paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 24) : 24 }]}>
+            <View style={styles.bottomSheetIndicator} />
+            <Text style={styles.bottomSheetTitle}>Update Profile Photo</Text>
+            <View style={styles.pickerOptionsRow}>
+              <TouchableOpacity style={styles.pickerOption} onPress={openCamera} activeOpacity={0.7}>
+                <View style={styles.pickerIconCircle}>
+                  <Camera size={28} color={COLORS.primary} strokeWidth={2.5} />
                 </View>
-              </ScrollView>
+                <Text style={styles.pickerOptionText}>Camera</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.pickerOption} onPress={openGallery} activeOpacity={0.7}>
+                <View style={styles.pickerIconCircle}>
+                  <ImageIcon size={28} color={COLORS.primary} strokeWidth={2.5} />
+                </View>
+                <Text style={styles.pickerOptionText}>Gallery</Text>
+              </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+            <TouchableOpacity style={styles.cancelPickerBtn} onPress={() => setShowImagePicker(false)}>
+              <Text style={styles.cancelPickerBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
       </Modal>
 
-      {/* ── PINK PILL BOTTOM NAV ── */}
       <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
           <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem} activeOpacity={0.8}>
@@ -369,8 +313,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-
-  /* ── HERO ── */
   heroContainer: {
     width: '100%',
     height: 420,
@@ -413,9 +355,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  profileAvatarWrap: { position: 'relative' },
-  profileAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: '#FFFFFF' },
-  notificationDot: { position: 'absolute', top: 2, right: 2, width: 12, height: 12, backgroundColor: COLORS.primary, borderRadius: 6, borderWidth: 2, borderColor: '#FFFFFF' },
+  profileAvatarWrap: {
+    position: 'relative'
+  },
+  profileAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#FFFFFF'
+  },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: COLORS.primary,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
 
   heroBottomContent: {
     flex: 1,
@@ -451,7 +413,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  /* ── MAIN CONTENT ── */
   mainContent: {
     paddingHorizontal: 24,
     paddingTop: 32,
@@ -468,8 +429,6 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     letterSpacing: 1.5,
   },
-
-  /* ── MENU CARD ── */
   menuCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 24,
@@ -510,8 +469,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.textMuted
   },
-
-  /* ── LOGOUT & FOOTER ── */
   logoutButton: {
     flexDirection: 'row',
     backgroundColor: COLORS.dangerBg,
@@ -535,75 +492,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     marginBottom: 24,
   },
-
-  /* ── MODAL STYLES ── */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: '90%',
-    maxHeight: '85%',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 32,
-    padding: 24,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.textMain,
-    letterSpacing: -0.5,
-  },
-  formGroup: {
-    gap: 16,
-  },
-  formLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-    letterSpacing: 1,
-    marginLeft: 4,
-  },
-  input: {
-    backgroundColor: COLORS.background,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 56,
-    fontSize: 15,
-    color: COLORS.textMain,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  primarySubmitBtn: {
-    height: 60,
-    borderRadius: 100,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  primarySubmitBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
   bottomSpacer: {
     height: 160,
   },
-
-  /* ── BOTTOM NAV ── */
   bottomNavContainer: {
     position: 'absolute',
     alignSelf: 'center',
@@ -626,7 +517,70 @@ const styles = StyleSheet.create({
   },
   navItem: {
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center', flex: 1,
+  },
+
+  /* MODAL STYLES */
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+  },
+  bottomSheetIndicator: {
+    width: 40,
+    height: 5,
+    backgroundColor: COLORS.border,
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  bottomSheetTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.textMain,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  pickerOptionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 24,
+  },
+  pickerOption: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  pickerIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerOptionText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.textMain,
+  },
+  cancelPickerBtn: {
+    height: 56,
+    borderRadius: 100,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cancelPickerBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.textMuted,
   },
 });

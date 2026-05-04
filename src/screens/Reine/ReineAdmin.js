@@ -97,6 +97,13 @@ export default function ReineAdmin({ navigation }) {
     }
   };
 
+  const handleMenuPress = (id) => {
+    if (id === 'notif') {
+      navigation.navigate('ReineNotifications');
+    }
+    // Add other handlers here if needed
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
@@ -176,6 +183,7 @@ export default function ReineAdmin({ navigation }) {
                       key={item.id}
                       activeOpacity={0.7}
                       style={[styles.menuItem, !isLast && styles.menuItemBorder]}
+                      onPress={() => handleMenuPress(item.id)}
                     >
                       <View style={styles.iconBox}>
                         <Icon size={20} color={COLORS.primary} strokeWidth={2.5} />
