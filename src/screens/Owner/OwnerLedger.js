@@ -1,6 +1,5 @@
-import { useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -16,7 +15,6 @@ import {
   Animated
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import {
   ChevronLeft,
   Search,
