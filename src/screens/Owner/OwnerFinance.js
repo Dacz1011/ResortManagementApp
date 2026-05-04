@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
+  Info,
   Banknote,
+  Wrench,
+  ConciergeBell,
+  Lightbulb,
   LayoutGrid,
   Calendar,
   BarChart2,
@@ -28,20 +32,28 @@ import {
   Droplet,
   Zap,
   Wallet,
-  SlidersHorizontal
+  MapPin,
+  SlidersHorizontal,
+  ChevronRight
 } from 'lucide-react-native';
 import { mockDb } from '../../services/mockDb';
 
 const { width } = Dimensions.get('window');
 
+// Matched strictly to Reine palette
 const COLORS = {
   background: '#F7F7F9',
   surface: '#FFFFFF',
+  surfaceDark: '#18181B',
+  surfaceDarkActive: '#27272A',
+
   primary: '#E64E76',
   primaryLight: '#FFF0F3',
+
   textMain: '#18181B',
   textMuted: '#71717A',
   border: '#E4E4E7',
+
   success: '#10B981',
   successBg: '#DCFCE7',
   successText: '#16A34A',
@@ -75,13 +87,10 @@ export default function OwnerFinance({ navigation, route }) {
   const fetchFinancials = async () => {
     setLoading(true);
     try {
-      const [collections, electricity, water, pettyCash, otherExp] = await Promise.all([
-        mockDb.getAll('dailyCollections'),
-        mockDb.getAll('electricityBills'),
-        mockDb.getAll('waterBills'),
-        mockDb.getAll('pettyCash'),
-        mockDb.getAll('otherExpenses')
-      ]);
+      const collections = await mockDb.getAll('dailyCollections');
+      const electricity = await mockDb.getAll('electricityBills');
+      const water = await mockDb.getAll('waterBills');
+      const pettyCash = await mockDb.getAll('pettyCash');
 
       const filterByProperty = (data, tab) => {
         if (tab === 'All Properties') return data;
@@ -93,13 +102,11 @@ export default function OwnerFinance({ navigation, route }) {
       const filteredElectricity = filterByProperty(electricity, activeTab);
       const filteredWater = filterByProperty(water, activeTab);
       const filteredPettyCash = filterByProperty(pettyCash, activeTab);
-      const filteredOther = filterByProperty(otherExp, activeTab);
 
       const rev = filteredCollections.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const exp = filteredElectricity.reduce((sum, item) => sum + Number(item.amount || 0), 0) +
                   filteredWater.reduce((sum, item) => sum + Number(item.amount || 0), 0) +
-                  filteredPettyCash.reduce((sum, item) => sum + Number(item.amount || 0), 0) +
-                  filteredOther.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+                  filteredPettyCash.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
       const propStats = Object.keys(PROPERTY_MAP).map(key => {
         const propName = PROPERTY_MAP[key];
@@ -117,8 +124,7 @@ export default function OwnerFinance({ navigation, route }) {
         ...filteredCollections.map(c => ({ id: `c-${c.id}`, type: 'income', title: 'Stay Collection', subtitle: `${c.property}`, amount: `+₱${Number(c.amount).toLocaleString()}`, date: c.date, icon: Banknote })),
         ...filteredElectricity.map(e => ({ id: `e-${e.id}`, type: 'expense', title: 'Electricity', subtitle: `${e.property}`, amount: `-₱${Number(e.amount).toLocaleString()}`, date: e.date, icon: Zap })),
         ...filteredWater.map(w => ({ id: `w-${w.id}`, type: 'expense', title: 'Water Bill', subtitle: `${w.property}`, amount: `-₱${Number(w.amount).toLocaleString()}`, date: w.date, icon: Droplet })),
-        ...filteredPettyCash.map(p => ({ id: `p-${p.id}`, type: 'expense', title: p.category || 'Petty Cash', subtitle: `${p.property}`, amount: `-₱${Number(p.amount).toLocaleString()}`, date: p.date, icon: Banknote })),
-        ...filteredOther.map(o => ({ id: `o-${o.id}`, type: 'expense', title: o.type || 'Other Utility', subtitle: `${o.property}`, amount: `-₱${Number(o.amount).toLocaleString()}`, date: o.date, icon: Banknote }))
+        ...filteredPettyCash.map(p => ({ id: `p-${p.id}`, type: 'expense', title: p.category, subtitle: `${p.property}`, amount: `-₱${Number(p.amount).toLocaleString()}`, date: p.date, icon: Banknote }))
       ];
 
       allTx.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -139,7 +145,6 @@ export default function OwnerFinance({ navigation, route }) {
 
   useFocusEffect(
     useCallback(() => {
-      fadeAnim.setValue(0);
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 500,
@@ -161,9 +166,11 @@ export default function OwnerFinance({ navigation, route }) {
         bounces={false}
         style={{ opacity: fadeAnim }}
       >
+        {/* ── FULL-BLEED HERO ── */}
         <View style={styles.heroContainer}>
           <ImageBackground source={{ uri: HERO_IMAGE }} style={styles.heroImage}>
             <View style={styles.heroOverlay} />
+
             <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top + 10 : StatusBar.currentHeight + 8 }]}>
               <View style={styles.topBar}>
                 <View style={styles.locationPill}>
@@ -174,18 +181,20 @@ export default function OwnerFinance({ navigation, route }) {
                   <SlidersHorizontal size={18} color="#FFFFFF" strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
+
               <View style={styles.heroBottomContent}>
                 <Text style={styles.heroSubStat}>NET OPERATING INCOME</Text>
                 <Text style={styles.heroMainStat}>₱{financialData.netIncome.toLocaleString()}</Text>
                 <View style={styles.trendPill}>
                   <TrendingUp size={16} color={COLORS.successText} strokeWidth={3} />
-                  <Text style={styles.trendPillText}>Live Portfolio Sync</Text>
+                  <Text style={styles.trendPillText}>+8.2% growth this month</Text>
                 </View>
               </View>
             </View>
           </ImageBackground>
         </View>
 
+        {/* ── QUICK TAB PILLS ── */}
         <View style={styles.quickActionsWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickActionsScroll}>
             {TABS.map((tab) => {
@@ -194,6 +203,7 @@ export default function OwnerFinance({ navigation, route }) {
                 <TouchableOpacity
                   key={tab}
                   style={[styles.actionPillLight, isActive && styles.actionPillLightActive]}
+                  activeOpacity={0.8}
                   onPress={() => setActiveTab(tab)}
                 >
                   <Text style={[styles.actionPillLightText, isActive && styles.actionPillLightTextActive]}>{tab}</Text>
@@ -204,9 +214,11 @@ export default function OwnerFinance({ navigation, route }) {
         </View>
 
         <View style={styles.mainContent}>
+          {/* ── NOI BREAKDOWN CARD ── */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Performance Breakdown</Text>
           </View>
+
           <View style={styles.noiCard}>
              <View style={styles.noiRow}>
                <View style={styles.noiItem}>
@@ -221,9 +233,11 @@ export default function OwnerFinance({ navigation, route }) {
              </View>
           </View>
 
+          {/* ── PROPERTY COLLECTIONS ── */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Daily Collections</Text>
           </View>
+
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.collectionsScroll}>
             {financialData.propertyCollections.map((col) => (
               <View key={col.id} style={styles.collectionCard}>
@@ -232,11 +246,14 @@ export default function OwnerFinance({ navigation, route }) {
                   <View style={styles.collectionBadge}><Text style={styles.collectionBadgeText}>{col.progress}</Text></View>
                 </View>
                 <Text style={styles.collectionAmount}>{col.amount}</Text>
-                <View style={styles.progressTrack}><View style={[styles.progressFill, { width: col.progress }]} /></View>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: col.progress }]} />
+                </View>
               </View>
             ))}
           </ScrollView>
 
+          {/* ── RECENT TRANSACTIONS ── */}
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Recent Transactions</Text>
             <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')}>
@@ -245,7 +262,7 @@ export default function OwnerFinance({ navigation, route }) {
           </View>
 
           <View style={styles.transactionsContainer}>
-            {financialData.recentTransactions.map((tx) => {
+            {financialData.recentTransactions.map((tx, index) => {
               const isIncome = tx.type === 'income';
               return (
                 <View key={tx.id} style={styles.transactionItem}>
@@ -262,17 +279,31 @@ export default function OwnerFinance({ navigation, route }) {
             })}
           </View>
         </View>
+
         <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
 
+      {/* ── PINK PILL BOTTOM NAV ── */}
       <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 10, 32) : 24 }]}>
         <View style={styles.bottomNav}>
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem}><LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} /></TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={styles.navItem}><Calendar size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} /></TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={styles.navItem}><BarChart2 size={22} color={activeNav === 'Finance' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} /></TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={styles.navItem}><BookOpen size={22} color={activeNav === 'Ledger' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} /></TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={styles.navItem}><PieChart size={22} color={activeNav === 'Insights' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} /></TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={styles.navItem}><Settings size={22} color={activeNav === 'Settings' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} /></TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerDashboard')} style={styles.navItem} activeOpacity={0.8}>
+            <LayoutGrid size={22} color={activeNav === 'Property' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} style={styles.navItem} activeOpacity={0.8}>
+            <Calendar size={22} color={activeNav === 'Bookings' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerFinance')} style={styles.navItem} activeOpacity={0.8}>
+            <BarChart2 size={22} color={activeNav === 'Finance' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerLedger')} style={styles.navItem} activeOpacity={0.8}>
+            <BookOpen size={22} color={activeNav === 'Ledger' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerInsights')} style={styles.navItem} activeOpacity={0.8}>
+            <PieChart size={22} color={activeNav === 'Insights' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('OwnerSettings')} style={styles.navItem} activeOpacity={0.8}>
+            <Settings size={22} color={activeNav === 'Settings' ? '#FFFFFF' : 'rgba(255,255,255,0.6)'} />
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -296,17 +327,20 @@ const styles = StyleSheet.create({
   heroSubStat: { fontSize: 13, fontWeight: '800', color: 'rgba(255,255,255,0.8)', letterSpacing: 1.5, textAlign: 'center' },
   trendPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 100, paddingHorizontal: 16, paddingVertical: 8, marginTop: 8 },
   trendPillText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600', marginLeft: 8 },
+
   quickActionsWrapper: { marginTop: 24, marginBottom: 12 },
   quickActionsScroll: { paddingHorizontal: 24, gap: 10, alignItems: 'center' },
   actionPillLight: { backgroundColor: COLORS.surface, paddingHorizontal: 20, height: 44, justifyContent: 'center', borderRadius: 100, borderWidth: 1, borderColor: COLORS.border },
   actionPillLightActive: { backgroundColor: COLORS.primaryLight, borderColor: COLORS.primary },
   actionPillLightText: { color: COLORS.textMain, fontSize: 14, fontWeight: '600' },
   actionPillLightTextActive: { color: COLORS.primary, fontWeight: '700' },
+
   mainContent: { paddingHorizontal: 24, paddingTop: 16 },
   sectionHeader: { marginBottom: 16 },
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.textMain, letterSpacing: -0.5 },
   viewAllText: { fontSize: 14, fontWeight: '800', color: COLORS.primary },
+
   noiCard: { backgroundColor: COLORS.surface, borderRadius: 24, padding: 24, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border },
   noiRow: { flexDirection: 'row', alignItems: 'center' },
   noiItem: { flex: 1, alignItems: 'center' },
@@ -314,6 +348,7 @@ const styles = StyleSheet.create({
   noiValueGreen: { fontSize: 20, fontWeight: '800', color: COLORS.successText },
   noiValueRed: { fontSize: 20, fontWeight: '800', color: COLORS.dangerText },
   noiDivider: { width: 1, height: 40, backgroundColor: COLORS.border, marginHorizontal: 20 },
+
   collectionsScroll: { gap: 16, paddingBottom: 24 },
   collectionCard: { width: 160, backgroundColor: COLORS.surface, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: COLORS.border },
   collectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
@@ -323,6 +358,7 @@ const styles = StyleSheet.create({
   collectionAmount: { fontSize: 22, fontWeight: '800', color: COLORS.textMain, marginBottom: 16 },
   progressTrack: { height: 6, backgroundColor: COLORS.background, borderRadius: 3 },
   progressFill: { height: '100%', backgroundColor: COLORS.primary, borderRadius: 3 },
+
   transactionsContainer: { backgroundColor: COLORS.surface, borderRadius: 24, paddingHorizontal: 20, borderWidth: 1, borderColor: COLORS.border, marginBottom: 24 },
   transactionItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: COLORS.background },
   txIconBox: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
@@ -330,6 +366,7 @@ const styles = StyleSheet.create({
   txTitle: { fontSize: 15, fontWeight: '800', color: COLORS.textMain, marginBottom: 2 },
   txSubtitle: { fontSize: 12, fontWeight: '500', color: COLORS.textMuted },
   txAmount: { fontSize: 16, fontWeight: '800' },
+
   bottomSpacer: { height: 160 },
   bottomNavContainer: { position: 'absolute', alignSelf: 'center', width: '90%', zIndex: 100 },
   bottomNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.primary, borderRadius: 100, paddingVertical: 12, paddingHorizontal: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 20 },
